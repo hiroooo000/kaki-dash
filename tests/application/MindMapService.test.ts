@@ -46,7 +46,7 @@ describe('MindMapService', () => {
 
     it('should add sibling node after', () => {
         const child1 = service.addNode('root', 'Child 1');
-        const child2 = service.addNode('root', 'Child 2');
+        service.addNode('root', 'Child 2'); // Keep the side effect of adding a node, but don't assign to unused var
 
         expect(child1).toBeDefined();
         if (child1) {

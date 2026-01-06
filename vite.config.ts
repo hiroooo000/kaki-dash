@@ -6,8 +6,8 @@ export default defineConfig({
     build: {
         lib: {
             entry: path.resolve(__dirname, 'src/index.ts'),
-            name: 'KakidashiBoard',
-            fileName: (format) => `kakidashi-board.${format}.js`
+            name: 'kakidash',
+            fileName: (format) => `kakidash.${format}.js`
         },
         rollupOptions: {
             external: [], // 外部依存があればここに追加
