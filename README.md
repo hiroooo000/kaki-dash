@@ -1,4 +1,4 @@
-# kakidashi-board
+# kakidash
 
 Mindmap Javascript Library
 
