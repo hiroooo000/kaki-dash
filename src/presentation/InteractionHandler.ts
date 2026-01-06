@@ -258,7 +258,11 @@ export class InteractionHandler {
             }
         });
 
-        this.container.appendChild(input);
+        if (element.parentElement) {
+            element.parentElement.appendChild(input);
+        } else {
+            this.container.appendChild(input);
+        }
         input.focus();
     }
 }
