@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kakidashi Board Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { KakidashiBoard } from '/src/index.ts';
+
+    try {
+      const app = document.getElementById('app');
+      console.log('App element:', app);
+      const board = new KakidashiBoard(app);
+
+      // Add some sample nodes
+      const rootId = board.getRootId();
+      const child1 = board.addNode(rootId, 'Child 1');
+      const child2 = board.addNode(rootId, 'Child 2');
+
+      if (child1) {
+        board.addNode(child1.id, 'GrandChild 1.1');
+        board.addNode(child1.id, 'GrandChild 1.2');
+      }
+
+      console.log('Board initialized');
+    } catch (e) {
+      console.error('Initialization error:', e);
+      document.body.innerHTML += `<div style="color:red; padding: 20px;">Error: ${e.message}</div>`;
+    }
+  </script>
+</body>
+
+</html>

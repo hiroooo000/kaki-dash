@@ -16,7 +16,7 @@
         "dist"
     ],
     "scripts": {
-        "dev": "vite",
+        "dev": "vite --host",
         "build": "tsc && vite build",
         "test": "vitest",
         "lint": "eslint src tests --ext .ts",

@@ -1,0 +1,58 @@
+import { Node } from './Node';
+
+export class MindMap {
+    root: Node;
+
+    constructor(rootNode: Node) {
+        this.root = rootNode;
+    }
+
+    findNode(id: string): Node | null {
+        return this.findNodeRecursive(this.root, id);
+    }
+
+    private findNodeRecursive(current: Node, id: string): Node | null {
+        if (current.id === id) {
+            return current;
+        }
+        for (const child of current.children) {
+            const found = this.findNodeRecursive(child, id);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    moveNode(nodeId: string, newParentId: string): boolean {
+        const node = this.findNode(nodeId);
+        const newParent = this.findNode(newParentId);
+
+        if (!node || !newParent) return false;
+        if (node.isRoot) return false; // Cannot move root
+        if (node.parentId === newParentId) return false; // Already there
+
+        // Cycle detection: cannot move to a descendant
+        if (this.isDescendant(node, newParentId)) return false;
+
+        // Remove from old parent
+        if (node.parentId) {
+            const oldParent = this.findNode(node.parentId);
+            if (oldParent) {
+                oldParent.removeChild(nodeId);
+            }
+        }
+
+        // Add to new parent
+        newParent.addChild(node);
+        return true;
+    }
+
+    private isDescendant(ancestor: Node, targetId: string): boolean {
+        if (ancestor.id === targetId) return true;
+        for (const child of ancestor.children) {
+            if (this.isDescendant(child, targetId)) return true;
+        }
+        return false;
+    }
+}

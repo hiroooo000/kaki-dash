@@ -7,7 +7,8 @@ describe('KakidashiBoard', () => {
     });
 
     it('should be instantiable', () => {
-        const board = new KakidashiBoard();
+        const container = document.createElement('div');
+        const board = new KakidashiBoard(container);
         expect(board).toBeInstanceOf(KakidashiBoard);
     });
 });
