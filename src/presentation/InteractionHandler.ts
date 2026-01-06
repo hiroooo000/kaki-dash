@@ -1,3 +1,5 @@
+export type Direction = 'Up' | 'Down' | 'Left' | 'Right';
+
 export interface InteractionOptions {
     onNodeClick: (nodeId: string) => void;
     onAddChild: (parentId: string) => void;
@@ -5,6 +7,7 @@ export interface InteractionOptions {
     onDeleteNode: (nodeId: string) => void;
     onDropNode: (draggedId: string, targetId: string) => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
+    onNavigate?: (nodeId: string, direction: Direction) => void;
 }
 
 export class InteractionHandler {
@@ -43,8 +46,12 @@ export class InteractionHandler {
             if (!this.selectedNodeId) return;
 
             // Prevent default browser behaviors for these keys
-            if (['Tab', 'Enter', 'Delete', 'Backspace'].includes(e.key)) {
+            const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+            const actionKeys = ['Tab', 'Enter', 'Delete', 'Backspace'];
+
+            if (actionKeys.includes(e.key) || navKeys.includes(e.key)) {
                 // Need to be careful not to block typing if we add editing later
+                // Editing input handles its own keydown and stops propagation, so this is safe for global shortcuts
                 e.preventDefault();
             }
 
@@ -58,6 +65,18 @@ export class InteractionHandler {
                 case 'Delete':
                 case 'Backspace':
                     this.options.onDeleteNode(this.selectedNodeId);
+                    break;
+                case 'ArrowUp':
+                    this.options.onNavigate?.(this.selectedNodeId, 'Up');
+                    break;
+                case 'ArrowDown':
+                    this.options.onNavigate?.(this.selectedNodeId, 'Down');
+                    break;
+                case 'ArrowLeft':
+                    this.options.onNavigate?.(this.selectedNodeId, 'Left');
+                    break;
+                case 'ArrowRight':
+                    this.options.onNavigate?.(this.selectedNodeId, 'Right');
                     break;
                 case 'F2':
                     e.preventDefault();

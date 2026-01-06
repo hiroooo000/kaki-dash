@@ -2,7 +2,7 @@ import { MindMap } from './domain/entities/MindMap';
 import { Node } from './domain/entities/Node';
 import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
-import { InteractionHandler } from './presentation/InteractionHandler';
+import { InteractionHandler, Direction } from './presentation/InteractionHandler';
 
 export class KakidashiBoard {
   private mindMap: MindMap;
@@ -23,7 +23,8 @@ export class KakidashiBoard {
       onAddSibling: (nodeId) => this.addSiblingNode(nodeId),
       onDeleteNode: (nodeId) => this.removeNode(nodeId),
       onDropNode: (draggedId, targetId) => this.moveNode(draggedId, targetId),
-      onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic)
+      onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic),
+      onNavigate: (nodeId, direction) => this.navigateNode(nodeId, direction)
     });
 
     this.render();
@@ -85,6 +86,47 @@ export class KakidashiBoard {
 
   private render(): void {
     this.renderer.render(this.mindMap, this.selectedNodeId);
+  }
+
+  navigateNode(nodeId: string, direction: Direction): void {
+    const node = this.mindMap.findNode(nodeId);
+    if (!node) return;
+
+    switch (direction) {
+      case 'Left':
+        if (node.parentId) {
+          this.selectNode(node.parentId);
+        }
+        break;
+      case 'Right':
+        if (node.children.length > 0) {
+          // Select first child as per user request
+          this.selectNode(node.children[0].id);
+        }
+        break;
+      case 'Up':
+        if (node.parentId) {
+          const parent = this.mindMap.findNode(node.parentId);
+          if (parent) {
+            const index = parent.children.findIndex((c: Node) => c.id === nodeId);
+            if (index > 0) {
+              this.selectNode(parent.children[index - 1].id);
+            }
+          }
+        }
+        break;
+      case 'Down':
+        if (node.parentId) {
+          const parent = this.mindMap.findNode(node.parentId);
+          if (parent) {
+            const index = parent.children.findIndex((c: Node) => c.id === nodeId);
+            if (index !== -1 && index < parent.children.length - 1) {
+              this.selectNode(parent.children[index + 1].id);
+            }
+          }
+        }
+        break;
+    }
   }
 
   getRootId(): string {
