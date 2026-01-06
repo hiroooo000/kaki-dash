@@ -42,4 +42,17 @@ export class MindMapService {
     moveNode(nodeId: string, newParentId: string): boolean {
         return this.mindMap.moveNode(nodeId, newParentId);
     }
+
+    addSibling(referenceId: string, position: 'before' | 'after', topic: string = 'New Node'): Node | null {
+        const referenceNode = this.mindMap.findNode(referenceId);
+        if (!referenceNode || !referenceNode.parentId) return null;
+
+        const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
+        const newNode = new Node(id, topic);
+
+        if (this.mindMap.addSibling(referenceId, newNode, position)) {
+            return newNode;
+        }
+        return null;
+    }
 }

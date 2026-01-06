@@ -20,7 +20,7 @@ export class KakidashiBoard {
     this.interactionHandler = new InteractionHandler(container, {
       onNodeClick: (nodeId) => this.selectNode(nodeId || null),
       onAddChild: (parentId) => this.addChildNode(parentId),
-      onAddSibling: (nodeId) => this.addSiblingNode(nodeId),
+      onAddSibling: (nodeId, position) => this.addSiblingNode(nodeId, position),
       onDeleteNode: (nodeId) => this.removeNode(nodeId),
       onDropNode: (draggedId, targetId) => this.moveNode(draggedId, targetId),
       onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic),
@@ -45,11 +45,12 @@ export class KakidashiBoard {
     }
   }
 
-  addSiblingNode(nodeId: string): void {
+  addSiblingNode(nodeId: string, position: 'before' | 'after' = 'after'): void {
     const node = this.mindMap.findNode(nodeId);
     if (node && node.parentId) {
-      const newNode = this.addNode(node.parentId, 'New Sibling');
+      const newNode = this.service.addSibling(nodeId, position, 'New Sibling');
       if (newNode) {
+        this.render();
         this.selectNode(newNode.id);
       }
     }

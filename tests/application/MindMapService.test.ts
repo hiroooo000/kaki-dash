@@ -43,4 +43,29 @@ describe('MindMapService', () => {
         const result = service.removeNode('root');
         expect(result).toBe(false);
     });
+
+    it('should add sibling node after', () => {
+        const child1 = service.addNode('root', 'Child 1');
+        const child2 = service.addNode('root', 'Child 2');
+
+        expect(child1).toBeDefined();
+        if (child1) {
+            const result = service.addSibling(child1.id, 'after', 'Sibling After');
+            expect(result).toBeDefined();
+            expect(result?.parentId).toBe('root');
+            expect(root.children[1].topic).toBe('Sibling After');
+        }
+    });
+
+    it('should add sibling node before', () => {
+        const child1 = service.addNode('root', 'Child 1');
+
+        expect(child1).toBeDefined();
+        if (child1) {
+            const result = service.addSibling(child1.id, 'before', 'Sibling Before');
+            expect(result).toBeDefined();
+            expect(result?.parentId).toBe('root');
+            expect(root.children[0].topic).toBe('Sibling Before');
+        }
+    });
 });

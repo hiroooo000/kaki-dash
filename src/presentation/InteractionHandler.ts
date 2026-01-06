@@ -3,7 +3,7 @@ export type Direction = 'Up' | 'Down' | 'Left' | 'Right';
 export interface InteractionOptions {
     onNodeClick: (nodeId: string) => void;
     onAddChild: (parentId: string) => void;
-    onAddSibling: (nodeId: string) => void;
+    onAddSibling: (nodeId: string, position: 'before' | 'after') => void;
     onDeleteNode: (nodeId: string) => void;
     onDropNode: (draggedId: string, targetId: string) => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
@@ -60,7 +60,7 @@ export class InteractionHandler {
                     this.options.onAddChild(this.selectedNodeId);
                     break;
                 case 'Enter':
-                    this.options.onAddSibling(this.selectedNodeId);
+                    this.options.onAddSibling(this.selectedNodeId, e.shiftKey ? 'before' : 'after');
                     break;
                 case 'Delete':
                 case 'Backspace':

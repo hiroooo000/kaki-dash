@@ -48,6 +48,21 @@ export class MindMap {
         return true;
     }
 
+    addSibling(referenceId: string, newNode: Node, position: 'before' | 'after'): boolean {
+        const referenceNode = this.findNode(referenceId);
+        if (!referenceNode || !referenceNode.parentId) return false; // Root has no siblings
+
+        const parent = this.findNode(referenceNode.parentId);
+        if (!parent) return false;
+
+        const index = parent.children.findIndex(child => child.id === referenceId);
+        if (index === -1) return false;
+
+        const insertIndex = position === 'before' ? index : index + 1;
+        parent.insertChild(newNode, insertIndex);
+        return true;
+    }
+
     private isDescendant(ancestor: Node, targetId: string): boolean {
         if (ancestor.id === targetId) return true;
         for (const child of ancestor.children) {
