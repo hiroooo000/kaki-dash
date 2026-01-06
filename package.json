@@ -1,22 +1,22 @@
 {
-    "name": "kakidashi-board",
+    "name": "kakidash",
     "version": "0.0.1",
     "description": "Mindmap Javascript Library",
     "type": "module",
-    "main": "./dist/kakidashi-board.umd.js",
-    "module": "./dist/kakidashi-board.es.js",
+    "main": "./dist/kakidash.umd.js",
+    "module": "./dist/kakidash.es.js",
     "types": "./dist/index.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/kakidashi-board.es.js",
-            "require": "./dist/kakidashi-board.umd.js"
+            "import": "./dist/kakidash.es.js",
+            "require": "./dist/kakidash.umd.js"
         }
     },
     "files": [
         "dist"
     ],
     "scripts": {
-        "dev": "vite",
+        "dev": "vite --host",
         "build": "tsc && vite build",
         "test": "vitest",
         "lint": "eslint src tests --ext .ts",
@@ -35,6 +35,7 @@
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-prettier": "^5.1.3",
+        "happy-dom": "^20.0.11",
         "prettier": "^3.2.5",
         "typescript": "^5.4.0",
         "vite": "^5.2.0",

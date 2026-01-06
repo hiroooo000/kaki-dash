@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
 import { KakidashiBoard } from '../src/index';
 
@@ -7,7 +8,8 @@ describe('KakidashiBoard', () => {
     });
 
     it('should be instantiable', () => {
-        const board = new KakidashiBoard();
+        const container = document.createElement('div');
+        const board = new KakidashiBoard(container);
         expect(board).toBeInstanceOf(KakidashiBoard);
     });
 });
