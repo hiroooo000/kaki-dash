@@ -9,6 +9,7 @@ export interface InteractionOptions {
     onDropNode: (draggedId: string, targetId: string) => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
     onNavigate?: (nodeId: string, direction: Direction) => void;
+    onPan?: (dx: number, dy: number) => void;
 }
 
 export class InteractionHandler {
@@ -16,6 +17,9 @@ export class InteractionHandler {
     options: InteractionOptions;
     selectedNodeId: string | null = null;
     draggedNodeId: string | null = null;
+    isPanning: boolean = false;
+    lastMouseX: number = 0;
+    lastMouseY: number = 0;
 
     constructor(container: HTMLElement, options: InteractionOptions) {
         this.container = container;
@@ -41,6 +45,41 @@ export class InteractionHandler {
                 this.options.onNodeClick('');
             }
         });
+
+        // Pan handling
+        this.container.addEventListener('mousedown', (e) => {
+            const target = e.target as HTMLElement;
+            // Only start panning if clicking background (not a node/input)
+            if (!target.closest('.mindmap-node') && target.tagName !== 'INPUT') {
+                this.isPanning = true;
+                this.lastMouseX = e.clientX;
+                this.lastMouseY = e.clientY;
+                this.container.style.cursor = 'grabbing';
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (this.isPanning) {
+                const dx = e.clientX - this.lastMouseX;
+                const dy = e.clientY - this.lastMouseY;
+                this.lastMouseX = e.clientX;
+                this.lastMouseY = e.clientY;
+
+                if (this.options.onPan) {
+                    this.options.onPan(dx, dy);
+                }
+            }
+        });
+
+        const stopPanning = () => {
+            if (this.isPanning) {
+                this.isPanning = false;
+                this.container.style.cursor = '';
+            }
+        };
+
+        window.addEventListener('mouseup', stopPanning);
+        window.addEventListener('mouseleave', stopPanning);
 
         // Keyboard handling
         document.addEventListener('keydown', (e) => {

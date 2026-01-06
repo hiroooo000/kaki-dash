@@ -45,6 +45,12 @@ export class SvgRenderer implements Renderer {
         this.renderNode(mindMap.root, 50, window.innerHeight / 2, selectedNodeId);
     }
 
+    updateTransform(panX: number, panY: number): void {
+        const transform = `translate(${panX}px, ${panY}px)`;
+        this.svg.style.transform = transform;
+        this.nodeContainer.style.transform = transform;
+    }
+
     private renderNode(node: Node, x: number, y: number, selectedNodeId: string | null): void {
         const el = document.createElement('div');
         el.textContent = node.topic;

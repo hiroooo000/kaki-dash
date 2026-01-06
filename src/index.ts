@@ -10,6 +10,8 @@ export class KakidashiBoard {
   private renderer: SvgRenderer;
   private interactionHandler: InteractionHandler;
   private selectedNodeId: string | null = null;
+  private panX: number = 0;
+  private panY: number = 0;
 
   constructor(container: HTMLElement) {
     const rootNode = new Node('root', 'Root Topic', null, true);
@@ -25,7 +27,8 @@ export class KakidashiBoard {
       onDeleteNode: (nodeId) => this.removeNode(nodeId),
       onDropNode: (draggedId, targetId) => this.moveNode(draggedId, targetId),
       onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic),
-      onNavigate: (nodeId, direction) => this.navigateNode(nodeId, direction)
+      onNavigate: (nodeId, direction) => this.navigateNode(nodeId, direction),
+      onPan: (dx, dy) => this.panBoard(dx, dy)
     });
 
     this.render();
@@ -94,8 +97,22 @@ export class KakidashiBoard {
     this.render();
   }
 
+  panBoard(dx: number, dy: number): void {
+    this.panX += dx;
+    this.panY += dy;
+    this.renderer.updateTransform(this.panX, this.panY);
+  }
+
   private render(): void {
     this.renderer.render(this.mindMap, this.selectedNodeId);
+    // Maintain pan position after re-render (since nodeContainer might be cleared)
+    // Actually updateTransform applies style to the container element which persists?
+    // SvgRenderer implementation clears innerHTML but the container element itself (svg / nodeContainer) persists.
+    // Wait, SvgRenderer constructor creates elements.
+    // 'render' clears previous render -> innerHTML = ''.
+    // It doesn't replace the elements or reset styles on the containers.
+    // So transform should persist. Best to re-apply to be safe or if render logic changes.
+    this.renderer.updateTransform(this.panX, this.panY);
   }
 
   navigateNode(nodeId: string, direction: Direction): void {
