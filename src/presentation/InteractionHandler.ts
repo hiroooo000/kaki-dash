@@ -59,6 +59,14 @@ export class InteractionHandler {
                 case 'Backspace':
                     this.options.onDeleteNode(this.selectedNodeId);
                     break;
+                case 'F2':
+                    e.preventDefault();
+                    // Find the node element to start editing
+                    const selectedNodeEl = this.container.querySelector(`.mindmap-node[data-id="${this.selectedNodeId}"]`) as HTMLElement;
+                    if (selectedNodeEl) {
+                        this.startEditing(selectedNodeEl, this.selectedNodeId);
+                    }
+                    break;
             }
         });
 
@@ -166,6 +174,13 @@ export class InteractionHandler {
         };
 
         input.addEventListener('blur', finishEditing);
+
+        const cancelEditing = () => {
+            if (input.parentNode) {
+                input.remove();
+            }
+        };
+
         input.addEventListener('keydown', (e) => {
             // Stop propagation to prevent global shortcuts (like Enter adding sibling, Backspace deleting node)
             e.stopPropagation();
@@ -174,6 +189,9 @@ export class InteractionHandler {
                 // Prevent default to ensure no newline is added if it were a textarea (safety)
                 e.preventDefault();
                 finishEditing();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEditing();
             }
         });
 
