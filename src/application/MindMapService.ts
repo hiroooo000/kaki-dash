@@ -55,4 +55,17 @@ export class MindMapService {
         }
         return null;
     }
+
+    insertParent(targetId: string, topic: string = 'New Parent'): Node | null {
+        const targetNode = this.mindMap.findNode(targetId);
+        if (!targetNode || !targetNode.parentId) return null;
+
+        const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
+        const newParentNode = new Node(id, topic);
+
+        if (this.mindMap.insertParent(targetId, newParentNode)) {
+            return newParentNode;
+        }
+        return null;
+    }
 }

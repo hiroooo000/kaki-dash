@@ -4,6 +4,7 @@ export interface InteractionOptions {
     onNodeClick: (nodeId: string) => void;
     onAddChild: (parentId: string) => void;
     onAddSibling: (nodeId: string, position: 'before' | 'after') => void;
+    onInsertParent?: (nodeId: string) => void;
     onDeleteNode: (nodeId: string) => void;
     onDropNode: (draggedId: string, targetId: string) => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
@@ -57,7 +58,11 @@ export class InteractionHandler {
 
             switch (e.key) {
                 case 'Tab':
-                    this.options.onAddChild(this.selectedNodeId);
+                    if (e.shiftKey) {
+                        this.options.onInsertParent?.(this.selectedNodeId);
+                    } else {
+                        this.options.onAddChild(this.selectedNodeId);
+                    }
                     break;
                 case 'Enter':
                     this.options.onAddSibling(this.selectedNodeId, e.shiftKey ? 'before' : 'after');

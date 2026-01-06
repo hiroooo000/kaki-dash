@@ -63,6 +63,30 @@ export class MindMap {
         return true;
     }
 
+    insertParent(targetId: string, newParentNode: Node): boolean {
+        const targetNode = this.findNode(targetId);
+        if (!targetNode || !targetNode.parentId) return false; // Cannot insert parent for root
+
+        const currentParent = this.findNode(targetNode.parentId);
+        if (!currentParent) return false;
+
+        // 1. Determine the index of the target node in the current parent
+        const index = currentParent.children.findIndex(c => c.id === targetId);
+        if (index === -1) return false;
+
+        // 2. Remove target node from current parent
+        // We use splice to remove it but we need to reference the node instance, which we already have in 'targetNode'
+        currentParent.removeChild(targetId);
+
+        // 3. Insert the new parent node at the same position
+        currentParent.insertChild(newParentNode, index);
+
+        // 4. Add the target node as a child of the new parent
+        newParentNode.addChild(targetNode);
+
+        return true;
+    }
+
     private isDescendant(ancestor: Node, targetId: string): boolean {
         if (ancestor.id === targetId) return true;
         for (const child of ancestor.children) {

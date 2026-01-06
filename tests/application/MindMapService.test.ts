@@ -68,4 +68,27 @@ describe('MindMapService', () => {
             expect(root.children[0].topic).toBe('Sibling Before');
         }
     });
+
+    it('should insert parent node', () => {
+        const child1 = service.addNode('root', 'Child 1');
+
+        expect(child1).toBeDefined();
+        if (child1) {
+            const newNode = service.insertParent(child1.id, 'New Parent');
+            expect(newNode).toBeDefined();
+
+            // Verify hierarchy: Root -> New Parent -> Child 1
+            expect(newNode?.parentId).toBe('root');
+            expect(child1.parentId).toBe(newNode?.id);
+            expect(root.children).toContain(newNode);
+            expect(newNode?.children).toContain(child1);
+            expect(root.children).not.toContain(child1);
+        }
+    });
+
+    it('should not insert parent for root', () => {
+        root.isRoot = true;
+        const result = service.insertParent('root');
+        expect(result).toBeNull();
+    });
 });
