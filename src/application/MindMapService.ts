@@ -9,12 +9,12 @@ export class MindMapService {
         this.mindMap = mindMap;
     }
 
-    addNode(parentId: string, topic: string = 'New Node'): Node | null {
+    addNode(parentId: string, topic: string = 'New Node', layoutSide?: 'left' | 'right'): Node | null {
         const parent = this.mindMap.findNode(parentId);
         if (!parent) return null;
 
         const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
-        const newNode = new Node(id, topic);
+        const newNode = new Node(id, topic, null, false, undefined, layoutSide);
         parent.addChild(newNode);
         return newNode;
     }
@@ -60,8 +60,15 @@ export class MindMapService {
         return false;
     }
 
-    moveNode(nodeId: string, newParentId: string): boolean {
-        return this.mindMap.moveNode(nodeId, newParentId);
+    moveNode(nodeId: string, newParentId: string, layoutSide?: 'left' | 'right'): boolean {
+        if (this.mindMap.moveNode(nodeId, newParentId)) {
+            if (layoutSide) {
+                const node = this.mindMap.findNode(nodeId);
+                if (node) node.layoutSide = layoutSide;
+            }
+            return true;
+        }
+        return false;
     }
 
     addSibling(referenceId: string, position: 'before' | 'after', topic: string = 'New Node'): Node | null {
@@ -130,7 +137,7 @@ export class MindMapService {
     }
 
     private deepCloneNode(node: Node): Node {
-        const clone = new Node(node.id, node.topic, null, false, node.image);
+        const clone = new Node(node.id, node.topic, null, false, node.image, node.layoutSide);
         clone.style = { ...node.style };
         // Determine how to handle children. Recursively clone them.
         clone.children = node.children.map(child => this.deepCloneNode(child));
@@ -155,7 +162,8 @@ export class MindMapService {
                 root: node.isRoot || undefined,
                 children: node.children.length > 0 ? node.children.map(buildNodeData) : undefined,
                 style: Object.keys(node.style).length > 0 ? node.style : undefined,
-                image: node.image
+                image: node.image,
+                layoutSide: node.layoutSide
             };
             return data;
         };
@@ -168,7 +176,7 @@ export class MindMapService {
     importData(data: MindMapData): void {
         const buildNodeFromData = (data: MindMapNodeData, parentId: string | null = null): Node => {
             const isRoot = !!data.root;
-            const node = new Node(data.id, data.topic, parentId, isRoot, data.image);
+            const node = new Node(data.id, data.topic, parentId, isRoot, data.image, data.layoutSide);
 
             if (data.style) {
                 node.style = { ...data.style };

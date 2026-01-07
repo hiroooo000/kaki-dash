@@ -183,7 +183,8 @@ export class SvgRenderer implements Renderer {
 
         if (isRoot && layoutMode === 'Both') {
             node.children.forEach((child, index) => {
-                if (index % 2 === 0) rightChildren.push(child);
+                const side = child.layoutSide || (index % 2 === 0 ? 'right' : 'left');
+                if (side === 'right') rightChildren.push(child);
                 else leftChildren.push(child);
             });
         } else if (layoutMode === 'Left') {

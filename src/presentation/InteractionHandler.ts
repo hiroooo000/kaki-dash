@@ -6,7 +6,7 @@ export interface InteractionOptions {
     onAddSibling: (nodeId: string, position: 'before' | 'after') => void;
     onInsertParent?: (nodeId: string) => void;
     onDeleteNode: (nodeId: string) => void;
-    onDropNode: (draggedId: string, targetId: string) => void;
+    onDropNode: (draggedId: string, targetId: string, side?: 'left' | 'right') => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
     onNavigate?: (nodeId: string, direction: Direction) => void;
     onPan?: (dx: number, dy: number) => void;
@@ -295,7 +295,12 @@ export class InteractionHandler {
             if (nodeEl && nodeEl.dataset.id && this.draggedNodeId) {
                 const targetId = nodeEl.dataset.id;
                 if (this.draggedNodeId !== targetId) {
-                    this.options.onDropNode(this.draggedNodeId, targetId);
+                    // Determine side
+                    const rect = nodeEl.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const side = e.clientX < centerX ? 'left' : 'right';
+
+                    this.options.onDropNode(this.draggedNodeId, targetId, side);
                 }
             }
             this.draggedNodeId = null;

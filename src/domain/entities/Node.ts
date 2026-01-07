@@ -14,8 +14,9 @@ export class Node {
     parentId: string | null;
     isRoot: boolean;
     image?: string;
+    layoutSide?: 'left' | 'right';
 
-    constructor(id: string, topic: string, parentId: string | null = null, isRoot: boolean = false, image?: string) {
+    constructor(id: string, topic: string, parentId: string | null = null, isRoot: boolean = false, image?: string, layoutSide?: 'left' | 'right') {
         this.id = id;
         this.topic = topic;
         this.children = [];
@@ -23,6 +24,7 @@ export class Node {
         this.parentId = parentId;
         this.isRoot = isRoot;
         this.image = image;
+        this.layoutSide = layoutSide;
     }
 
     addChild(node: Node): void {
