@@ -25,7 +25,12 @@ class MockHTMLElement {
             addEventListener: vi.fn(),
             setAttribute: vi.fn(),
             offsetWidth: 100,
-            offsetHeight: 30
+            offsetHeight: 30,
+            querySelector: vi.fn().mockReturnValue({ value: '', classList: { contains: vi.fn() }, style: {} }),
+            querySelectorAll: vi.fn().mockReturnValue([
+                { style: {}, classList: { add: vi.fn(), remove: vi.fn(), contains: vi.fn() }, dataset: {} },
+                { style: {}, classList: { add: vi.fn(), remove: vi.fn(), contains: vi.fn() }, dataset: {} }
+            ])
         };
     },
     createElementNS: (_ns: string, _tag: string) => {
