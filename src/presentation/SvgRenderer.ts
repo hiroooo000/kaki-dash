@@ -54,6 +54,7 @@ export class SvgRenderer implements Renderer {
 
     private renderNode(node: Node, x: number, y: number, selectedNodeId: string | null): void {
         const el = document.createElement('div');
+        el.dataset.id = node.id;
         if (node.image) {
             // Image Node
             const img = document.createElement('img');
@@ -65,18 +66,21 @@ export class SvgRenderer implements Renderer {
 
             // Zoom overlay/button
             const zoomBtn = document.createElement('div');
-            zoomBtn.innerHTML = '🔍';
+            // Lucide 'zoom-in' icon
+            zoomBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`;
             zoomBtn.style.position = 'absolute';
             zoomBtn.style.bottom = '5px';
             zoomBtn.style.right = '5px';
-            zoomBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+            zoomBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // Slightly more opaque
             zoomBtn.style.borderRadius = '50%';
             zoomBtn.style.width = '24px';
             zoomBtn.style.height = '24px';
-            zoomBtn.style.textAlign = 'center';
-            zoomBtn.style.lineHeight = '24px';
+            zoomBtn.style.display = 'flex';
+            zoomBtn.style.justifyContent = 'center';
+            zoomBtn.style.alignItems = 'center';
             zoomBtn.style.cursor = 'pointer';
             zoomBtn.title = 'Zoom Image';
+            zoomBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)'; // Add subtle shadow for depth
             el.appendChild(zoomBtn);
 
             zoomBtn.addEventListener('click', (e) => {
@@ -89,6 +93,27 @@ export class SvgRenderer implements Renderer {
             // Text Node
             el.textContent = node.topic;
             el.style.whiteSpace = 'pre-wrap';
+        }
+
+        el.className = 'mindmap-node';
+        if (!node.isRoot) {
+            el.draggable = true;
+        }
+
+        el.style.position = 'absolute';
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        el.style.transform = 'translate(0, -50%)';
+        el.style.padding = '8px 12px';
+        el.style.backgroundColor = 'white';
+        el.style.border = '1px solid #ccc';
+        el.style.borderRadius = '4px';
+        el.style.cursor = node.isRoot ? 'default' : 'grab';
+        el.style.zIndex = '10';
+        el.style.userSelect = 'none';
+
+        if (node.image) {
+            el.style.padding = '5px';
         }
 
         if (node.isRoot) {

@@ -27,6 +27,9 @@ export class InteractionHandler {
 
     constructor(container: HTMLElement, options: InteractionOptions) {
         this.container = container;
+        // Make container focusable to capture keyboard/paste events
+        this.container.tabIndex = 0;
+        this.container.style.outline = 'none';
         this.options = options;
         this.attachEvents();
     }
@@ -36,6 +39,11 @@ export class InteractionHandler {
     }
 
     private attachEvents(): void {
+        let pasteTimeout: any = null;
+
+        this.container.addEventListener('focus', () => { });
+        this.container.addEventListener('blur', () => { });
+
         // Click handling
         this.container.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
@@ -43,11 +51,13 @@ export class InteractionHandler {
 
             if (nodeEl && nodeEl.dataset.id) {
                 this.options.onNodeClick(nodeEl.dataset.id);
-                e.stopPropagation();
             } else {
                 // Deselect if clicking background
                 this.options.onNodeClick('');
             }
+
+            // Ensure container receives/retains focus AFTER render might have occurred
+            this.container.focus();
         });
 
         // Pan handling
@@ -142,8 +152,15 @@ export class InteractionHandler {
                     break;
                 case 'v':
                     if (e.metaKey || e.ctrlKey) {
-                        e.preventDefault();
-                        this.options.onPasteNode?.(this.selectedNodeId);
+                        // Do NOT prevent default here to allow 'paste' event to fire for images.
+                        // But set a timeout to fallback to internal paste if event doesn't fire.
+                        if (pasteTimeout) clearTimeout(pasteTimeout);
+
+                        pasteTimeout = setTimeout(() => {
+                            if (this.selectedNodeId) {
+                                this.options.onPasteNode?.(this.selectedNodeId);
+                            }
+                        }, 50);
                     }
                     break;
                 case 'x':
@@ -156,12 +173,27 @@ export class InteractionHandler {
         });
 
         // Paste handling (Image)
+        // Paste handling (Image & Node)
+        // Paste handling (Image & Node)
+        // Paste handling (Image & Node)
         document.addEventListener('paste', async (e) => {
+            // Cancel fallback timeout as event fired
+            if (pasteTimeout) {
+                clearTimeout(pasteTimeout);
+                pasteTimeout = null;
+            }
+
             if (!this.selectedNodeId) return;
 
             const clipboardItems = e.clipboardData?.items;
-            if (!clipboardItems) return;
 
+            if (!clipboardItems || clipboardItems.length === 0) {
+                // No clipboard data, fallback to internal paste
+                this.options.onPasteNode?.(this.selectedNodeId);
+                return;
+            }
+
+            let processed = false;
             for (const item of clipboardItems) {
                 if (item.type.startsWith('image/')) {
                     const blob = item.getAsFile();
@@ -174,9 +206,15 @@ export class InteractionHandler {
                         };
                         reader.readAsDataURL(blob);
                     }
-                    e.preventDefault(); // Prevent default paste behavior if we handled an image
+                    e.preventDefault();
+                    processed = true;
                     break;
                 }
+            }
+
+            if (!processed) {
+                // If no image was found/handled, assume it might be a node copy (internal)
+                this.options.onPasteNode?.(this.selectedNodeId);
             }
         });
 
@@ -198,7 +236,6 @@ export class InteractionHandler {
             if (nodeEl && nodeEl.dataset.id) {
                 this.draggedNodeId = nodeEl.dataset.id;
                 e.dataTransfer?.setData('text/plain', nodeEl.dataset.id);
-                // Optional: set drag image
                 if (e.dataTransfer) {
                     e.dataTransfer.effectAllowed = 'move';
                 }

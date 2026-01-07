@@ -62,7 +62,7 @@
 
     try {
       const app = document.getElementById('app');
-      console.log('App element:', app);
+
       const board = new KakidashiBoard(app);
 
       // Add some sample nodes
@@ -75,14 +75,13 @@
         board.addNode(child1.id, 'GrandChild 1.2');
       }
 
-      console.log('Board initialized');
+
 
       // GUI Event Listeners
       document.getElementById('btn-export').addEventListener('click', () => {
         const data = board.getData();
         const json = JSON.stringify(data, null, 2);
         document.getElementById('json-data').value = json;
-        console.log('Exported:', data);
       });
 
       document.getElementById('btn-import').addEventListener('click', () => {
@@ -90,7 +89,6 @@
         try {
           const data = JSON.parse(jsonStr);
           board.loadData(data);
-          console.log('Imported:', data);
         } catch (err) {
           console.error('Import failed:', err);
           alert('Invalid JSON');

@@ -87,6 +87,13 @@ export class MindMapService {
         const node = this.mindMap.findNode(nodeId);
         if (node) {
             this.clipboard = this.deepCloneNode(node);
+            // Write to system clipboard to ensure we clear any previous image data
+            // and to allow pasting text outside the app.
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(node.topic).catch(err => {
+                    console.error('Failed to write to clipboard', err);
+                });
+            }
         }
     }
 
