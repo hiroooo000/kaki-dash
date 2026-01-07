@@ -68,4 +68,54 @@ export class MindMapService {
         }
         return null;
     }
+
+    private clipboard: Node | null = null;
+
+    copyNode(nodeId: string): void {
+        const node = this.mindMap.findNode(nodeId);
+        if (node) {
+            this.clipboard = this.deepCloneNode(node);
+        }
+    }
+
+    cutNode(nodeId: string): void {
+        const node = this.mindMap.findNode(nodeId);
+        if (node && !node.isRoot && node.parentId) {
+            this.copyNode(nodeId);
+            this.removeNode(nodeId);
+        }
+    }
+
+    pasteNode(parentId: string): Node | null {
+        if (!this.clipboard) return null;
+
+        const parent = this.mindMap.findNode(parentId);
+        if (!parent) return null;
+
+        // Clone again from clipboard to create new instance for the tree
+        const newNode = this.deepCloneNode(this.clipboard);
+        // Regenerate IDs for the new node and its children
+        this.regenerateIds(newNode);
+
+        parent.addChild(newNode);
+        return newNode;
+    }
+
+    private deepCloneNode(node: Node): Node {
+        const clone = new Node(node.id, node.topic, null, false);
+        clone.style = { ...node.style };
+        // Determine how to handle children. Recursively clone them.
+        clone.children = node.children.map(child => this.deepCloneNode(child));
+        // Fix parent relations for children after cloning
+        clone.children.forEach(child => child.parentId = clone.id);
+        return clone;
+    }
+
+    private regenerateIds(node: Node): void {
+        node.id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
+        node.children.forEach(child => {
+            child.parentId = node.id;
+            this.regenerateIds(child);
+        });
+    }
 }

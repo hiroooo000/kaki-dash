@@ -28,7 +28,10 @@ export class KakidashiBoard {
       onDropNode: (draggedId, targetId) => this.moveNode(draggedId, targetId),
       onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic),
       onNavigate: (nodeId, direction) => this.navigateNode(nodeId, direction),
-      onPan: (dx, dy) => this.panBoard(dx, dy)
+      onPan: (dx, dy) => this.panBoard(dx, dy),
+      onCopyNode: (nodeId) => this.copyNode(nodeId),
+      onPasteNode: (parentId) => this.pasteNode(parentId),
+      onCutNode: (nodeId) => this.cutNode(nodeId)
     });
 
     this.render();
@@ -101,6 +104,24 @@ export class KakidashiBoard {
     this.panX += dx;
     this.panY += dy;
     this.renderer.updateTransform(this.panX, this.panY);
+  }
+
+  copyNode(nodeId: string): void {
+    this.service.copyNode(nodeId);
+  }
+
+  pasteNode(parentId: string): void {
+    const newNode = this.service.pasteNode(parentId);
+    if (newNode) {
+      this.render();
+      this.selectNode(newNode.id);
+    }
+  }
+
+  cutNode(nodeId: string): void {
+    this.service.cutNode(nodeId);
+    this.selectNode(null); // Deselect the cut node
+    this.render();
   }
 
   private render(): void {

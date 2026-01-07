@@ -10,6 +10,9 @@ export interface InteractionOptions {
     onUpdateNode?: (nodeId: string, topic: string) => void;
     onNavigate?: (nodeId: string, direction: Direction) => void;
     onPan?: (dx: number, dy: number) => void;
+    onCopyNode?: (nodeId: string) => void;
+    onPasteNode?: (parentId: string) => void;
+    onCutNode?: (nodeId: string) => void;
 }
 
 export class InteractionHandler {
@@ -128,6 +131,24 @@ export class InteractionHandler {
                     const selectedNodeEl = this.container.querySelector(`.mindmap-node[data-id="${this.selectedNodeId}"]`) as HTMLElement;
                     if (selectedNodeEl) {
                         this.startEditing(selectedNodeEl, this.selectedNodeId);
+                    }
+                    break;
+                case 'c':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        this.options.onCopyNode?.(this.selectedNodeId);
+                    }
+                    break;
+                case 'v':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        this.options.onPasteNode?.(this.selectedNodeId);
+                    }
+                    break;
+                case 'x':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        this.options.onCutNode?.(this.selectedNodeId);
                     }
                     break;
             }
