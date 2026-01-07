@@ -33,7 +33,8 @@ export class KakidashiBoard {
       onPan: (dx, dy) => this.panBoard(dx, dy),
       onCopyNode: (nodeId) => this.copyNode(nodeId),
       onPasteNode: (parentId) => this.pasteNode(parentId),
-      onCutNode: (nodeId) => this.cutNode(nodeId)
+      onCutNode: (nodeId) => this.cutNode(nodeId),
+      onPasteImage: (parentId, imageData) => this.pasteImage(parentId, imageData)
     });
 
     this.render();
@@ -114,6 +115,14 @@ export class KakidashiBoard {
 
   pasteNode(parentId: string): void {
     const newNode = this.service.pasteNode(parentId);
+    if (newNode) {
+      this.render();
+      this.selectNode(newNode.id);
+    }
+  }
+
+  pasteImage(parentId: string, imageData: string): void {
+    const newNode = this.service.addImageNode(parentId, imageData);
     if (newNode) {
       this.render();
       this.selectNode(newNode.id);

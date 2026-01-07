@@ -11,14 +11,16 @@ export class Node {
     style: NodeStyle;
     parentId: string | null;
     isRoot: boolean;
+    image?: string;
 
-    constructor(id: string, topic: string, parentId: string | null = null, isRoot: boolean = false) {
+    constructor(id: string, topic: string, parentId: string | null = null, isRoot: boolean = false, image?: string) {
         this.id = id;
         this.topic = topic;
         this.children = [];
         this.style = {};
         this.parentId = parentId;
         this.isRoot = isRoot;
+        this.image = image;
     }
 
     addChild(node: Node): void {

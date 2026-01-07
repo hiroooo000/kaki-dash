@@ -54,16 +54,52 @@ export class SvgRenderer implements Renderer {
 
     private renderNode(node: Node, x: number, y: number, selectedNodeId: string | null): void {
         const el = document.createElement('div');
-        el.textContent = node.topic;
         el.dataset.id = node.id;
-        el.className = 'mindmap-node'; // For external styling
+        if (node.image) {
+            // Image Node
+            const img = document.createElement('img');
+            img.src = node.image;
+            img.style.maxWidth = '150px';
+            img.style.maxHeight = '150px';
+            img.style.display = 'block';
+            el.appendChild(img);
 
-        // Enable dragging for non-root nodes
+            // Zoom overlay/button
+            const zoomBtn = document.createElement('div');
+            // Lucide 'zoom-in' icon
+            zoomBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`;
+            zoomBtn.style.position = 'absolute';
+            zoomBtn.style.bottom = '5px';
+            zoomBtn.style.right = '5px';
+            zoomBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // Slightly more opaque
+            zoomBtn.style.borderRadius = '50%';
+            zoomBtn.style.width = '24px';
+            zoomBtn.style.height = '24px';
+            zoomBtn.style.display = 'flex';
+            zoomBtn.style.justifyContent = 'center';
+            zoomBtn.style.alignItems = 'center';
+            zoomBtn.style.cursor = 'pointer';
+            zoomBtn.title = 'Zoom Image';
+            zoomBtn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.2)'; // Add subtle shadow for depth
+            el.appendChild(zoomBtn);
+
+            zoomBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent selection
+                this.showImageModal(node.image!);
+            });
+
+            el.style.padding = '5px'; // Less padding for images
+        } else {
+            // Text Node
+            el.textContent = node.topic;
+            el.style.whiteSpace = 'pre-wrap';
+        }
+
+        el.className = 'mindmap-node';
         if (!node.isRoot) {
             el.draggable = true;
         }
 
-        // Inline basic styles for visibility
         el.style.position = 'absolute';
         el.style.left = `${x}px`;
         el.style.top = `${y}px`;
@@ -73,9 +109,12 @@ export class SvgRenderer implements Renderer {
         el.style.border = '1px solid #ccc';
         el.style.borderRadius = '4px';
         el.style.cursor = node.isRoot ? 'default' : 'grab';
-        el.style.whiteSpace = 'pre-wrap';
-        el.style.zIndex = '10'; // Ensure above SVG
-        el.style.userSelect = 'none'; // Prevent text selection while dragging
+        el.style.zIndex = '10';
+        el.style.userSelect = 'none';
+
+        if (node.image) {
+            el.style.padding = '5px';
+        }
 
         if (node.isRoot) {
             el.style.fontSize = '1.2em';
@@ -143,6 +182,12 @@ export class SvgRenderer implements Renderer {
     }
 
     private measureNode(node: Node): { width: number, height: number } {
+        if (node.image) {
+            // Return fixed size for images + padding estimate
+            // Max 150x150 + padding 10
+            return { width: 160, height: 160 };
+        }
+
         const el = document.createElement('div');
         el.textContent = node.topic;
         el.className = 'mindmap-node';
@@ -187,5 +232,33 @@ export class SvgRenderer implements Renderer {
         path.setAttribute('stroke-width', '2');
 
         this.svg.appendChild(path);
+    }
+
+    private showImageModal(imageData: string): void {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        modal.style.zIndex = '1000';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.cursor = 'zoom-out';
+
+        const img = document.createElement('img');
+        img.src = imageData;
+        img.style.maxWidth = '90%';
+        img.style.maxHeight = '90%';
+        img.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+
+        modal.appendChild(img);
+        document.body.appendChild(modal);
+
+        modal.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
     }
 }

@@ -11,6 +11,7 @@ export interface MindMapNodeData {
     root?: boolean;
     expanded?: boolean;
     parentId?: string;
+    image?: string;
 }
 
 export interface MindMapData {
