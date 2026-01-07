@@ -54,28 +54,42 @@ export class SvgRenderer implements Renderer {
 
     private renderNode(node: Node, x: number, y: number, selectedNodeId: string | null): void {
         const el = document.createElement('div');
-        el.textContent = node.topic;
-        el.dataset.id = node.id;
-        el.className = 'mindmap-node'; // For external styling
+        if (node.image) {
+            // Image Node
+            const img = document.createElement('img');
+            img.src = node.image;
+            img.style.maxWidth = '150px';
+            img.style.maxHeight = '150px';
+            img.style.display = 'block';
+            el.appendChild(img);
 
-        // Enable dragging for non-root nodes
-        if (!node.isRoot) {
-            el.draggable = true;
+            // Zoom overlay/button
+            const zoomBtn = document.createElement('div');
+            zoomBtn.innerHTML = '🔍';
+            zoomBtn.style.position = 'absolute';
+            zoomBtn.style.bottom = '5px';
+            zoomBtn.style.right = '5px';
+            zoomBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+            zoomBtn.style.borderRadius = '50%';
+            zoomBtn.style.width = '24px';
+            zoomBtn.style.height = '24px';
+            zoomBtn.style.textAlign = 'center';
+            zoomBtn.style.lineHeight = '24px';
+            zoomBtn.style.cursor = 'pointer';
+            zoomBtn.title = 'Zoom Image';
+            el.appendChild(zoomBtn);
+
+            zoomBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent selection
+                this.showImageModal(node.image!);
+            });
+
+            el.style.padding = '5px'; // Less padding for images
+        } else {
+            // Text Node
+            el.textContent = node.topic;
+            el.style.whiteSpace = 'pre-wrap';
         }
-
-        // Inline basic styles for visibility
-        el.style.position = 'absolute';
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-        el.style.transform = 'translate(0, -50%)';
-        el.style.padding = '8px 12px';
-        el.style.backgroundColor = 'white';
-        el.style.border = '1px solid #ccc';
-        el.style.borderRadius = '4px';
-        el.style.cursor = node.isRoot ? 'default' : 'grab';
-        el.style.whiteSpace = 'pre-wrap';
-        el.style.zIndex = '10'; // Ensure above SVG
-        el.style.userSelect = 'none'; // Prevent text selection while dragging
 
         if (node.isRoot) {
             el.style.fontSize = '1.2em';
@@ -143,6 +157,12 @@ export class SvgRenderer implements Renderer {
     }
 
     private measureNode(node: Node): { width: number, height: number } {
+        if (node.image) {
+            // Return fixed size for images + padding estimate
+            // Max 150x150 + padding 10
+            return { width: 160, height: 160 };
+        }
+
         const el = document.createElement('div');
         el.textContent = node.topic;
         el.className = 'mindmap-node';
@@ -187,5 +207,33 @@ export class SvgRenderer implements Renderer {
         path.setAttribute('stroke-width', '2');
 
         this.svg.appendChild(path);
+    }
+
+    private showImageModal(imageData: string): void {
+        const modal = document.createElement('div');
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100vw';
+        modal.style.height = '100vh';
+        modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+        modal.style.zIndex = '1000';
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.cursor = 'zoom-out';
+
+        const img = document.createElement('img');
+        img.src = imageData;
+        img.style.maxWidth = '90%';
+        img.style.maxHeight = '90%';
+        img.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+
+        modal.appendChild(img);
+        document.body.appendChild(modal);
+
+        modal.addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
     }
 }

@@ -19,6 +19,17 @@ export class MindMapService {
         return newNode;
     }
 
+    addImageNode(parentId: string, imageData: string): Node | null {
+        const parent = this.mindMap.findNode(parentId);
+        if (!parent) return null;
+
+        const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
+        // Image nodes have empty topic
+        const newNode = new Node(id, '', parentId, false, imageData);
+        parent.addChild(newNode);
+        return newNode;
+    }
+
     removeNode(id: string): boolean {
         const node = this.mindMap.findNode(id);
         if (!node || node.isRoot || !node.parentId) return false;
@@ -103,7 +114,7 @@ export class MindMapService {
     }
 
     private deepCloneNode(node: Node): Node {
-        const clone = new Node(node.id, node.topic, null, false);
+        const clone = new Node(node.id, node.topic, null, false, node.image);
         clone.style = { ...node.style };
         // Determine how to handle children. Recursively clone them.
         clone.children = node.children.map(child => this.deepCloneNode(child));
@@ -127,7 +138,8 @@ export class MindMapService {
                 topic: node.topic,
                 root: node.isRoot || undefined,
                 children: node.children.length > 0 ? node.children.map(buildNodeData) : undefined,
-                style: Object.keys(node.style).length > 0 ? node.style : undefined
+                style: Object.keys(node.style).length > 0 ? node.style : undefined,
+                image: node.image
             };
             return data;
         };
@@ -140,7 +152,7 @@ export class MindMapService {
     importData(data: MindMapData): void {
         const buildNodeFromData = (data: MindMapNodeData, parentId: string | null = null): Node => {
             const isRoot = !!data.root;
-            const node = new Node(data.id, data.topic, parentId, isRoot);
+            const node = new Node(data.id, data.topic, parentId, isRoot, data.image);
 
             if (data.style) {
                 node.style = { ...data.style };

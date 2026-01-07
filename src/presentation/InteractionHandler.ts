@@ -13,6 +13,7 @@ export interface InteractionOptions {
     onCopyNode?: (nodeId: string) => void;
     onPasteNode?: (parentId: string) => void;
     onCutNode?: (nodeId: string) => void;
+    onPasteImage?: (parentId: string, imageData: string) => void;
 }
 
 export class InteractionHandler {
@@ -151,6 +152,31 @@ export class InteractionHandler {
                         this.options.onCutNode?.(this.selectedNodeId);
                     }
                     break;
+            }
+        });
+
+        // Paste handling (Image)
+        document.addEventListener('paste', async (e) => {
+            if (!this.selectedNodeId) return;
+
+            const clipboardItems = e.clipboardData?.items;
+            if (!clipboardItems) return;
+
+            for (const item of clipboardItems) {
+                if (item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    if (blob) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            if (event.target?.result && this.options.onPasteImage && this.selectedNodeId) {
+                                this.options.onPasteImage(this.selectedNodeId, event.target.result as string);
+                            }
+                        };
+                        reader.readAsDataURL(blob);
+                    }
+                    e.preventDefault(); // Prevent default paste behavior if we handled an image
+                    break;
+                }
             }
         });
 
