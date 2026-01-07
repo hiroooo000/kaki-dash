@@ -37,6 +37,17 @@ describe('MindMapService', () => {
         expect(root.topic).toBe('Updated Root');
     });
 
+    it('should update node style', () => {
+        service.updateNodeStyle('root', { fontWeight: 'bold', color: 'red' });
+        expect(root.style.fontWeight).toBe('bold');
+        expect(root.style.color).toBe('red');
+    });
+
+    it('should not update style for non-existent node', () => {
+        const result = service.updateNodeStyle('non-existent', { color: 'blue' });
+        expect(result).toBe(false);
+    });
+
     it('should not remove root node', () => {
         // Manually set isRoot to true for testing if not already
         root.isRoot = true;

@@ -51,6 +51,15 @@ export class MindMapService {
         return false;
     }
 
+    updateNodeStyle(id: string, style: Partial<import('../domain/entities/Node').NodeStyle>): boolean {
+        const node = this.mindMap.findNode(id);
+        if (node) {
+            node.style = { ...node.style, ...style };
+            return true;
+        }
+        return false;
+    }
+
     moveNode(nodeId: string, newParentId: string): boolean {
         return this.mindMap.moveNode(nodeId, newParentId);
     }

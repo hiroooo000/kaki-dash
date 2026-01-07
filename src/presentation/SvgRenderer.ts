@@ -112,6 +112,13 @@ export class SvgRenderer implements Renderer {
         el.style.zIndex = '10';
         el.style.userSelect = 'none';
 
+        // Apply custom styles
+        if (node.style.color) el.style.color = node.style.color;
+        if (node.style.fontSize) el.style.fontSize = node.style.fontSize; // Assumes value includes unit or is handled by browser (if number, might need 'px') -> Plan said string so ok.
+        if (node.style.fontWeight) el.style.fontWeight = node.style.fontWeight;
+        if (node.style.fontStyle) el.style.fontStyle = node.style.fontStyle;
+        if (node.style.background) el.style.backgroundColor = node.style.background; // Existing 'background' support if any (interface has it)
+
         if (node.image) {
             el.style.padding = '5px';
         }

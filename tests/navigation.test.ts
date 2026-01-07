@@ -1,16 +1,16 @@
 
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { KakidashiBoard } from '../src/index';
+import { Kakidash } from '../src/index';
 
 describe('Navigation Logic', () => {
     let container: HTMLElement;
-    let board: KakidashiBoard;
+    let board: Kakidash;
 
     beforeEach(() => {
         container = document.createElement('div');
         // Initial setup for board creates a Root node
-        board = new KakidashiBoard(container);
+        board = new Kakidash(container);
     });
 
     it('should navigate from root to first child', () => {

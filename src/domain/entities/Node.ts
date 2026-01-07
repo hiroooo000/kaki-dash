@@ -2,6 +2,8 @@ export interface NodeStyle {
     color?: string;
     background?: string;
     fontSize?: string;
+    fontWeight?: string;
+    fontStyle?: string;
 }
 
 export class Node {

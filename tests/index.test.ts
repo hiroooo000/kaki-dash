@@ -1,15 +1,15 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
-import { KakidashiBoard } from '../src/index';
+import { Kakidash } from '../src/index';
 
-describe('KakidashiBoard', () => {
+describe('Kakidash', () => {
     it('should be defined', () => {
-        expect(KakidashiBoard).toBeDefined();
+        expect(Kakidash).toBeDefined();
     });
 
     it('should be instantiable', () => {
         const container = document.createElement('div');
-        const board = new KakidashiBoard(container);
-        expect(board).toBeInstanceOf(KakidashiBoard);
+        const board = new Kakidash(container);
+        expect(board).toBeInstanceOf(Kakidash);
     });
 });
