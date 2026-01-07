@@ -12,17 +12,50 @@
       width: 100vw;
       height: 100vh;
       font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #controls {
+      padding: 10px;
+      background: #e0e0e0;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #json-input {
+      width: 300px;
+      height: 30px;
+      resize: none;
+      /* Initially small, maybe let it expand or use a modal/dialog for better UX if needed, 
+         but for verification simple textarea is fine. Let's make it a bit larger/floating? 
+         Or just a panel on top. */
     }
 
     #app {
+      flex: 1;
       width: 100%;
-      height: 100%;
       background-color: #f0f0f0;
+      position: relative;
+      /* For z-indexing if needed */
+    }
+
+    textarea {
+      font-family: monospace;
+      width: 400px;
+      height: 60px;
     }
   </style>
 </head>
 
 <body>
+  <div id="controls">
+    <button id="btn-export">Export to JSON</button>
+    <textarea id="json-data" placeholder="Paste JSON here or click Export"></textarea>
+    <button id="btn-import">Import from JSON</button>
+  </div>
   <div id="app"></div>
   <script type="module">
     import { KakidashiBoard } from '/src/index.ts';
@@ -43,6 +76,26 @@
       }
 
       console.log('Board initialized');
+
+      // GUI Event Listeners
+      document.getElementById('btn-export').addEventListener('click', () => {
+        const data = board.getData();
+        const json = JSON.stringify(data, null, 2);
+        document.getElementById('json-data').value = json;
+        console.log('Exported:', data);
+      });
+
+      document.getElementById('btn-import').addEventListener('click', () => {
+        const jsonStr = document.getElementById('json-data').value;
+        try {
+          const data = JSON.parse(jsonStr);
+          board.loadData(data);
+          console.log('Imported:', data);
+        } catch (err) {
+          console.error('Import failed:', err);
+          alert('Invalid JSON');
+        }
+      });
     } catch (e) {
       console.error('Initialization error:', e);
       document.body.innerHTML += `<div style="color:red; padding: 20px;">Error: ${e.message}</div>`;

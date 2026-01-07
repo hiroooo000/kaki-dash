@@ -3,6 +3,8 @@ import { Node } from './domain/entities/Node';
 import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
 import { InteractionHandler, Direction } from './presentation/InteractionHandler';
+import { MindMapData } from './domain/interfaces/MindMapData';
+export type { MindMapData } from './domain/interfaces/MindMapData';
 
 export class KakidashiBoard {
   private mindMap: MindMap;
@@ -175,6 +177,16 @@ export class KakidashiBoard {
         }
         break;
     }
+  }
+
+  getData(): MindMapData {
+    return this.service.exportData();
+  }
+
+  loadData(data: MindMapData): void {
+    this.service.importData(data);
+    this.selectNode(null); // Deselect any previously selected node
+    this.render();
   }
 
   getRootId(): string {
