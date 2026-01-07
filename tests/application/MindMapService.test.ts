@@ -135,4 +135,69 @@ describe('MindMapService', () => {
             expect(child1.parentId).toBe('root');
         }
     });
+
+    describe('Persistence', () => {
+        it('should export data correctly', () => {
+            const child1 = service.addNode('root', 'Child 1');
+            service.addNode('root', 'Child 2'); // Create but don't capture if unused, or capture and use?
+            if (child1) {
+                service.addNode(child1.id, 'GrandChild');
+            }
+
+            const data = service.exportData();
+
+            expect(data.nodeData.id).toBe('root');
+            expect(data.nodeData.topic).toBe('Root Topic');
+            expect(data.nodeData.children).toBeDefined();
+            expect(data.nodeData.children?.length).toBe(2);
+            // Order isn't guaranteed in children array unless we enforce it, but typically push/splice maintains order.
+            // Check if we can find them.
+            const c1 = data.nodeData.children?.find(c => c.id === child1?.id);
+            expect(c1).toBeDefined();
+            expect(c1?.children?.length).toBe(1); // GrandChild
+        });
+
+        it('should import data correctly', () => {
+            const data: any = {
+                nodeData: {
+                    id: 'new-root',
+                    topic: 'New Root',
+                    root: true,
+                    children: [
+                        {
+                            id: 'c1',
+                            topic: 'Child 1',
+                            children: [
+                                {
+                                    id: 'gc1',
+                                    topic: 'GrandChild 1'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'c2',
+                            topic: 'Child 2'
+                        }
+                    ]
+                }
+            };
+
+            service.importData(data);
+
+            const newRoot = service.mindMap.root;
+            expect(newRoot.id).toBe('new-root');
+            expect(newRoot.topic).toBe('New Root');
+            expect(newRoot.isRoot).toBe(true);
+            expect(newRoot.children.length).toBe(2);
+
+            const c1 = newRoot.children.find(c => c.id === 'c1');
+            expect(c1).toBeDefined();
+            expect(c1?.parentId).toBe('new-root');
+            expect(c1?.children.length).toBe(1);
+
+            const gc1 = c1?.children[0];
+            expect(gc1?.parentId).toBe('c1');
+            expect(gc1?.topic).toBe('GrandChild 1');
+        });
+    });
 });

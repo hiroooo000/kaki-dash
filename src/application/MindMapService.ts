@@ -1,5 +1,6 @@
 import { MindMap } from '../domain/entities/MindMap';
 import { Node } from '../domain/entities/Node';
+import { MindMapData, MindMapNodeData } from '../domain/interfaces/MindMapData';
 
 export class MindMapService {
     mindMap: MindMap;
@@ -117,5 +118,44 @@ export class MindMapService {
             child.parentId = node.id;
             this.regenerateIds(child);
         });
+    }
+
+    exportData(): MindMapData {
+        const buildNodeData = (node: Node): MindMapNodeData => {
+            const data: MindMapNodeData = {
+                id: node.id,
+                topic: node.topic,
+                root: node.isRoot || undefined,
+                children: node.children.length > 0 ? node.children.map(buildNodeData) : undefined,
+                style: Object.keys(node.style).length > 0 ? node.style : undefined
+            };
+            return data;
+        };
+
+        return {
+            nodeData: buildNodeData(this.mindMap.root)
+        };
+    }
+
+    importData(data: MindMapData): void {
+        const buildNodeFromData = (data: MindMapNodeData, parentId: string | null = null): Node => {
+            const isRoot = !!data.root;
+            const node = new Node(data.id, data.topic, parentId, isRoot);
+
+            if (data.style) {
+                node.style = { ...data.style };
+            }
+
+            if (data.children && data.children.length > 0) {
+                data.children.forEach(childData => {
+                    const childNode = buildNodeFromData(childData, node.id);
+                    node.addChild(childNode);
+                });
+            }
+
+            return node;
+        };
+
+        this.mindMap.root = buildNodeFromData(data.nodeData);
     }
 }
