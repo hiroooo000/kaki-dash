@@ -23,6 +23,7 @@ export class SvgRenderer implements Renderer {
         this.svg.style.height = '100%';
         this.svg.style.zIndex = '0';
         this.svg.style.pointerEvents = 'none'; // Click through to nodes
+        this.svg.style.overflow = 'visible';
         this.container.appendChild(this.svg);
 
         // Div Layer for nodes
