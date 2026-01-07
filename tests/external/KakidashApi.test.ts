@@ -15,7 +15,7 @@ class MockHTMLElement {
 }
 (global as any).HTMLElement = MockHTMLElement;
 (global as any).document = {
-    createElement: (tag: string) => {
+    createElement: (_tag: string) => {
         return {
             style: {},
             dataset: {},
@@ -28,7 +28,7 @@ class MockHTMLElement {
             offsetHeight: 30
         };
     },
-    createElementNS: (ns: string, tag: string) => {
+    createElementNS: (_ns: string, _tag: string) => {
         return {
             style: {},
             dataset: {},

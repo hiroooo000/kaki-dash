@@ -2,6 +2,7 @@ import { MindMap } from './domain/entities/MindMap';
 import { Node } from './domain/entities/Node';
 import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
+import { StyleEditor } from './presentation/StyleEditor';
 import { InteractionHandler, Direction } from './presentation/InteractionHandler';
 import { MindMapData } from './domain/interfaces/MindMapData';
 import { TypedEventEmitter } from './infrastructure/EventEmitter';
@@ -15,6 +16,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private service: MindMapService;
   private renderer: SvgRenderer;
   private interactionHandler: InteractionHandler;
+  private styleEditor: StyleEditor;
   private selectedNodeId: string | null = null;
   private panX: number = 0;
   private panY: number = 0;
@@ -25,6 +27,14 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.mindMap = new MindMap(rootNode);
     this.service = new MindMapService(this.mindMap);
     this.renderer = new SvgRenderer(container);
+
+    this.styleEditor = new StyleEditor(container);
+    this.styleEditor.onUpdate = (nodeId, style) => {
+      if (this.service.updateNodeStyle(nodeId, style)) {
+        this.render();
+        this.emit('model:change', undefined);
+      }
+    };
 
     this.interactionHandler = new InteractionHandler(container, {
       onNodeClick: (nodeId) => this.selectNode(nodeId || null),
@@ -117,6 +127,21 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     if (this.selectedNodeId === nodeId) return;
     this.selectedNodeId = nodeId;
     this.interactionHandler.updateSelection(nodeId);
+
+    if (nodeId) {
+      const node = this.mindMap.findNode(nodeId);
+      if (node) {
+        // Only show style editor for text nodes (no image)
+        if (!node.image) {
+          this.styleEditor.show(nodeId, node.style);
+        } else {
+          this.styleEditor.hide();
+        }
+      }
+    } else {
+      this.styleEditor.hide();
+    }
+
     this.render();
     this.emit('node:select', nodeId);
   }
