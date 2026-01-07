@@ -73,7 +73,7 @@ export class SvgRenderer implements Renderer {
         el.style.border = '1px solid #ccc';
         el.style.borderRadius = '4px';
         el.style.cursor = node.isRoot ? 'default' : 'grab';
-        el.style.whiteSpace = 'nowrap';
+        el.style.whiteSpace = 'pre-wrap';
         el.style.zIndex = '10'; // Ensure above SVG
         el.style.userSelect = 'none'; // Prevent text selection while dragging
 
@@ -91,7 +91,7 @@ export class SvgRenderer implements Renderer {
         this.nodeContainer.appendChild(el);
 
         // Dynamic horizontal spacing based on node width
-        const nodeWidth = this.measureNode(node);
+        const { width: nodeWidth } = this.measureNode(node);
         const levelSpacing = nodeWidth + 80; // Node width + gap
 
         // Calculate total height of children to center the parent
@@ -126,25 +126,37 @@ export class SvgRenderer implements Renderer {
     }
 
     private getNodeHeight(node: Node): number {
-        const nodeHeight = 40; // Base height estimate
+        const { height } = this.measureNode(node);
         const verticalGap = 20;
 
         if (node.children.length === 0) {
-            return nodeHeight + verticalGap;
+            return height + verticalGap;
         }
 
-        return this.getChildrenHeight(node);
+        const childrenTotalHeight = this.getChildrenHeight(node);
+        // Ensure the parent has at least enough space for itself plus gap, 
+        // though typically children total height is larger.
+        // If children total height is smaller than parent node height, we might have overlap issues if we don't handle it.
+        // But for standard mindmaps, usually we care about the children stack.
+        // Let's take the max to be safe if a single child is smaller than parent.
+        return Math.max(height + verticalGap, childrenTotalHeight);
     }
 
-    private measureNode(node: Node): number {
+    private measureNode(node: Node): { width: number, height: number } {
         const el = document.createElement('div');
         el.textContent = node.topic;
         el.className = 'mindmap-node';
         el.style.visibility = 'hidden';
         el.style.position = 'absolute';
-        el.style.whiteSpace = 'nowrap';
+        el.style.whiteSpace = 'pre-wrap';
         el.style.padding = '8px 12px';
         el.style.border = '1px solid #ccc';
+
+        // Ensure it has a width constraint if we want wrapping behavior similar to render?
+        // Actually, in renderNode we don't constrain width (it expands). 
+        // But if we want it to wrap we might need a max-width? 
+        // For now, let's assume it expands naturally or follows some CSS rule if 'mindmap-node' has it.
+        // The reported issue is about height not being accounted for.
 
         if (node.isRoot) {
             el.style.fontSize = '1.2em';
@@ -154,9 +166,10 @@ export class SvgRenderer implements Renderer {
 
         this.nodeContainer.appendChild(el);
         const width = el.offsetWidth;
+        const height = el.offsetHeight;
         this.nodeContainer.removeChild(el);
 
-        return width || 100; // Fallback
+        return { width: width || 100, height: height || 40 };
     }
 
     private drawConnection(x1: number, y1: number, x2: number, y2: number): void {

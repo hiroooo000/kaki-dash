@@ -229,12 +229,17 @@ export class InteractionHandler {
 
     private startEditing(element: HTMLElement, nodeId: string): void {
         const currentText = element.textContent || '';
-        const input = document.createElement('input');
+        const input = document.createElement('textarea');
         input.value = currentText;
         input.style.position = 'absolute';
         input.style.top = element.style.top;
         input.style.left = element.style.left;
         input.style.transform = element.style.transform;
+
+        // Textarea specific reset
+        input.style.overflow = 'hidden';
+        input.style.resize = 'none';
+        input.style.minHeight = '1em';
 
         // Copy styles to match appearance
         const computed = window.getComputedStyle(element);
@@ -249,28 +254,37 @@ export class InteractionHandler {
 
         input.style.zIndex = '100';
 
-        const updateWidth = () => {
+        const updateSize = () => {
             const span = document.createElement('span');
             span.style.font = computed.font;
             span.style.padding = computed.padding;
-            span.style.whiteSpace = 'nowrap';
+            span.style.whiteSpace = 'pre-wrap';
             span.style.visibility = 'hidden';
             span.style.position = 'absolute';
             span.textContent = input.value || '';
+
+            // Add a zero-width space to ensure height even if empty or ending in newline
+            if (input.value.endsWith('\n') || input.value === '') {
+                span.textContent += '\u200b';
+            }
+
             document.body.appendChild(span);
 
             // Add a little buffer for cursor and borders
-            const width = span.offsetWidth + 10;
+            const width = span.offsetWidth + 20; // Increased buffer
+            const height = span.offsetHeight + 10;
+
             input.style.width = Math.max(width, element.offsetWidth) + 'px';
+            input.style.height = Math.max(height, element.offsetHeight) + 'px';
 
             document.body.removeChild(span);
         };
 
         // Initial sizing
-        updateWidth();
+        updateSize();
 
         // Update on type
-        input.addEventListener('input', updateWidth);
+        input.addEventListener('input', updateSize);
 
         const finishEditing = () => {
             if (input.parentNode) {
@@ -297,6 +311,10 @@ export class InteractionHandler {
             e.stopPropagation();
 
             if (e.key === 'Enter') {
+                if (e.shiftKey) {
+                    // Allow default behavior (new line)
+                    return;
+                }
                 // Prevent default to ensure no newline is added if it were a textarea (safety)
                 e.preventDefault();
                 finishEditing();
