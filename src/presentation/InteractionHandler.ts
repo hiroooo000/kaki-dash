@@ -10,6 +10,9 @@ export interface InteractionOptions {
     onUpdateNode?: (nodeId: string, topic: string) => void;
     onNavigate?: (nodeId: string, direction: Direction) => void;
     onPan?: (dx: number, dy: number) => void;
+    onCopyNode?: (nodeId: string) => void;
+    onPasteNode?: (parentId: string) => void;
+    onCutNode?: (nodeId: string) => void;
 }
 
 export class InteractionHandler {
@@ -130,10 +133,39 @@ export class InteractionHandler {
                         this.startEditing(selectedNodeEl, this.selectedNodeId);
                     }
                     break;
+                case 'c':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        this.options.onCopyNode?.(this.selectedNodeId);
+                    }
+                    break;
+                case 'v':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        this.options.onPasteNode?.(this.selectedNodeId);
+                    }
+                    break;
+                case 'x':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        this.options.onCutNode?.(this.selectedNodeId);
+                    }
+                    break;
             }
         });
 
         // Drag & Drop handling
+        // Inject styles for drag feedback
+        const style = document.createElement('style');
+        style.textContent = `
+            .mindmap-node.drag-over {
+                outline: 2px dashed #007bff !important;
+                background-color: #e6f7ff !important;
+                box-shadow: 0 0 10px rgba(0, 123, 255, 0.5) !important;
+            }
+        `;
+        document.head.appendChild(style);
+
         this.container.addEventListener('dragstart', (e) => {
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
@@ -141,6 +173,9 @@ export class InteractionHandler {
                 this.draggedNodeId = nodeEl.dataset.id;
                 e.dataTransfer?.setData('text/plain', nodeEl.dataset.id);
                 // Optional: set drag image
+                if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = 'move';
+                }
             }
         });
 
@@ -148,9 +183,19 @@ export class InteractionHandler {
             e.preventDefault(); // Allow drop
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+            if (nodeEl && nodeEl.dataset.id && this.draggedNodeId && nodeEl.dataset.id !== this.draggedNodeId) {
+                nodeEl.classList.add('drag-over');
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = 'move';
+                }
+            }
+        });
+
+        this.container.addEventListener('dragleave', (e) => {
+            const target = e.target as HTMLElement;
+            const nodeEl = target.closest('.mindmap-node') as HTMLElement;
             if (nodeEl) {
-                // Visual feedback could be added here
-                e.dataTransfer!.dropEffect = 'move';
+                nodeEl.classList.remove('drag-over');
             }
         });
 
@@ -158,6 +203,9 @@ export class InteractionHandler {
             e.preventDefault();
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+
+            // Remove drag-over class from all nodes to be safe
+            this.container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 
             if (nodeEl && nodeEl.dataset.id && this.draggedNodeId) {
                 const targetId = nodeEl.dataset.id;

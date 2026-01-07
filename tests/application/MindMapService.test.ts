@@ -91,4 +91,48 @@ describe('MindMapService', () => {
         const result = service.insertParent('root');
         expect(result).toBeNull();
     });
+
+    it('should move a node to a new parent', () => {
+        const child1 = service.addNode('root', 'Child 1');
+        const child2 = service.addNode('root', 'Child 2');
+
+        expect(child1).toBeDefined();
+        expect(child2).toBeDefined();
+
+        if (child1 && child2) {
+            const result = service.moveNode(child1.id, child2.id);
+            expect(result).toBe(true);
+
+            expect(child1.parentId).toBe(child2.id);
+            expect(child2.children).toContain(child1);
+            expect(root.children).not.toContain(child1);
+        }
+    });
+
+    it('should not move a node to itself', () => {
+        const child1 = service.addNode('root', 'Child 1');
+        expect(child1).toBeDefined();
+
+        if (child1) {
+            const result = service.moveNode(child1.id, child1.id);
+            expect(result).toBe(false);
+        }
+    });
+
+    it('should not move a node to its descendant', () => {
+        const child1 = service.addNode('root', 'Child 1');
+        const grandChild = service.addNode(child1!.id, 'GrandChild');
+
+        expect(child1).toBeDefined();
+        expect(grandChild).toBeDefined();
+
+        if (child1 && grandChild) {
+            const result = service.moveNode(child1.id, grandChild.id);
+            expect(result).toBe(false);
+
+            // Structure should remain unchanged
+            expect(grandChild.parentId).toBe(child1.id);
+            expect(child1.parentId).toBe('root');
+        }
+    });
 });
