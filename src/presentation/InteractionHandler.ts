@@ -14,6 +14,7 @@ export interface InteractionOptions {
     onPasteNode?: (parentId: string) => void;
     onCutNode?: (nodeId: string) => void;
     onPasteImage?: (parentId: string, imageData: string) => void;
+    onZoom?: (delta: number, x: number, y: number) => void;
 }
 
 export class InteractionHandler {
@@ -98,6 +99,14 @@ export class InteractionHandler {
         // Wheel handling (Pan)
         this.container.addEventListener('wheel', (e) => {
             e.preventDefault();
+
+            // Check for Zoom (Ctrl/Meta + Wheel)
+            if (e.ctrlKey || e.metaKey) {
+                if (this.options.onZoom) {
+                    this.options.onZoom(e.deltaY, e.clientX, e.clientY);
+                }
+                return;
+            }
 
             // Invert deltas: scrolling down (positive deltaY) moves view down -> content moves up (negative dy)
             const dx = -e.deltaX;

@@ -18,8 +18,10 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private interactionHandler: InteractionHandler;
   private styleEditor: StyleEditor;
   private selectedNodeId: string | null = null;
+
   private panX: number = 0;
   private panY: number = 0;
+  private scale: number = 1;
 
   constructor(container: HTMLElement) {
     super();
@@ -46,10 +48,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic),
       onNavigate: (nodeId, direction) => this.navigateNode(nodeId, direction),
       onPan: (dx, dy) => this.panBoard(dx, dy),
+
       onCopyNode: (nodeId) => this.copyNode(nodeId),
       onPasteNode: (parentId) => this.pasteNode(parentId),
       onCutNode: (nodeId) => this.cutNode(nodeId),
-      onPasteImage: (parentId, imageData) => this.pasteImage(parentId, imageData)
+      onPasteImage: (parentId, imageData) => this.pasteImage(parentId, imageData),
+      onZoom: (delta, x, y) => this.zoomBoard(delta, x, y)
     });
 
     this.render();
@@ -149,7 +153,31 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   panBoard(dx: number, dy: number): void {
     this.panX += dx;
     this.panY += dy;
-    this.renderer.updateTransform(this.panX, this.panY);
+    this.renderer.updateTransform(this.panX, this.panY, this.scale);
+  }
+
+  zoomBoard(delta: number, clientX: number, clientY: number): void {
+    const ZOOM_SENSITIVITY = 0.001;
+    const MIN_SCALE = 0.1;
+    const MAX_SCALE = 5.0;
+
+    const rect = this.renderer.container.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+
+    // Calculate new scale
+    // delta > 0 (scroll down) -> zoom out
+    // delta < 0 (scroll up) -> zoom in
+    const newScale = Math.min(Math.max(this.scale * (1 - delta * ZOOM_SENSITIVITY), MIN_SCALE), MAX_SCALE);
+
+    // Adjust pan to zoom towards mouse
+    // PanNew = Mouse - (Mouse - PanOld) * (ScaleNew / ScaleOld)
+    this.panX = x - (x - this.panX) * (newScale / this.scale);
+    this.panY = y - (y - this.panY) * (newScale / this.scale);
+
+    this.scale = newScale;
+
+    this.renderer.updateTransform(this.panX, this.panY, this.scale);
   }
 
   copyNode(nodeId: string): void {
@@ -189,7 +217,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   private render(): void {
     this.renderer.render(this.mindMap, this.selectedNodeId);
-    this.renderer.updateTransform(this.panX, this.panY);
+    this.renderer.updateTransform(this.panX, this.panY, this.scale);
   }
 
   navigateNode(nodeId: string, direction: Direction): void {

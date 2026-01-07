@@ -24,6 +24,7 @@ export class SvgRenderer implements Renderer {
         this.svg.style.zIndex = '0';
         this.svg.style.pointerEvents = 'none'; // Click through to nodes
         this.svg.style.overflow = 'visible';
+        this.svg.style.transformOrigin = '0 0';
         this.container.appendChild(this.svg);
 
         // Div Layer for nodes
@@ -34,6 +35,7 @@ export class SvgRenderer implements Renderer {
         this.nodeContainer.style.width = '100%';
         this.nodeContainer.style.height = '100%';
         this.nodeContainer.style.zIndex = '1';
+        this.nodeContainer.style.transformOrigin = '0 0';
         this.container.appendChild(this.nodeContainer);
     }
 
@@ -46,8 +48,8 @@ export class SvgRenderer implements Renderer {
         this.renderNode(mindMap.root, 50, window.innerHeight / 2, selectedNodeId);
     }
 
-    updateTransform(panX: number, panY: number): void {
-        const transform = `translate(${panX}px, ${panY}px)`;
+    updateTransform(panX: number, panY: number, scale: number = 1): void {
+        const transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
         this.svg.style.transform = transform;
         this.nodeContainer.style.transform = transform;
     }
