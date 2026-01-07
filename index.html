@@ -58,12 +58,13 @@
   </div>
   <div id="app"></div>
   <script type="module">
-    import { KakidashiBoard } from '/src/index.ts';
+    import { Kakidash } from '/src/index.ts';
 
     try {
       const app = document.getElementById('app');
 
-      const board = new KakidashiBoard(app);
+      const board = new Kakidash(app);
+      window.kakidash = board; // For manual testing console access
 
       // Add some sample nodes
       const rootId = board.getRootId();
@@ -75,6 +76,13 @@
         board.addNode(child1.id, 'GrandChild 1.2');
       }
 
+
+      // Debug logging
+      board.on('node:select', (id) => console.log('EVENT node:select', id));
+      board.on('node:add', (payload) => console.log('EVENT node:add', payload));
+      board.on('node:remove', (id) => console.log('EVENT node:remove', id));
+      board.on('node:update', (payload) => console.log('EVENT node:update', payload));
+      board.on('node:move', (payload) => console.log('EVENT node:move', payload));
 
 
       // GUI Event Listeners

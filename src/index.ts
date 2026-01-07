@@ -4,9 +4,13 @@ import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
 import { InteractionHandler, Direction } from './presentation/InteractionHandler';
 import { MindMapData } from './domain/interfaces/MindMapData';
-export type { MindMapData } from './domain/interfaces/MindMapData';
+import { TypedEventEmitter } from './infrastructure/EventEmitter';
+import { KakidashEventMap } from './domain/interfaces/KakidashEvents';
 
-export class KakidashiBoard {
+export type { MindMapData } from './domain/interfaces/MindMapData';
+export type { KakidashEventMap } from './domain/interfaces/KakidashEvents';
+
+export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private mindMap: MindMap;
   private service: MindMapService;
   private renderer: SvgRenderer;
@@ -16,6 +20,7 @@ export class KakidashiBoard {
   private panY: number = 0;
 
   constructor(container: HTMLElement) {
+    super();
     const rootNode = new Node('root', 'Root Topic', null, true);
     this.mindMap = new MindMap(rootNode);
     this.service = new MindMapService(this.mindMap);
@@ -44,6 +49,8 @@ export class KakidashiBoard {
     const node = this.service.addNode(parentId, topic);
     if (node) {
       this.render();
+      this.emit('node:add', { id: node.id, topic: node.topic });
+      this.emit('model:change', undefined);
     }
     return node;
   }
@@ -62,6 +69,8 @@ export class KakidashiBoard {
       if (newNode) {
         this.render();
         this.selectNode(newNode.id);
+        this.emit('node:add', { id: newNode.id, topic: newNode.topic });
+        this.emit('model:change', undefined);
       }
     }
   }
@@ -71,6 +80,8 @@ export class KakidashiBoard {
     if (newNode) {
       this.render();
       this.selectNode(newNode.id);
+      this.emit('node:add', { id: newNode.id, topic: newNode.topic });
+      this.emit('model:change', undefined);
     }
   }
 
@@ -81,18 +92,24 @@ export class KakidashiBoard {
       } else {
         this.render();
       }
+      this.emit('node:remove', nodeId);
+      this.emit('model:change', undefined);
     }
   }
 
   moveNode(nodeId: string, newParentId: string): void {
     if (this.service.moveNode(nodeId, newParentId)) {
       this.render();
+      this.emit('node:move', { nodeId, newParentId });
+      this.emit('model:change', undefined);
     }
   }
 
   updateNodeTopic(nodeId: string, topic: string): void {
     if (this.service.updateNodeTopic(nodeId, topic)) {
       this.render();
+      this.emit('node:update', { id: nodeId, topic });
+      this.emit('model:change', undefined);
     }
   }
 
@@ -101,6 +118,7 @@ export class KakidashiBoard {
     this.selectedNodeId = nodeId;
     this.interactionHandler.updateSelection(nodeId);
     this.render();
+    this.emit('node:select', nodeId);
   }
 
   panBoard(dx: number, dy: number): void {
@@ -118,6 +136,8 @@ export class KakidashiBoard {
     if (newNode) {
       this.render();
       this.selectNode(newNode.id);
+      this.emit('node:add', { id: newNode.id, topic: newNode.topic });
+      this.emit('model:change', undefined);
     }
   }
 
@@ -126,24 +146,24 @@ export class KakidashiBoard {
     if (newNode) {
       this.render();
       this.selectNode(newNode.id);
+      this.emit('node:add', { id: newNode.id, topic: '' }); // Image nodes have empty topic
+      this.emit('model:change', undefined);
     }
   }
 
   cutNode(nodeId: string): void {
-    this.service.cutNode(nodeId);
-    this.selectNode(null); // Deselect the cut node
-    this.render();
+    const node = this.mindMap.findNode(nodeId);
+    if (node) {
+      this.service.cutNode(nodeId);
+      this.selectNode(null); // Deselect the cut node
+      this.render();
+      this.emit('node:remove', nodeId); // Cut implies removal
+      this.emit('model:change', undefined);
+    }
   }
 
   private render(): void {
     this.renderer.render(this.mindMap, this.selectedNodeId);
-    // Maintain pan position after re-render (since nodeContainer might be cleared)
-    // Actually updateTransform applies style to the container element which persists?
-    // SvgRenderer implementation clears innerHTML but the container element itself (svg / nodeContainer) persists.
-    // Wait, SvgRenderer constructor creates elements.
-    // 'render' clears previous render -> innerHTML = ''.
-    // It doesn't replace the elements or reset styles on the containers.
-    // So transform should persist. Best to re-apply to be safe or if render logic changes.
     this.renderer.updateTransform(this.panX, this.panY);
   }
 
@@ -193,9 +213,15 @@ export class KakidashiBoard {
   }
 
   loadData(data: MindMapData): void {
-    this.service.importData(data);
-    this.selectNode(null); // Deselect any previously selected node
-    this.render();
+    try {
+      this.service.importData(data);
+      this.selectNode(null); // Deselect any previously selected node
+      this.render();
+      this.emit('model:load', data);
+      this.emit('model:change', undefined);
+    } catch (e) {
+      console.error("Failed to load data", e);
+    }
   }
 
   getRootId(): string {
