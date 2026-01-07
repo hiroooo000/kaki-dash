@@ -3,13 +3,16 @@ import { Node } from './domain/entities/Node';
 import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
 import { StyleEditor } from './presentation/StyleEditor';
+import { LayoutSwitcher } from './presentation/LayoutSwitcher';
 import { InteractionHandler, Direction } from './presentation/InteractionHandler';
+import { LayoutMode } from './domain/interfaces/LayoutMode';
 import { MindMapData } from './domain/interfaces/MindMapData';
 import { TypedEventEmitter } from './infrastructure/EventEmitter';
 import { KakidashEventMap } from './domain/interfaces/KakidashEvents';
 
 export type { MindMapData } from './domain/interfaces/MindMapData';
 export type { KakidashEventMap } from './domain/interfaces/KakidashEvents';
+export type { LayoutMode } from './domain/interfaces/LayoutMode';
 
 export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private mindMap: MindMap;
@@ -17,6 +20,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private renderer: SvgRenderer;
   private interactionHandler: InteractionHandler;
   private styleEditor: StyleEditor;
+  private layoutSwitcher: LayoutSwitcher;
+  private layoutMode: LayoutMode = 'Right';
   private selectedNodeId: string | null = null;
 
   private panX: number = 0;
@@ -38,6 +43,16 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       }
     };
 
+    // Center the board horizontally.
+    // Renderer places Root at x=0.
+    // We want Root at container.clientWidth / 2.
+    this.panX = container.clientWidth / 2;
+
+    this.layoutSwitcher = new LayoutSwitcher(container, {
+      onLayoutChange: (mode) => this.setLayoutMode(mode),
+      onZoomReset: () => this.resetZoom()
+    });
+
     this.interactionHandler = new InteractionHandler(container, {
       onNodeClick: (nodeId) => this.selectNode(nodeId || null),
       onAddChild: (parentId) => this.addChildNode(parentId),
@@ -48,7 +63,6 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       onUpdateNode: (nodeId, topic) => this.updateNodeTopic(nodeId, topic),
       onNavigate: (nodeId, direction) => this.navigateNode(nodeId, direction),
       onPan: (dx, dy) => this.panBoard(dx, dy),
-
       onCopyNode: (nodeId) => this.copyNode(nodeId),
       onPasteNode: (parentId) => this.pasteNode(parentId),
       onCutNode: (nodeId) => this.cutNode(nodeId),
@@ -180,6 +194,13 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.renderer.updateTransform(this.panX, this.panY, this.scale);
   }
 
+  resetZoom(): void {
+    this.scale = 1;
+    this.panX = this.renderer.container.clientWidth / 2;
+    this.panY = 0;
+    this.render();
+  }
+
   copyNode(nodeId: string): void {
     this.service.copyNode(nodeId);
   }
@@ -216,8 +237,23 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   private render(): void {
-    this.renderer.render(this.mindMap, this.selectedNodeId);
+    this.renderer.render(this.mindMap, this.selectedNodeId, this.layoutMode);
     this.renderer.updateTransform(this.panX, this.panY, this.scale);
+  }
+
+  setLayoutMode(mode: LayoutMode): void {
+    this.layoutMode = mode;
+    this.layoutSwitcher.setMode(mode);
+
+    // Recenter
+    this.panX = this.renderer.container.clientWidth / 2;
+    this.panY = 0;
+
+    this.render();
+  }
+
+  getLayoutMode(): LayoutMode {
+    return this.layoutMode;
   }
 
   navigateNode(nodeId: string, direction: Direction): void {
@@ -226,14 +262,58 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
     switch (direction) {
       case 'Left':
-        if (node.parentId) {
-          this.selectNode(node.parentId);
+        if (node.isRoot) {
+          // Root has children on left if Mode is Left or Both.
+          let target: Node | undefined;
+          if (this.layoutMode === 'Left') {
+            target = node.children[0];
+          } else if (this.layoutMode === 'Both') {
+            target = node.children.find((_, i) => i % 2 !== 0);
+          }
+          if (target) this.selectNode(target.id);
+        } else if (node.parentId) {
+          const parent = this.mindMap.findNode(node.parentId);
+          if (parent && parent.isRoot && this.layoutMode === 'Both') {
+            // Child of root in Both mode
+            const index = parent.children.findIndex(c => c.id === nodeId);
+            if (index % 2 === 0) { // Right side
+              this.selectNode(parent.id);
+            } else { // Left side
+              if (node.children.length > 0) this.selectNode(node.children[0].id);
+            }
+          } else if (parent && parent.isRoot && this.layoutMode === 'Left') {
+            // Left mode: Left goes deeper (child)
+            if (node.children.length > 0) this.selectNode(node.children[0].id);
+          } else if (this.layoutMode === 'Right') {
+            // Normal Right mode: Left goes to Parent
+            this.selectNode(node.parentId);
+          } else {
+            // Standard Case: need to know direction
+            const dir = this.getNodeDirection(node);
+            if (dir === 'right') {
+              this.selectNode(node.parentId);
+            } else {
+              if (node.children.length > 0) this.selectNode(node.children[0].id);
+            }
+          }
         }
         break;
       case 'Right':
-        if (node.children.length > 0) {
-          // Select first child as per user request
-          this.selectNode(node.children[0].id);
+        if (node.isRoot) {
+          let target: Node | undefined;
+          if (this.layoutMode === 'Right') {
+            target = node.children[0];
+          } else if (this.layoutMode === 'Both') {
+            target = node.children.find((_, i) => i % 2 === 0);
+          }
+          if (target) this.selectNode(target.id);
+        } else if (node.parentId) {
+          const dir = this.getNodeDirection(node);
+          if (dir === 'right') {
+            if (node.children.length > 0) this.selectNode(node.children[0].id);
+          } else {
+            this.selectNode(node.parentId);
+          }
         }
         break;
       case 'Up':
@@ -279,5 +359,26 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   getRootId(): string {
     return this.mindMap.root.id;
+  }
+
+  private getNodeDirection(node: Node): 'left' | 'right' {
+    if (node.isRoot) return 'right'; // Fallback
+    if (this.layoutMode === 'Right') return 'right';
+    if (this.layoutMode === 'Left') return 'left';
+
+    // Both mode
+    // Trace up to root
+    let current = node;
+    while (current.parentId) {
+      const parent = this.mindMap.findNode(current.parentId);
+      if (!parent) break;
+      if (parent.isRoot) {
+        // Check index
+        const index = parent.children.findIndex(c => c.id === current.id);
+        return index % 2 === 0 ? 'right' : 'left';
+      }
+      current = parent;
+    }
+    return 'right'; // Default
   }
 }
