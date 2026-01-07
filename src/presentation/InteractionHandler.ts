@@ -95,6 +95,19 @@ export class InteractionHandler {
         window.addEventListener('mouseup', stopPanning);
         window.addEventListener('mouseleave', stopPanning);
 
+        // Wheel handling (Pan)
+        this.container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+
+            // Invert deltas: scrolling down (positive deltaY) moves view down -> content moves up (negative dy)
+            const dx = -e.deltaX;
+            const dy = -e.deltaY;
+
+            if (this.options.onPan) {
+                this.options.onPan(dx, dy);
+            }
+        }, { passive: false });
+
         // Keyboard handling
         document.addEventListener('keydown', (e) => {
             if (!this.selectedNodeId) return;
