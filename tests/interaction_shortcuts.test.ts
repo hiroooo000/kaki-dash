@@ -1,4 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { InteractionHandler, InteractionOptions } from '../src/presentation/InteractionHandler';
 
 describe('InteractionHandler Shortcuts', () => {

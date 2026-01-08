@@ -52,7 +52,7 @@ export class InteractionHandler {
   }
 
   private attachEvents(): void {
-    let pasteTimeout: any = null;
+    let pasteTimeout: ReturnType<typeof setTimeout> | null = null;
 
     this.container.addEventListener('focus', () => {});
     this.container.addEventListener('blur', () => {});
@@ -203,7 +203,7 @@ export class InteractionHandler {
         case 'ArrowRight':
           this.options.onNavigate?.(this.selectedNodeId, 'Right');
           break;
-        case 'F2':
+        case 'F2': {
           e.preventDefault();
           // Find the node element to start editing
           const selectedNodeEl = this.container.querySelector(
@@ -213,6 +213,7 @@ export class InteractionHandler {
             this.startEditing(selectedNodeEl, this.selectedNodeId);
           }
           break;
+        }
         case 'c':
           if (e.metaKey || e.ctrlKey) {
             e.preventDefault();
@@ -292,7 +293,7 @@ export class InteractionHandler {
     // Paste handling (Image & Node)
     // Paste handling (Image & Node)
     // Paste handling (Image & Node)
-    document.addEventListener('paste', async (e) => {
+    document.addEventListener('paste', (e) => {
       // Cancel fallback timeout as event fired
       if (pasteTimeout) {
         clearTimeout(pasteTimeout);

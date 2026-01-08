@@ -1,5 +1,5 @@
 import { MindMap } from './domain/entities/MindMap';
-import { Node } from './domain/entities/Node';
+import { Node, NodeStyle } from './domain/entities/Node';
 import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
 import { StyleEditor } from './presentation/StyleEditor';
@@ -100,7 +100,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         if (!node) return;
 
         const currentStyle = node.style || {};
-        let newStyle: any = null;
+
+        let newStyle: Partial<NodeStyle> | null = null;
 
         if (action.type === 'bold') {
           newStyle = { fontWeight: currentStyle.fontWeight === 'bold' ? 'normal' : 'bold' };

@@ -189,6 +189,7 @@ export class StyleEditor {
       btn.style.cursor = 'pointer';
       btn.style.fontSize = '14px';
       if (styleProp) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (btn.style as any)[styleProp] = styleProp === 'fontWeight' ? 'bold' : 'italic';
       }
       btn.onclick = onClick;
