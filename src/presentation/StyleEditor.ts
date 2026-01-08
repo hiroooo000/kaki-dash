@@ -150,16 +150,25 @@ export class StyleEditor {
     //
     // Let's try to match that flow.
 
-    StyleEditor.PALETTE.forEach((color) => {
+    StyleEditor.PALETTE.forEach((color, index) => {
       const swatch = document.createElement('div');
       swatch.className = 'color-swatch'; // For easier query later
       swatch.dataset.color = color;
+      swatch.textContent = (index + 1).toString(); // Add number text
       swatch.style.width = '20px';
       swatch.style.height = '20px';
       swatch.style.backgroundColor = color;
       swatch.style.borderRadius = '4px';
       swatch.style.cursor = 'pointer';
       swatch.style.border = '1px solid transparent';
+
+      // Text styling
+      swatch.style.color = color === '#F1C40F' ? 'black' : 'white'; // Black for yellow, else white
+      swatch.style.fontSize = '12px';
+      swatch.style.fontWeight = 'bold';
+      swatch.style.display = 'flex';
+      swatch.style.justifyContent = 'center';
+      swatch.style.alignItems = 'center';
 
       swatch.onclick = () => {
         if (this.currentNodeId && this.onUpdate) {
