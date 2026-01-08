@@ -390,8 +390,16 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.layoutMode = mode;
     this.layoutSwitcher.setMode(mode);
 
-    // Recenter
-    this.panX = this.renderer.container.clientWidth / 2;
+    // Recenter based on mode
+    const clientWidth = this.renderer.container.clientWidth;
+    if (mode === 'Right') {
+      this.panX = clientWidth * 0.2; // Left side
+    } else if (mode === 'Left') {
+      this.panX = clientWidth * 0.8; // Right side
+    } else {
+      this.panX = clientWidth * 0.5; // Center
+    }
+
     this.panY = 0;
 
     this.render();
