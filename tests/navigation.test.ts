@@ -64,4 +64,67 @@ describe('Navigation Logic', () => {
         board.navigateNode(childId, 'Left');
         expect((board as any).selectedNodeId).toBe(rootId);
     });
+    it('should auto-pan when navigating to off-screen node', async () => {
+        const rootId = board.getRootId();
+        board.addChildNode(rootId);
+        const childId = (board as any).selectedNodeId;
+
+        // Force initial pan to 0,0
+        (board as any).panX = 0;
+        (board as any).panY = 0;
+        (board as any).targetPanX = 0;
+        (board as any).targetPanY = 0;
+
+        // Mock getBoundingClientRect globally for this test
+        const originalGBR = HTMLElement.prototype.getBoundingClientRect;
+
+        HTMLElement.prototype.getBoundingClientRect = function () {
+            // Container
+            if (this === (board as any).renderer.container) {
+                return {
+                    left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600,
+                    x: 0, y: 0, toJSON: () => { }
+                } as DOMRect;
+            }
+
+            // Node
+            // Check if this is the target node
+            if (this.classList && this.classList.contains('mindmap-node') && this.getAttribute('data-id') === childId) {
+                return {
+                    left: 1000, top: 300, right: 1100, bottom: 350, width: 100, height: 50,
+                    x: 1000, y: 300, toJSON: () => { }
+                } as DOMRect;
+            }
+
+            return {
+                left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0,
+                x: 0, y: 0, toJSON: () => { }
+            } as DOMRect;
+        };
+
+        try {
+            // Select root first
+            board.selectNode(rootId);
+
+            // Navigate Right to Child
+            board.navigateNode(rootId, 'Right');
+
+            // Wait for setTimeout in navigateNode
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            // Logic:
+            // Node Center X = 1050
+            // Container Center X = 400
+            // Expected dx = 400 - 1050 = -650
+            // targetPanX should be -650
+
+            // Note: If panX starts at 0, targetPanX becomes -650.
+            const targetPanX = (board as any).targetPanX;
+            expect(targetPanX).toBe(-650);
+
+        } finally {
+            // Restore
+            HTMLElement.prototype.getBoundingClientRect = originalGBR;
+        }
+    });
 });
