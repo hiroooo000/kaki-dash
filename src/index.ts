@@ -254,9 +254,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   removeNode(nodeId: string): void {
+    const node = this.mindMap.findNode(nodeId);
+    const parentId = node?.parentId || null;
+
     if (this.service.removeNode(nodeId)) {
       if (this.selectedNodeId === nodeId) {
-        this.selectNode(null); // Deselect
+        this.selectNode(parentId); // Select parent
       } else {
         this.render();
       }
@@ -427,8 +430,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   cutNode(nodeId: string): void {
     const node = this.mindMap.findNode(nodeId);
     if (node) {
+      const parentId = node.parentId;
       this.service.cutNode(nodeId);
-      this.selectNode(null); // Deselect the cut node
+      this.selectNode(parentId); // Select parent
       this.render();
       this.emit('node:remove', nodeId); // Cut implies removal
       this.emit('model:change', undefined);
