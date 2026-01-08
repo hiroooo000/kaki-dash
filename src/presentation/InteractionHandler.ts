@@ -45,6 +45,14 @@ export class InteractionHandler {
         this.container.addEventListener('focus', () => { });
         this.container.addEventListener('blur', () => { });
 
+        // Prevent accidental scrolling of the container (we use transform for pan)
+        this.container.addEventListener('scroll', () => {
+            if (this.container.scrollTop !== 0 || this.container.scrollLeft !== 0) {
+                this.container.scrollTop = 0;
+                this.container.scrollLeft = 0;
+            }
+        });
+
         // Click handling
         this.container.addEventListener('click', (e) => {
             const target = e.target as HTMLElement;
@@ -420,7 +428,10 @@ export class InteractionHandler {
                         this.options.onUpdateNode(nodeId, newTopic);
                     }
                 }
-                input.remove();
+                // Check parentNode again to be safe
+                if (input.parentNode) {
+                    input.parentNode.removeChild(input);
+                }
             }
         };
 
@@ -455,7 +466,7 @@ export class InteractionHandler {
         } else {
             this.container.appendChild(input);
         }
-        input.focus();
+        input.focus({ preventScroll: true });
         input.select();
     }
 }

@@ -29,8 +29,13 @@ export class LayoutSwitcher {
         this.element.style.borderRadius = '8px';
         this.element.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
         this.element.style.padding = '5px';
-        this.element.style.zIndex = '1000';
+        this.element.style.zIndex = '2000';
         this.element.style.gap = '5px';
+        this.element.style.pointerEvents = 'auto'; // Re-enable pointer events
+
+        // Prevent clicks from bubbling to background
+        this.element.addEventListener('click', (e) => e.stopPropagation());
+        this.element.addEventListener('mousedown', (e) => e.stopPropagation());
 
         this.createButton('Right', this.getRightIcon());
         this.createButton('Left', this.getLeftIcon());

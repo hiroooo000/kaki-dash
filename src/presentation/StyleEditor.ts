@@ -36,12 +36,15 @@ export class StyleEditor {
         el.style.borderRadius = '8px';
         el.style.padding = '12px';
         el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        el.style.zIndex = '1000';
+        el.style.zIndex = '2000';
+        el.style.pointerEvents = 'auto'; // Re-enable pointer events
         el.style.width = '200px';
         el.style.fontFamily = 'Arial, sans-serif';
         el.style.display = 'flex';
         el.style.flexDirection = 'column';
         el.style.gap = '10px';
+        el.style.margin = '0';
+        el.style.boxSizing = 'border-box';
 
         // --- Row 1: Size ---
         const sizeRow = document.createElement('div');

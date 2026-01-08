@@ -98,7 +98,7 @@ export class SvgRenderer implements Renderer {
         } else {
             // Text Node
             el.textContent = node.topic;
-            el.style.whiteSpace = 'pre-wrap';
+            el.style.whiteSpace = 'pre';
         }
 
         el.className = 'mindmap-node';
@@ -335,7 +335,7 @@ export class SvgRenderer implements Renderer {
         el.className = 'mindmap-node';
         el.style.visibility = 'hidden';
         el.style.position = 'absolute';
-        el.style.whiteSpace = 'pre-wrap';
+        el.style.whiteSpace = 'pre';
         el.style.padding = '8px 12px';
         el.style.border = '1px solid #ccc';
 
