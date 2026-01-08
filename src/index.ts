@@ -87,7 +87,13 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       onPasteNode: (parentId) => this.pasteNode(parentId),
       onCutNode: (nodeId) => this.cutNode(nodeId),
       onPasteImage: (parentId, imageData) => this.pasteImage(parentId, imageData),
-      onZoom: (delta, x, y) => this.zoomBoard(delta, x, y)
+      onZoom: (delta, x, y) => this.zoomBoard(delta, x, y),
+      onUndo: () => {
+        if (this.service.undo()) {
+          this.render();
+          this.emit('model:change', undefined);
+        }
+      }
     });
 
     this.render();
@@ -258,7 +264,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
 
     this.render();
-    this.emit('node:move', { nodeId, newParentId: targetId }); // Note: newParentId might be inaccurate if reordering or inserting parent, but sufficient for now as 'move' event
+    this.emit('node:move', { nodeId, newParentId: targetId, position }); // Note: newParentId might be inaccurate if reordering or inserting parent, but sufficient for now as 'move' event
     this.emit('model:change', undefined);
   }
 

@@ -15,6 +15,7 @@ export interface InteractionOptions {
     onCutNode?: (nodeId: string) => void;
     onPasteImage?: (parentId: string, imageData: string) => void;
     onZoom?: (delta: number, x: number, y: number) => void;
+    onUndo?: () => void;
 }
 
 export class InteractionHandler {
@@ -216,6 +217,14 @@ export class InteractionHandler {
                     if (e.metaKey || e.ctrlKey) {
                         e.preventDefault();
                         this.options.onCutNode?.(this.selectedNodeId);
+                    }
+                    break;
+                case 'z':
+                    if (e.metaKey || e.ctrlKey) {
+                        e.preventDefault();
+                        if (!e.shiftKey) {
+                            this.options.onUndo?.();
+                        }
                     }
                     break;
             }
