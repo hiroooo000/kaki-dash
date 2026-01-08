@@ -25,7 +25,12 @@ class MockHTMLElement {
             addEventListener: vi.fn(),
             setAttribute: vi.fn(),
             offsetWidth: 100,
-            offsetHeight: 30
+            offsetHeight: 30,
+            querySelector: vi.fn().mockReturnValue({ value: '', classList: { contains: vi.fn() }, style: {} }),
+            querySelectorAll: vi.fn().mockReturnValue([
+                { style: {}, classList: { add: vi.fn(), remove: vi.fn(), contains: vi.fn() }, dataset: {} },
+                { style: {}, classList: { add: vi.fn(), remove: vi.fn(), contains: vi.fn() }, dataset: {} }
+            ])
         };
     },
     createElementNS: (_ns: string, _tag: string) => {
@@ -110,9 +115,10 @@ describe('Kakidash External API', () => {
         const listener = vi.fn();
         board.on('node:move', listener);
 
-        board.moveNode(child2!.id, child1!.id);
+        // Move child2 to be sibling of child1
+        board.moveNode(child2!.id, child1!.id, 'bottom');
 
-        expect(listener).toHaveBeenCalledWith({ nodeId: child2!.id, newParentId: child1!.id });
+        expect(listener).toHaveBeenCalledWith({ nodeId: child2!.id, newParentId: child1!.id, position: 'bottom' });
     });
 
     it('should allow multiple listeners for the same event', () => {

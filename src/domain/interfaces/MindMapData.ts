@@ -12,6 +12,7 @@ export interface MindMapNodeData {
     expanded?: boolean;
     parentId?: string;
     image?: string;
+    layoutSide?: 'left' | 'right';
 }
 
 export interface MindMapData {

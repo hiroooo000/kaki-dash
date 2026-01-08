@@ -6,7 +6,7 @@ export interface InteractionOptions {
     onAddSibling: (nodeId: string, position: 'before' | 'after') => void;
     onInsertParent?: (nodeId: string) => void;
     onDeleteNode: (nodeId: string) => void;
-    onDropNode: (draggedId: string, targetId: string) => void;
+    onDropNode: (draggedId: string, targetId: string, position: 'top' | 'bottom' | 'left' | 'right') => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
     onNavigate?: (nodeId: string, direction: Direction) => void;
     onPan?: (dx: number, dy: number) => void;
@@ -14,6 +14,7 @@ export interface InteractionOptions {
     onPasteNode?: (parentId: string) => void;
     onCutNode?: (nodeId: string) => void;
     onPasteImage?: (parentId: string, imageData: string) => void;
+    onZoom?: (delta: number, x: number, y: number) => void;
 }
 
 export class InteractionHandler {
@@ -43,6 +44,14 @@ export class InteractionHandler {
 
         this.container.addEventListener('focus', () => { });
         this.container.addEventListener('blur', () => { });
+
+        // Prevent accidental scrolling of the container (we use transform for pan)
+        this.container.addEventListener('scroll', () => {
+            if (this.container.scrollTop !== 0 || this.container.scrollLeft !== 0) {
+                this.container.scrollTop = 0;
+                this.container.scrollLeft = 0;
+            }
+        });
 
         // Click handling
         this.container.addEventListener('click', (e) => {
@@ -99,9 +108,36 @@ export class InteractionHandler {
         this.container.addEventListener('wheel', (e) => {
             e.preventDefault();
 
-            // Invert deltas: scrolling down (positive deltaY) moves view down -> content moves up (negative dy)
-            const dx = -e.deltaX;
-            const dy = -e.deltaY;
+            // Check for Zoom (Ctrl/Meta + Wheel)
+            if (e.ctrlKey || e.metaKey) {
+                if (this.options.onZoom) {
+                    this.options.onZoom(e.deltaY, e.clientX, e.clientY);
+                }
+                return;
+            }
+
+            // Normalize delta based on deltaMode
+            // 0: Pixel, 1: Line, 2: Page
+            let multiplier = 1;
+            if (e.deltaMode === 1) { // Line
+                multiplier = 33; // Approx line height in pixels
+            } else if (e.deltaMode === 2) { // Page
+                multiplier = window.innerHeight;
+            }
+
+            // Invert deltas for natural panning (dragging the paper)
+            // If dragging background: moving mouse UP (negative dy) moves view UP (content moves down).
+            // But wheel: scrolling DOWN (positive deltaY) usually moves view DOWN (content moves up).
+            // Standard pan logic: dx, dy are added to panX, panY.
+
+            // Previous logic was: dx = -e.deltaX; dy = -e.deltaY;
+            // This means scrolling DOWN (positive) -> negative dy -> moves view UP (content up).
+            // This is "Natural Scrolling" (moving content match fingers) on touchpad?
+            // Or standard scrolling?
+            // User asked for "smoother", not direction change. Stick to previous direction logic.
+
+            const dx = -e.deltaX * multiplier;
+            const dy = -e.deltaY * multiplier;
 
             if (this.options.onPan) {
                 this.options.onPan(dx, dy);
@@ -235,10 +271,17 @@ export class InteractionHandler {
         // Inject styles for drag feedback
         const style = document.createElement('style');
         style.textContent = `
-            .mindmap-node.drag-over {
-                outline: 2px dashed #007bff !important;
-                background-color: #e6f7ff !important;
-                box-shadow: 0 0 10px rgba(0, 123, 255, 0.5) !important;
+            .mindmap-node.drag-over-top {
+                border-top: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-bottom {
+                border-bottom: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-left {
+                border-left: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-right {
+                border-right: 4px solid #007bff !important;
             }
         `;
         document.head.appendChild(style);
@@ -255,12 +298,36 @@ export class InteractionHandler {
             }
         });
 
+        const getDropPosition = (e: DragEvent, element: HTMLElement): 'top' | 'bottom' | 'left' | 'right' => {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const w = rect.width;
+            const h = rect.height;
+
+            // Priority: Top/Bottom take 25% height each. Middle 50% checks Left/Right.
+            if (y < h * 0.25) return 'top';
+            if (y > h * 0.75) return 'bottom';
+
+            if (x < w * 0.25) return 'left';
+            if (x > w * 0.75) return 'right';
+
+            // Middle center fallback -> Right (or Left depending on layout could be better, but fixed usually OK)
+            return 'right';
+        };
+
         this.container.addEventListener('dragover', (e) => {
             e.preventDefault(); // Allow drop
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+
             if (nodeEl && nodeEl.dataset.id && this.draggedNodeId && nodeEl.dataset.id !== this.draggedNodeId) {
-                nodeEl.classList.add('drag-over');
+                const position = getDropPosition(e, nodeEl);
+
+                // Clear all classes first
+                nodeEl.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-left', 'drag-over-right');
+                nodeEl.classList.add(`drag-over-${position}`);
+
                 if (e.dataTransfer) {
                     e.dataTransfer.dropEffect = 'move';
                 }
@@ -271,7 +338,7 @@ export class InteractionHandler {
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
             if (nodeEl) {
-                nodeEl.classList.remove('drag-over');
+                nodeEl.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-left', 'drag-over-right');
             }
         });
 
@@ -281,12 +348,15 @@ export class InteractionHandler {
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
 
             // Remove drag-over class from all nodes to be safe
-            this.container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            this.container.querySelectorAll('.mindmap-node').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-left', 'drag-over-right');
+            });
 
             if (nodeEl && nodeEl.dataset.id && this.draggedNodeId) {
                 const targetId = nodeEl.dataset.id;
                 if (this.draggedNodeId !== targetId) {
-                    this.options.onDropNode(this.draggedNodeId, targetId);
+                    const position = getDropPosition(e, nodeEl);
+                    this.options.onDropNode(this.draggedNodeId, targetId, position);
                 }
             }
             this.draggedNodeId = null;
@@ -301,6 +371,13 @@ export class InteractionHandler {
                 this.startEditing(nodeEl, nodeEl.dataset.id);
             }
         });
+    }
+
+    public editNode(nodeId: string): void {
+        const nodeEl = this.container.querySelector(`.mindmap-node[data-id="${nodeId}"]`) as HTMLElement;
+        if (nodeEl) {
+            this.startEditing(nodeEl, nodeId);
+        }
     }
 
     private startEditing(element: HTMLElement, nodeId: string): void {
@@ -362,36 +439,56 @@ export class InteractionHandler {
         // Update on type
         input.addEventListener('input', updateSize);
 
+        let isFinishing = false;
+
         const finishEditing = () => {
-            if (input.parentNode) {
-                const newTopic = input.value;
-                if (newTopic !== currentText) {
-                    if (this.options.onUpdateNode) {
-                        this.options.onUpdateNode(nodeId, newTopic);
-                    }
+            if (isFinishing) return;
+            isFinishing = true;
+
+            const newTopic = input.value;
+            // Only update if changed
+            if (newTopic !== currentText) {
+                if (this.options.onUpdateNode) {
+                    this.options.onUpdateNode(nodeId, newTopic);
                 }
-                input.remove();
+            }
+
+            // Remove input safely
+            if (input.parentNode && input.parentNode.contains(input)) {
+                input.parentNode.removeChild(input);
             }
         };
 
-        input.addEventListener('blur', finishEditing);
+        input.addEventListener('blur', () => {
+            // Delay blur handling slightly to allow Enter key to process first if needed
+            // But usually the flag handles it.
+            if (!isFinishing) {
+                finishEditing();
+            }
+        });
 
         const cancelEditing = () => {
-            if (input.parentNode) {
-                input.remove();
+            if (isFinishing) return;
+            isFinishing = true;
+            if (input.parentNode && input.parentNode.contains(input)) {
+                input.parentNode.removeChild(input);
             }
         };
 
         input.addEventListener('keydown', (e) => {
-            // Stop propagation to prevent global shortcuts (like Enter adding sibling, Backspace deleting node)
+            // Stop propagation
             e.stopPropagation();
+
+            // IME support: Don't finish editing if composing (e.g. Japanese conversion)
+            if (e.isComposing) {
+                return;
+            }
 
             if (e.key === 'Enter') {
                 if (e.shiftKey) {
                     // Allow default behavior (new line)
                     return;
                 }
-                // Prevent default to ensure no newline is added if it were a textarea (safety)
                 e.preventDefault();
                 finishEditing();
             } else if (e.key === 'Escape') {
@@ -405,6 +502,7 @@ export class InteractionHandler {
         } else {
             this.container.appendChild(input);
         }
-        input.focus();
+        input.focus({ preventScroll: true });
+        input.select();
     }
 }
