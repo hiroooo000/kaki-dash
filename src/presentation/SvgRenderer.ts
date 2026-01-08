@@ -139,7 +139,7 @@ export class SvgRenderer implements Renderer {
 
         // Add to container temporarily to measure if needed, but we have measureNode.
         // Ideally we use measureNode result.
-        const { width: nodeWidth, height: nodeHeight } = this.measureNode(node);
+        const { width: nodeWidth } = this.measureNode(node);
 
         let finalX = x;
         if (direction === 'left' && !isRoot) {

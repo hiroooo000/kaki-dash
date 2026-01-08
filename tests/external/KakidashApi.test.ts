@@ -115,9 +115,10 @@ describe('Kakidash External API', () => {
         const listener = vi.fn();
         board.on('node:move', listener);
 
-        board.moveNode(child2!.id, child1!.id);
+        // Move child2 to be sibling of child1
+        board.moveNode(child2!.id, child1!.id, 'bottom');
 
-        expect(listener).toHaveBeenCalledWith({ nodeId: child2!.id, newParentId: child1!.id });
+        expect(listener).toHaveBeenCalledWith({ nodeId: child2!.id, newParentId: child1!.id, position: 'bottom' });
     });
 
     it('should allow multiple listeners for the same event', () => {

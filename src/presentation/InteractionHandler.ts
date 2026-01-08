@@ -116,9 +116,28 @@ export class InteractionHandler {
                 return;
             }
 
-            // Invert deltas: scrolling down (positive deltaY) moves view down -> content moves up (negative dy)
-            const dx = -e.deltaX;
-            const dy = -e.deltaY;
+            // Normalize delta based on deltaMode
+            // 0: Pixel, 1: Line, 2: Page
+            let multiplier = 1;
+            if (e.deltaMode === 1) { // Line
+                multiplier = 33; // Approx line height in pixels
+            } else if (e.deltaMode === 2) { // Page
+                multiplier = window.innerHeight;
+            }
+
+            // Invert deltas for natural panning (dragging the paper)
+            // If dragging background: moving mouse UP (negative dy) moves view UP (content moves down).
+            // But wheel: scrolling DOWN (positive deltaY) usually moves view DOWN (content moves up).
+            // Standard pan logic: dx, dy are added to panX, panY.
+
+            // Previous logic was: dx = -e.deltaX; dy = -e.deltaY;
+            // This means scrolling DOWN (positive) -> negative dy -> moves view UP (content up).
+            // This is "Natural Scrolling" (moving content match fingers) on touchpad?
+            // Or standard scrolling?
+            // User asked for "smoother", not direction change. Stick to previous direction logic.
+
+            const dx = -e.deltaX * multiplier;
+            const dy = -e.deltaY * multiplier;
 
             if (this.options.onPan) {
                 this.options.onPan(dx, dy);

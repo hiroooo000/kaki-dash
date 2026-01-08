@@ -26,6 +26,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   private panX: number = 0;
   private panY: number = 0;
+  private targetPanX: number = 0;
+  private targetPanY: number = 0;
   private scale: number = 1;
 
   constructor(container: HTMLElement) {
@@ -44,6 +46,11 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     uiLayer.style.height = '100%';
     uiLayer.style.pointerEvents = 'none'; // Passthrough for canvas interactions
     uiLayer.style.zIndex = '2000';
+
+    // Prevent native browser scrolling/zooming interference
+    container.style.overscrollBehavior = 'none';
+    container.style.touchAction = 'none';
+
     container.appendChild(uiLayer);
 
     this.styleEditor = new StyleEditor(uiLayer);
@@ -56,11 +63,15 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
     // Center the board horizontally.
     this.panX = container.clientWidth / 2;
+    this.targetPanX = this.panX;
+    this.targetPanY = this.panY;
 
     this.layoutSwitcher = new LayoutSwitcher(uiLayer, { // Pass uiLayer
       onLayoutChange: (mode) => this.setLayoutMode(mode),
       onZoomReset: () => this.resetZoom()
     });
+
+    this.startAnimationLoop();
 
     this.interactionHandler = new InteractionHandler(container, {
       onNodeClick: (nodeId) => this.selectNode(nodeId || null),
@@ -315,9 +326,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   panBoard(dx: number, dy: number): void {
-    this.panX += dx;
-    this.panY += dy;
-    this.renderer.updateTransform(this.panX, this.panY, this.scale);
+    this.targetPanX += dx;
+    this.targetPanY += dy;
+    // We don't call updateTransform here anymore, loop handles it
   }
 
   zoomBoard(delta: number, clientX: number, clientY: number): void {
@@ -331,8 +342,19 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
     const newScale = Math.min(Math.max(this.scale * (1 - delta * ZOOM_SENSITIVITY), MIN_SCALE), MAX_SCALE);
 
-    this.panX = x - (x - this.panX) * (newScale / this.scale);
-    this.panY = y - (y - this.panY) * (newScale / this.scale);
+    // Zoom logic needs to be careful with Lerp.
+    // If we only set targets, it might drift towards the new zoom focus?
+    // Usually zoom should be 'instant' relative to mouse cursor.
+    // So we update BOTH current and target to avoid interpolation during zoom.
+
+    // Calculate new position (instant)
+    const newPanX = x - (x - this.panX) * (newScale / this.scale);
+    const newPanY = y - (y - this.panY) * (newScale / this.scale);
+
+    this.panX = newPanX;
+    this.panY = newPanY;
+    this.targetPanX = newPanX;
+    this.targetPanY = newPanY;
 
     this.scale = newScale;
 
@@ -343,6 +365,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.scale = 1;
     this.panX = this.renderer.container.clientWidth / 2;
     this.panY = 0;
+    this.targetPanX = this.panX;
+    this.targetPanY = this.panY;
     this.render();
   }
 
@@ -401,6 +425,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
 
     this.panY = 0;
+    this.targetPanX = this.panX;
+    this.targetPanY = this.panY;
 
     this.render();
   }
@@ -533,5 +559,44 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       current = parent;
     }
     return 'right';
+  }
+  private startAnimationLoop(): void {
+    let lastTime = performance.now();
+
+    const tick = () => {
+      const currentTime = performance.now();
+      const dt = (currentTime - lastTime) / 1000; // Delta time in seconds
+      lastTime = currentTime;
+
+      // Time-based smoothing
+      // decay constant: higher = faster snap. 
+      // 15 was too fast. 8 is slower/smoother.
+      const decay = 8;
+
+      // Frame-independent interpolation factor
+      // This is mathematically strictly correct for exponential decay
+      const factor = 1 - Math.exp(-decay * dt);
+
+      // Calculate distance
+      const dx = this.targetPanX - this.panX;
+      const dy = this.targetPanY - this.panY;
+
+      // Only update if distance is significant (prevent endless micro-updates)
+      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+        this.panX += dx * factor;
+        this.panY += dy * factor;
+        this.renderer.updateTransform(this.panX, this.panY, this.scale);
+      } else {
+        // Snap when close
+        if (this.panX !== this.targetPanX || this.panY !== this.targetPanY) {
+          this.panX = this.targetPanX;
+          this.panY = this.targetPanY;
+          this.renderer.updateTransform(this.panX, this.panY, this.scale);
+        }
+      }
+
+      requestAnimationFrame(tick);
+    };
+    tick();
   }
 }
