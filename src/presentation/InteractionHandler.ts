@@ -6,7 +6,7 @@ export interface InteractionOptions {
     onAddSibling: (nodeId: string, position: 'before' | 'after') => void;
     onInsertParent?: (nodeId: string) => void;
     onDeleteNode: (nodeId: string) => void;
-    onDropNode: (draggedId: string, targetId: string, side?: 'left' | 'right') => void;
+    onDropNode: (draggedId: string, targetId: string, position: 'top' | 'bottom' | 'left' | 'right') => void;
     onUpdateNode?: (nodeId: string, topic: string) => void;
     onNavigate?: (nodeId: string, direction: Direction) => void;
     onPan?: (dx: number, dy: number) => void;
@@ -244,10 +244,17 @@ export class InteractionHandler {
         // Inject styles for drag feedback
         const style = document.createElement('style');
         style.textContent = `
-            .mindmap-node.drag-over {
-                outline: 2px dashed #007bff !important;
-                background-color: #e6f7ff !important;
-                box-shadow: 0 0 10px rgba(0, 123, 255, 0.5) !important;
+            .mindmap-node.drag-over-top {
+                border-top: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-bottom {
+                border-bottom: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-left {
+                border-left: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-right {
+                border-right: 4px solid #007bff !important;
             }
         `;
         document.head.appendChild(style);
@@ -264,12 +271,36 @@ export class InteractionHandler {
             }
         });
 
+        const getDropPosition = (e: DragEvent, element: HTMLElement): 'top' | 'bottom' | 'left' | 'right' => {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const w = rect.width;
+            const h = rect.height;
+
+            // Priority: Top/Bottom take 25% height each. Middle 50% checks Left/Right.
+            if (y < h * 0.25) return 'top';
+            if (y > h * 0.75) return 'bottom';
+
+            if (x < w * 0.25) return 'left';
+            if (x > w * 0.75) return 'right';
+
+            // Middle center fallback -> Right (or Left depending on layout could be better, but fixed usually OK)
+            return 'right';
+        };
+
         this.container.addEventListener('dragover', (e) => {
             e.preventDefault(); // Allow drop
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+
             if (nodeEl && nodeEl.dataset.id && this.draggedNodeId && nodeEl.dataset.id !== this.draggedNodeId) {
-                nodeEl.classList.add('drag-over');
+                const position = getDropPosition(e, nodeEl);
+
+                // Clear all classes first
+                nodeEl.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-left', 'drag-over-right');
+                nodeEl.classList.add(`drag-over-${position}`);
+
                 if (e.dataTransfer) {
                     e.dataTransfer.dropEffect = 'move';
                 }
@@ -280,7 +311,7 @@ export class InteractionHandler {
             const target = e.target as HTMLElement;
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
             if (nodeEl) {
-                nodeEl.classList.remove('drag-over');
+                nodeEl.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-left', 'drag-over-right');
             }
         });
 
@@ -290,17 +321,15 @@ export class InteractionHandler {
             const nodeEl = target.closest('.mindmap-node') as HTMLElement;
 
             // Remove drag-over class from all nodes to be safe
-            this.container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            this.container.querySelectorAll('.mindmap-node').forEach(el => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-left', 'drag-over-right');
+            });
 
             if (nodeEl && nodeEl.dataset.id && this.draggedNodeId) {
                 const targetId = nodeEl.dataset.id;
                 if (this.draggedNodeId !== targetId) {
-                    // Determine side
-                    const rect = nodeEl.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const side = e.clientX < centerX ? 'left' : 'right';
-
-                    this.options.onDropNode(this.draggedNodeId, targetId, side);
+                    const position = getDropPosition(e, nodeEl);
+                    this.options.onDropNode(this.draggedNodeId, targetId, position);
                 }
             }
             this.draggedNodeId = null;

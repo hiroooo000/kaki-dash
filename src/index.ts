@@ -172,12 +172,58 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
   }
 
-  moveNode(nodeId: string, newParentId: string, layoutSide?: 'left' | 'right'): void {
-    if (this.service.moveNode(nodeId, newParentId, layoutSide)) {
-      this.render();
-      this.emit('node:move', { nodeId, newParentId });
-      this.emit('model:change', undefined);
+  moveNode(nodeId: string, targetId: string, position: 'top' | 'bottom' | 'left' | 'right'): void {
+    const target = this.mindMap.findNode(targetId);
+    if (!target) return;
+
+    if (position === 'top') {
+      if (target.isRoot) return; // Cannot reorder root or place relative to root top
+      this.service.reorderNode(nodeId, targetId, 'before');
+    } else if (position === 'bottom') {
+      if (target.isRoot) return;
+      this.service.reorderNode(nodeId, targetId, 'after');
+    } else {
+      // Left or Right
+      if (target.isRoot) {
+        // Drop on Root: Left/Right means specific side
+        // 'left' -> add as child on left side
+        // 'right' -> add as child on right side
+        const side = position === 'left' ? 'left' : 'right';
+        this.service.moveNode(nodeId, targetId, side);
+      } else {
+        // Drop on normal node
+        const layoutDir = this.getNodeDirection(target);
+
+        // Logic:
+        // If direction is 'right':
+        //   'right' is outer (child) side -> Add as Child
+        //   'left' is inner (parent) side -> Insert as Parent
+        // If direction is 'left':
+        //   'left' is outer (child) side -> Add as Child
+        //   'right' is inner (parent) side -> Insert as Parent
+
+        let action: 'addChild' | 'insertParent' = 'addChild';
+
+        if (layoutDir === 'right') {
+          if (position === 'right') action = 'addChild';
+          else action = 'insertParent';
+        } else {
+          // Left direction
+          if (position === 'left') action = 'addChild';
+          else action = 'insertParent';
+        }
+
+        if (action === 'addChild') {
+          this.service.moveNode(nodeId, targetId);
+        } else {
+          this.service.insertNodeAsParent(nodeId, targetId);
+        }
+      }
     }
+
+    this.render();
+    this.emit('node:move', { nodeId, newParentId: targetId }); // Note: newParentId might be inaccurate if reordering or inserting parent, but sufficient for now as 'move' event
+    this.emit('model:change', undefined);
   }
 
   updateNodeTopic(nodeId: string, topic: string): void {

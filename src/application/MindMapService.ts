@@ -97,6 +97,115 @@ export class MindMapService {
         return null;
     }
 
+    reorderNode(nodeId: string, targetId: string, position: 'before' | 'after'): boolean {
+        const node = this.mindMap.findNode(nodeId);
+        const target = this.mindMap.findNode(targetId);
+
+        if (!node || !target || !target.parentId) return false;
+        if (node.id === target.id) return false;
+
+        // Cannot reorder root
+        if (node.isRoot) return false;
+
+        const parent = this.mindMap.findNode(target.parentId);
+        if (!parent) return false;
+
+        // If node is already a child of parent, we are just moving it in the list.
+        // If node is NOT a child of parent, we are moving it to a new parent AND ordering it.
+
+        // Cycle detection if moving to new parent
+        if (node.parentId !== parent.id) {
+            // Check if parent is descendant of node
+            let current = parent;
+            while (current.parentId) {
+                if (current.id === node.id) return false;
+                if (!current.parentId) break;
+                const next = this.mindMap.findNode(current.parentId);
+                if (!next) break;
+                current = next;
+            }
+        }
+
+        // Remove from old parent if different
+        if (node.parentId && node.parentId !== parent.id) {
+            const oldParent = this.mindMap.findNode(node.parentId);
+            if (oldParent) oldParent.removeChild(node.id);
+            node.parentId = parent.id; // Update parent ID immediately so it acts as child
+        } else if (node.parentId === parent.id) {
+            // Remove from current position to re-insert
+            parent.removeChild(node.id);
+        }
+
+        // Find index of target (after removal of node, index might shift if node was before target)
+        // Check if target is still in children? Yes.
+        const targetIndex = parent.children.findIndex(c => c.id === targetId);
+        if (targetIndex === -1) {
+            // Fallback: append
+            parent.addChild(node);
+            return true;
+        }
+
+        const insertIndex = position === 'before' ? targetIndex : targetIndex + 1;
+        parent.insertChild(node, insertIndex);
+
+        // Propagate potential side change if moving under Root
+        if (parent.isRoot) {
+            // Inherit side from target if possible?
+            // If dragging Top/Bottom of a sibling, we generally want to stay on that side.
+            // Target has a side.
+            if (target.layoutSide) {
+                node.layoutSide = target.layoutSide;
+            }
+        }
+
+        return true;
+    }
+
+    insertNodeAsParent(nodeId: string, targetId: string): boolean {
+        const node = this.mindMap.findNode(nodeId);
+        const target = this.mindMap.findNode(targetId);
+
+        if (!node || !target || !target.parentId) return false; // Cannot insert as parent of Root
+        if (node.id === target.id) return false;
+
+        // Cycle check: if target is descendant of node, we cannot make node parent of target (cycle)
+        // Actually, if we move 'node' to be parent of 'target', 'node' becomes child of 'target.parent'.
+        // So we need to check if 'target.parent' is descendant of 'node'.
+        const targetParent = this.mindMap.findNode(target.parentId);
+        if (!targetParent) return false;
+
+        let current = targetParent;
+        while (current) {
+            if (current.id === node.id) return false;
+            if (!current.parentId) break;
+            current = this.mindMap.findNode(current.parentId) as Node;
+        }
+
+        // Remove node from its old parent
+        if (node.parentId) {
+            const oldParent = this.mindMap.findNode(node.parentId);
+            if (oldParent) oldParent.removeChild(node.id);
+        }
+
+        // Insert node into target's parent at target's index
+        const index = targetParent.children.findIndex(c => c.id === targetId);
+        if (index === -1) return false;
+
+        // Inherit layoutSide if replacing a node (especially under Root)
+        if (targetParent.isRoot && target.layoutSide) {
+            node.layoutSide = target.layoutSide;
+        }
+
+        targetParent.removeChild(targetId);
+        targetParent.insertChild(node, index);
+        node.parentId = targetParent.id;
+
+        // Add target as child of node
+        node.addChild(target);
+
+        return true;
+    }
+
     insertParent(targetId: string, topic: string = 'New Parent'): Node | null {
         const targetNode = this.mindMap.findNode(targetId);
         if (!targetNode || !targetNode.parentId) return null;
