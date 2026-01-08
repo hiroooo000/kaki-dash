@@ -147,6 +147,19 @@ describe('MindMapService', () => {
         }
     });
 
+    it('should update layoutSide when moving to same parent', () => {
+        const child1 = service.addNode('root', 'Child 1', 'right');
+        expect(child1).toBeDefined();
+        if (child1) {
+            expect(child1.layoutSide).toBe('right');
+
+            // Move to same parent but change side
+            const result = service.moveNode(child1.id, 'root', 'left');
+            expect(result).toBe(true);
+            expect(child1.layoutSide).toBe('left');
+        }
+    });
+
     describe('Persistence', () => {
         it('should export data correctly', () => {
             const child1 = service.addNode('root', 'Child 1');

@@ -61,10 +61,23 @@ export class MindMapService {
     }
 
     moveNode(nodeId: string, newParentId: string, layoutSide?: 'left' | 'right'): boolean {
+        // Handle side update for same parent (re-layout)
+        const node = this.mindMap.findNode(nodeId);
+        if (node && node.parentId === newParentId) {
+            if (layoutSide && node.layoutSide !== layoutSide) {
+                node.layoutSide = layoutSide;
+                return true;
+            }
+            return false; // No change
+        }
+
         if (this.mindMap.moveNode(nodeId, newParentId)) {
             if (layoutSide) {
-                const node = this.mindMap.findNode(nodeId);
-                if (node) node.layoutSide = layoutSide;
+                // Check if node reference is still valid or re-fetch? 
+                // this.mindMap.moveNode doesn't recreate node instance, it just reparents.
+                // So 'node' var is still valid if we fetched it above, or we fetch again.
+                const movedNode = this.mindMap.findNode(nodeId);
+                if (movedNode) movedNode.layoutSide = layoutSide;
             }
             return true;
         }

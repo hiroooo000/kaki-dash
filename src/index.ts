@@ -82,15 +82,22 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   addChildNode(parentId: string): void {
+    const parent = this.mindMap.findNode(parentId);
+
+    // Lock existing sides before adding new node in Both mode
+    if (parent && parent.isRoot && this.layoutMode === 'Both') {
+      this.ensureExplicitLayoutSides(parent);
+    }
+
     let side: 'left' | 'right' | undefined;
 
     // Auto-balance logic for Root in Both mode
     if (this.layoutMode === 'Both') {
-      const parent = this.mindMap.findNode(parentId);
       if (parent && parent.isRoot) {
         let leftCount = 0;
         let rightCount = 0;
-        parent.children.forEach((child, index) => {
+        parent.children.forEach((child: Node, index: number) => {
+          // Now most children should have layoutSide, but fallback just in case
           const dir = child.layoutSide || (index % 2 === 0 ? 'right' : 'left');
           if (dir === 'left') leftCount++;
           else rightCount++;
@@ -108,13 +115,19 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   addSiblingNode(nodeId: string, position: 'before' | 'after' = 'after'): void {
     const node = this.mindMap.findNode(nodeId);
     if (node && node.parentId) {
+      const parent = this.mindMap.findNode(node.parentId);
+
+      // Lock existing sides before adding new sibling if parent is Root and in Both mode
+      if (parent && parent.isRoot && this.layoutMode === 'Both') {
+        this.ensureExplicitLayoutSides(parent);
+      }
+
       const newNode = this.service.addSibling(nodeId, position, 'New Sibling');
       if (newNode) {
         // Inherit layoutSide if sibling of Root
-        const parent = this.mindMap.findNode(node.parentId);
         if (parent && parent.isRoot && this.layoutMode === 'Both') {
           // If existing node has explicit side, copy it.
-          // If not, infer it.
+          // If not, infer it (though ensureExplicitLayoutSides should have set it just now).
           const currentSide = node.layoutSide || (parent.children.indexOf(node) % 2 === 0 ? 'right' : 'left');
           newNode.layoutSide = currentSide;
         }
@@ -125,6 +138,16 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         this.emit('model:change', undefined);
       }
     }
+  }
+
+  private ensureExplicitLayoutSides(parent: Node): void {
+    if (!parent.isRoot || this.layoutMode !== 'Both') return;
+
+    parent.children.forEach((child: Node, index: number) => {
+      if (!child.layoutSide) {
+        child.layoutSide = index % 2 === 0 ? 'right' : 'left';
+      }
+    });
   }
 
   insertParentNode(nodeId: string): void {
@@ -287,7 +310,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
             target = node.children[0];
           } else if (this.layoutMode === 'Both') {
             // Find first child on Left side
-            target = node.children.find((c, i) => {
+            target = node.children.find((c: Node, i: number) => {
               const side = c.layoutSide || (i % 2 !== 0 ? 'left' : 'right');
               return side === 'left';
             });
@@ -311,7 +334,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
             target = node.children[0];
           } else if (this.layoutMode === 'Both') {
             // Find first child on Right side
-            target = node.children.find((c, i) => {
+            target = node.children.find((c: Node, i: number) => {
               const side = c.layoutSide || (i % 2 === 0 ? 'right' : 'left');
               return side === 'right';
             });
@@ -335,8 +358,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
             // We need to find the "previous" sibling ON THE SAME SIDE
             const myDir = this.getNodeDirection(node);
             // Filter siblings on same side
-            const sameSideSiblings = parent.children.filter(c => this.getNodeDirection(c) === myDir);
-            const myIndex = sameSideSiblings.findIndex(c => c.id === nodeId);
+            const sameSideSiblings = parent.children.filter((c: Node) => this.getNodeDirection(c) === myDir);
+            const myIndex = sameSideSiblings.findIndex((c: Node) => c.id === nodeId);
             if (myIndex > 0) {
               this.selectNode(sameSideSiblings[myIndex - 1].id);
             }
@@ -349,8 +372,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
           if (parent) {
             // Find next sibling on same side
             const myDir = this.getNodeDirection(node);
-            const sameSideSiblings = parent.children.filter(c => this.getNodeDirection(c) === myDir);
-            const myIndex = sameSideSiblings.findIndex(c => c.id === nodeId);
+            const sameSideSiblings = parent.children.filter((c: Node) => this.getNodeDirection(c) === myDir);
+            const myIndex = sameSideSiblings.findIndex((c: Node) => c.id === nodeId);
             if (myIndex !== -1 && myIndex < sameSideSiblings.length - 1) {
               this.selectNode(sameSideSiblings[myIndex + 1].id);
             }
@@ -393,7 +416,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       if (parent.isRoot) {
         if (current.layoutSide) return current.layoutSide;
         // Fallback to index if no explicit side
-        const index = parent.children.findIndex(c => c.id === current.id);
+        const index = parent.children.findIndex((c: Node) => c.id === current.id);
         return index % 2 === 0 ? 'right' : 'left';
       }
       current = parent;
