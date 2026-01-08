@@ -351,6 +351,14 @@ export class SvgRenderer implements Renderer {
             el.style.border = '2px solid #333';
         }
 
+        // Apply custom styles to measurement element
+        if (node.style.color) el.style.color = node.style.color;
+        if (node.style.fontSize) el.style.fontSize = node.style.fontSize;
+        if (node.style.fontWeight) el.style.fontWeight = node.style.fontWeight;
+        if (node.style.fontStyle) el.style.fontStyle = node.style.fontStyle;
+        if (node.style.background) el.style.backgroundColor = node.style.background;
+
+
         this.nodeContainer.appendChild(el);
         const width = el.offsetWidth;
         const height = el.offsetHeight;
