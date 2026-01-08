@@ -109,6 +109,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     const node = this.addNode(parentId, 'New Child', side);
     if (node) {
       this.selectNode(node.id);
+      // Auto-edit new node
+      this.interactionHandler.editNode(node.id);
     }
   }
 
@@ -136,6 +138,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         this.selectNode(newNode.id);
         this.emit('node:add', { id: newNode.id, topic: newNode.topic });
         this.emit('model:change', undefined);
+
+        // Auto-edit new node
+        this.interactionHandler.editNode(newNode.id);
       }
     }
   }
@@ -157,6 +162,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       this.selectNode(newNode.id);
       this.emit('node:add', { id: newNode.id, topic: newNode.topic });
       this.emit('model:change', undefined);
+
+      // Auto-edit new node
+      this.interactionHandler.editNode(newNode.id);
     }
   }
 

@@ -346,6 +346,13 @@ export class InteractionHandler {
         });
     }
 
+    public editNode(nodeId: string): void {
+        const nodeEl = this.container.querySelector(`.mindmap-node[data-id="${nodeId}"]`) as HTMLElement;
+        if (nodeEl) {
+            this.startEditing(nodeEl, nodeId);
+        }
+    }
+
     private startEditing(element: HTMLElement, nodeId: string): void {
         const currentText = element.textContent || '';
         const input = document.createElement('textarea');
@@ -449,5 +456,6 @@ export class InteractionHandler {
             this.container.appendChild(input);
         }
         input.focus();
+        input.select();
     }
 }
