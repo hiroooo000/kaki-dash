@@ -420,39 +420,56 @@ export class InteractionHandler {
         // Update on type
         input.addEventListener('input', updateSize);
 
+        let isFinishing = false;
+
         const finishEditing = () => {
-            if (input.parentNode) {
-                const newTopic = input.value;
-                if (newTopic !== currentText) {
-                    if (this.options.onUpdateNode) {
-                        this.options.onUpdateNode(nodeId, newTopic);
-                    }
+            if (isFinishing) return;
+            isFinishing = true;
+
+            const newTopic = input.value;
+            // Only update if changed
+            if (newTopic !== currentText) {
+                if (this.options.onUpdateNode) {
+                    this.options.onUpdateNode(nodeId, newTopic);
                 }
-                // Check parentNode again to be safe
-                if (input.parentNode) {
-                    input.parentNode.removeChild(input);
-                }
+            }
+
+            // Remove input safely
+            if (input.parentNode && input.parentNode.contains(input)) {
+                input.parentNode.removeChild(input);
             }
         };
 
-        input.addEventListener('blur', finishEditing);
+        input.addEventListener('blur', () => {
+            // Delay blur handling slightly to allow Enter key to process first if needed
+            // But usually the flag handles it.
+            if (!isFinishing) {
+                finishEditing();
+            }
+        });
 
         const cancelEditing = () => {
-            if (input.parentNode) {
-                input.remove();
+            if (isFinishing) return;
+            isFinishing = true;
+            if (input.parentNode && input.parentNode.contains(input)) {
+                input.parentNode.removeChild(input);
             }
         };
 
         input.addEventListener('keydown', (e) => {
-            // Stop propagation to prevent global shortcuts (like Enter adding sibling, Backspace deleting node)
+            // Stop propagation
             e.stopPropagation();
+
+            // IME support: Don't finish editing if composing (e.g. Japanese conversion)
+            if (e.isComposing) {
+                return;
+            }
 
             if (e.key === 'Enter') {
                 if (e.shiftKey) {
                     // Allow default behavior (new line)
                     return;
                 }
-                // Prevent default to ensure no newline is added if it were a textarea (safety)
                 e.preventDefault();
                 finishEditing();
             } else if (e.key === 'Escape') {
