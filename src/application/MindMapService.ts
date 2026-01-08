@@ -1,17 +1,39 @@
 import { MindMap } from '../domain/entities/MindMap';
 import { Node } from '../domain/entities/Node';
 import { MindMapData, MindMapNodeData } from '../domain/interfaces/MindMapData';
+import { HistoryManager } from './HistoryManager';
 
 export class MindMapService {
     mindMap: MindMap;
+    private historyManager: HistoryManager<MindMapData>;
 
     constructor(mindMap: MindMap) {
         this.mindMap = mindMap;
+        this.historyManager = new HistoryManager<MindMapData>(10);
+    }
+
+    private saveState(): void {
+        this.historyManager.push(this.exportData());
+    }
+
+    undo(): boolean {
+        const prevState = this.historyManager.undo(this.exportData());
+        if (prevState) {
+            this.importData(prevState);
+            return true;
+        }
+        return false;
+    }
+
+    get canUndo(): boolean {
+        return this.historyManager.canUndo;
     }
 
     addNode(parentId: string, topic: string = 'New Node', layoutSide?: 'left' | 'right'): Node | null {
         const parent = this.mindMap.findNode(parentId);
         if (!parent) return null;
+
+        this.saveState();
 
         const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
         const newNode = new Node(id, topic, null, false, undefined, layoutSide);
@@ -23,6 +45,8 @@ export class MindMapService {
         const parent = this.mindMap.findNode(parentId);
         if (!parent) return null;
 
+        this.saveState();
+
         const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
         // Image nodes have empty topic
         const newNode = new Node(id, '', parentId, false, imageData);
@@ -30,12 +54,13 @@ export class MindMapService {
         return newNode;
     }
 
-    removeNode(id: string): boolean {
+    removeNode(id: string, saveState: boolean = true): boolean {
         const node = this.mindMap.findNode(id);
         if (!node || node.isRoot || !node.parentId) return false;
 
         const parent = this.mindMap.findNode(node.parentId);
         if (parent) {
+            if (saveState) this.saveState();
             parent.removeChild(id);
             return true;
         }
@@ -45,6 +70,7 @@ export class MindMapService {
     updateNodeTopic(id: string, topic: string): boolean {
         const node = this.mindMap.findNode(id);
         if (node) {
+            this.saveState();
             node.updateTopic(topic);
             return true;
         }
@@ -54,6 +80,7 @@ export class MindMapService {
     updateNodeStyle(id: string, style: Partial<import('../domain/entities/Node').NodeStyle>): boolean {
         const node = this.mindMap.findNode(id);
         if (node) {
+            this.saveState();
             node.style = { ...node.style, ...style };
             return true;
         }
@@ -65,21 +92,35 @@ export class MindMapService {
         const node = this.mindMap.findNode(nodeId);
         if (node && node.parentId === newParentId) {
             if (layoutSide && node.layoutSide !== layoutSide) {
+                this.saveState();
                 node.layoutSide = layoutSide;
                 return true;
             }
             return false; // No change
         }
 
+        // We check validity first roughly, but moveNode does internal checks. 
+        // Ideally we save state only if move succeeds, but saving before attempt is safer for undo if logic implies we are ABOUT to move.
+        // However, if move fails, we added a redundant state. 
+        // Let's check finding node first to be sure it exists.
+        if (!node) return false;
+
+        this.saveState();
+
         if (this.mindMap.moveNode(nodeId, newParentId)) {
             if (layoutSide) {
-                // Check if node reference is still valid or re-fetch? 
-                // this.mindMap.moveNode doesn't recreate node instance, it just reparents.
-                // So 'node' var is still valid if we fetched it above, or we fetch again.
                 const movedNode = this.mindMap.findNode(nodeId);
                 if (movedNode) movedNode.layoutSide = layoutSide;
             }
             return true;
+        } else {
+            // If move failed, we technically polluted history with an identical state.
+            // But undoing it would just restore same state, so not critical.
+            // Ideally we pop history, but HistoryManager doesn't expose pop. 
+            // HistoryManager logic: push current state. 
+            // If move fails, current state is still same.
+            // If user un-does, they go to 'previous' state which is identical.
+            // It's fine for now.
         }
         return false;
     }
@@ -87,6 +128,8 @@ export class MindMapService {
     addSibling(referenceId: string, position: 'before' | 'after', topic: string = 'New Node'): Node | null {
         const referenceNode = this.mindMap.findNode(referenceId);
         if (!referenceNode || !referenceNode.parentId) return null;
+
+        this.saveState();
 
         const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
         const newNode = new Node(id, topic);
@@ -110,8 +153,7 @@ export class MindMapService {
         const parent = this.mindMap.findNode(target.parentId);
         if (!parent) return false;
 
-        // If node is already a child of parent, we are just moving it in the list.
-        // If node is NOT a child of parent, we are moving it to a new parent AND ordering it.
+        this.saveState();
 
         // Cycle detection if moving to new parent
         if (node.parentId !== parent.id) {
@@ -136,7 +178,6 @@ export class MindMapService {
             parent.removeChild(node.id);
         }
 
-        // Find index of target (after removal of node, index might shift if node was before target)
         // Check if target is still in children? Yes.
         const targetIndex = parent.children.findIndex(c => c.id === targetId);
         if (targetIndex === -1) {
@@ -168,9 +209,7 @@ export class MindMapService {
         if (!node || !target || !target.parentId) return false; // Cannot insert as parent of Root
         if (node.id === target.id) return false;
 
-        // Cycle check: if target is descendant of node, we cannot make node parent of target (cycle)
-        // Actually, if we move 'node' to be parent of 'target', 'node' becomes child of 'target.parent'.
-        // So we need to check if 'target.parent' is descendant of 'node'.
+        // Cycle check
         const targetParent = this.mindMap.findNode(target.parentId);
         if (!targetParent) return false;
 
@@ -180,6 +219,8 @@ export class MindMapService {
             if (!current.parentId) break;
             current = this.mindMap.findNode(current.parentId) as Node;
         }
+
+        this.saveState();
 
         // Remove node from its old parent
         if (node.parentId) {
@@ -210,6 +251,8 @@ export class MindMapService {
         const targetNode = this.mindMap.findNode(targetId);
         if (!targetNode || !targetNode.parentId) return null;
 
+        this.saveState();
+
         const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
         const newParentNode = new Node(id, topic);
 
@@ -239,6 +282,9 @@ export class MindMapService {
         const node = this.mindMap.findNode(nodeId);
         if (node && !node.isRoot && node.parentId) {
             this.copyNode(nodeId);
+            // saveState is handled in removeNode if second arg is true (default)
+            // But we want to treat CUT as one atomic operation regarding history?
+            // "Cut" = Copy + Delete.
             this.removeNode(nodeId);
         }
     }
@@ -248,6 +294,8 @@ export class MindMapService {
 
         const parent = this.mindMap.findNode(parentId);
         if (!parent) return null;
+
+        this.saveState();
 
         // Clone again from clipboard to create new instance for the tree
         const newNode = this.deepCloneNode(this.clipboard);

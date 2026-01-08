@@ -17,10 +17,10 @@ vi.mock('../../src/presentation/LayoutSwitcher', () => ({
 }));
 
 vi.mock('../../src/presentation/SvgRenderer', () => ({
-    SvgRenderer: vi.fn().mockImplementation(() => ({
+    SvgRenderer: vi.fn().mockImplementation((container: any) => ({
         render: vi.fn(),
         updateTransform: vi.fn(),
-        container: { getBoundingClientRect: () => ({ left: 0, top: 0 }), clientWidth: 1000, clientHeight: 800 }
+        container: container
     }))
 }));
 
@@ -32,7 +32,12 @@ class MockHTMLElement {
     setAttribute = vi.fn();
     appendChild = vi.fn();
     removeChild = vi.fn();
-    querySelector = vi.fn().mockReturnValue({ value: '', classList: { contains: vi.fn() }, style: {} });
+    querySelector = vi.fn().mockReturnValue({
+        value: '',
+        classList: { contains: vi.fn() },
+        style: {},
+        getBoundingClientRect: vi.fn().mockReturnValue({ top: 0, left: 0, width: 100, height: 30 })
+    });
     querySelectorAll = vi.fn().mockReturnValue([]);
     getBoundingClientRect = vi.fn().mockReturnValue({ width: 0, height: 0, top: 0, left: 0 });
     clientWidth = 1000;
@@ -51,8 +56,16 @@ class MockHTMLElement {
         getBBox: () => ({ x: 0, y: 0, width: 100, height: 30 }),
         offsetWidth: 100,
         offsetHeight: 30,
-        querySelector: vi.fn().mockReturnValue({ value: '', classList: { contains: vi.fn() }, style: {} }),
-        querySelectorAll: vi.fn().mockReturnValue([])
+        querySelector: vi.fn().mockReturnValue({
+            value: '',
+            classList: { contains: vi.fn() },
+            style: {},
+            getBoundingClientRect: vi.fn().mockReturnValue({ top: 0, left: 0, width: 100, height: 30 })
+        }),
+        querySelectorAll: vi.fn().mockReturnValue([]),
+        focus: vi.fn(),
+        select: vi.fn(),
+        blur: vi.fn()
     }),
     createElementNS: () => ({
         style: {},
@@ -61,7 +74,8 @@ class MockHTMLElement {
         getBBox: () => ({ x: 0, y: 0, width: 100, height: 30 })
     }),
     addEventListener: vi.fn(),
-    head: { appendChild: vi.fn() }
+    head: { appendChild: vi.fn() },
+    body: { appendChild: vi.fn(), removeChild: vi.fn() }
 };
 (global as any).window = {
     addEventListener: vi.fn(),
