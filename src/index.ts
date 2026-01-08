@@ -272,35 +272,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
   }
 
-  private ensureNodeVisible(nodeId: string): void {
-    const nodeEl = this.renderer.container.querySelector(`.mindmap-node[data-id="${nodeId}"]`) as HTMLElement;
-    if (!nodeEl) return;
 
-    const rect = nodeEl.getBoundingClientRect();
-    const containerRect = this.renderer.container.getBoundingClientRect();
-
-    const padding = 50;
-    let dx = 0;
-    let dy = 0;
-
-    // Check horizontal
-    if (rect.left < containerRect.left + padding) {
-      dx = (containerRect.left + padding) - rect.left;
-    } else if (rect.right > containerRect.right - padding) {
-      dx = (containerRect.right - padding) - rect.right;
-    }
-
-    // Check vertical
-    if (rect.top < containerRect.top + padding) {
-      dy = (containerRect.top + padding) - rect.top;
-    } else if (rect.bottom > containerRect.bottom - padding) {
-      dy = (containerRect.bottom - padding) - rect.bottom;
-    }
-
-    if (dx !== 0 || dy !== 0) {
-      this.panBoard(dx, dy);
-    }
-  }
 
   selectNode(nodeId: string | null): void {
     if (this.selectedNodeId === nodeId) return;
@@ -518,6 +490,11 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         }
         break;
     }
+
+    // Auto-pan to selected node if it changed
+    if (this.selectedNodeId && this.selectedNodeId !== nodeId) {
+      setTimeout(() => this.ensureNodeVisible(this.selectedNodeId!, true), 0);
+    }
   }
 
   getData(): MindMapData {
@@ -560,6 +537,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
     return 'right';
   }
+
   private startAnimationLoop(): void {
     let lastTime = performance.now();
 
@@ -598,5 +576,55 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       requestAnimationFrame(tick);
     };
     tick();
+  }
+
+  /*
+   * Ensures the node is visible in the viewport.
+   * If centerIfOffscreen is true, and the node is out of bounds, it will be centered.
+   */
+  private ensureNodeVisible(nodeId: string, centerIfOffscreen: boolean = false): void {
+    const nodeEl = this.renderer.container.querySelector(`.mindmap-node[data-id="${nodeId}"]`) as HTMLElement;
+    if (!nodeEl) return;
+
+    const rect = nodeEl.getBoundingClientRect();
+    const containerRect = this.renderer.container.getBoundingClientRect();
+
+    const padding = 50;
+    let dx = 0;
+    let dy = 0;
+
+    const isOffLeft = rect.left < containerRect.left + padding;
+    const isOffRight = rect.right > containerRect.right - padding;
+    const isOffTop = rect.top < containerRect.top + padding;
+    const isOffBottom = rect.bottom > containerRect.bottom - padding;
+
+    if (centerIfOffscreen && (isOffLeft || isOffRight || isOffTop || isOffBottom)) {
+      // Center the node
+      const nodeCenterX = rect.left + rect.width / 2;
+      const nodeCenterY = rect.top + rect.height / 2;
+      const containerCenterX = containerRect.left + containerRect.width / 2;
+      const containerCenterY = containerRect.top + containerRect.height / 2;
+
+      dx = containerCenterX - nodeCenterX;
+      dy = containerCenterY - nodeCenterY;
+
+    } else {
+      // Standard "push into view" logic
+      if (isOffLeft) {
+        dx = (containerRect.left + padding) - rect.left;
+      } else if (isOffRight) {
+        dx = (containerRect.right - padding) - rect.right;
+      }
+
+      if (isOffTop) {
+        dy = (containerRect.top + padding) - rect.top;
+      } else if (isOffBottom) {
+        dy = (containerRect.bottom - padding) - rect.bottom;
+      }
+    }
+
+    if (dx !== 0 || dy !== 0) {
+      this.panBoard(dx, dy);
+    }
   }
 }
