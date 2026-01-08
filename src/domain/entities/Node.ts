@@ -27,7 +27,7 @@ export class Node {
     this.id = id;
     this.topic = topic;
     this.children = [];
-    this.style = {};
+    this.style = { fontSize: isRoot ? '24px' : '16px' };
     this.parentId = parentId;
     this.isRoot = isRoot;
     this.image = image;
