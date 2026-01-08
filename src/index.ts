@@ -1,5 +1,5 @@
 import { MindMap } from './domain/entities/MindMap';
-import { Node } from './domain/entities/Node';
+import { Node, NodeStyle } from './domain/entities/Node';
 import { MindMapService } from './application/MindMapService';
 import { SvgRenderer } from './presentation/SvgRenderer';
 import { StyleEditor } from './presentation/StyleEditor';
@@ -66,9 +66,10 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.targetPanX = this.panX;
     this.targetPanY = this.panY;
 
-    this.layoutSwitcher = new LayoutSwitcher(uiLayer, { // Pass uiLayer
+    this.layoutSwitcher = new LayoutSwitcher(uiLayer, {
+      // Pass uiLayer
       onLayoutChange: (mode) => this.setLayoutMode(mode),
-      onZoomReset: () => this.resetZoom()
+      onZoomReset: () => this.resetZoom(),
     });
 
     this.startAnimationLoop();
@@ -93,7 +94,56 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
           this.render();
           this.emit('model:change', undefined);
         }
-      }
+      },
+      onStyleAction: (nodeId, action) => {
+        const node = this.mindMap.findNode(nodeId);
+        if (!node) return;
+
+        const currentStyle = node.style || {};
+
+        let newStyle: Partial<NodeStyle> | null = null;
+
+        if (action.type === 'bold') {
+          newStyle = { fontWeight: currentStyle.fontWeight === 'bold' ? 'normal' : 'bold' };
+        } else if (action.type === 'italic') {
+          newStyle = { fontStyle: currentStyle.fontStyle === 'italic' ? 'normal' : 'italic' };
+        } else if (action.type === 'color') {
+          if (action.index >= 0 && action.index < StyleEditor.PALETTE.length) {
+            newStyle = { color: StyleEditor.PALETTE[action.index] };
+          }
+        } else if (action.type === 'increaseSize' || action.type === 'decreaseSize') {
+          const sizes = StyleEditor.FONT_SIZES;
+          const currentVal = currentStyle.fontSize || ''; // '' assumes default
+          let currentIndex = sizes.findIndex((s) => s.value === currentVal);
+          if (currentIndex === -1) currentIndex = 0; // Default if unknown
+
+          let newIndex = currentIndex;
+          if (action.type === 'increaseSize') {
+            newIndex = Math.min(sizes.length - 1, currentIndex + 1);
+          } else {
+            newIndex = Math.max(0, currentIndex - 1);
+          }
+
+          if (newIndex !== currentIndex) {
+            newStyle = { fontSize: sizes[newIndex].value };
+          }
+        }
+
+        if (newStyle) {
+          if (this.service.updateNodeStyle(nodeId, newStyle)) {
+            this.render();
+            this.emit('model:change', undefined);
+            // Also update editor UI if it's showing this node
+            // But selectNode() does that. Re-selecting might be overkill but ensures sync?
+            // Actually styleEditor.show() is called on selection.
+            // We should probably just let the render handle the view,
+            // but the Floating Editor UI needs to be updated too if visible.
+            if (this.selectedNodeId === nodeId) {
+              this.styleEditor.show(nodeId, { ...currentStyle, ...newStyle });
+            }
+          }
+        }
+      },
     });
 
     this.render();
@@ -160,7 +210,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         if (parent && parent.isRoot && this.layoutMode === 'Both') {
           // If existing node has explicit side, copy it.
           // If not, infer it (though ensureExplicitLayoutSides should have set it just now).
-          const currentSide = node.layoutSide || (parent.children.indexOf(node) % 2 === 0 ? 'right' : 'left');
+          const currentSide =
+            node.layoutSide || (parent.children.indexOf(node) % 2 === 0 ? 'right' : 'left');
           newNode.layoutSide = currentSide;
         }
 
@@ -203,9 +254,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   removeNode(nodeId: string): void {
+    const node = this.mindMap.findNode(nodeId);
+    const parentId = node?.parentId || null;
+
     if (this.service.removeNode(nodeId)) {
       if (this.selectedNodeId === nodeId) {
-        this.selectNode(null); // Deselect
+        this.selectNode(parentId); // Select parent
       } else {
         this.render();
       }
@@ -278,8 +332,6 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
   }
 
-
-
   selectNode(nodeId: string | null): void {
     if (this.selectedNodeId === nodeId) return;
     this.selectedNodeId = nodeId;
@@ -318,7 +370,10 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     const x = clientX - rect.left;
     const y = clientY - rect.top;
 
-    const newScale = Math.min(Math.max(this.scale * (1 - delta * ZOOM_SENSITIVITY), MIN_SCALE), MAX_SCALE);
+    const newScale = Math.min(
+      Math.max(this.scale * (1 - delta * ZOOM_SENSITIVITY), MIN_SCALE),
+      MAX_SCALE,
+    );
 
     // Zoom logic needs to be careful with Lerp.
     // If we only set targets, it might drift towards the new zoom focus?
@@ -375,8 +430,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   cutNode(nodeId: string): void {
     const node = this.mindMap.findNode(nodeId);
     if (node) {
+      const parentId = node.parentId;
       this.service.cutNode(nodeId);
-      this.selectNode(null); // Deselect the cut node
+      this.selectNode(parentId); // Select parent
       this.render();
       this.emit('node:remove', nodeId); // Cut implies removal
       this.emit('model:change', undefined);
@@ -473,7 +529,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
             // We need to find the "previous" sibling ON THE SAME SIDE
             const myDir = this.getNodeDirection(node);
             // Filter siblings on same side
-            const sameSideSiblings = parent.children.filter((c: Node) => this.getNodeDirection(c) === myDir);
+            const sameSideSiblings = parent.children.filter(
+              (c: Node) => this.getNodeDirection(c) === myDir,
+            );
             const myIndex = sameSideSiblings.findIndex((c: Node) => c.id === nodeId);
             if (myIndex > 0) {
               this.selectNode(sameSideSiblings[myIndex - 1].id);
@@ -487,7 +545,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
           if (parent) {
             // Find next sibling on same side
             const myDir = this.getNodeDirection(node);
-            const sameSideSiblings = parent.children.filter((c: Node) => this.getNodeDirection(c) === myDir);
+            const sameSideSiblings = parent.children.filter(
+              (c: Node) => this.getNodeDirection(c) === myDir,
+            );
             const myIndex = sameSideSiblings.findIndex((c: Node) => c.id === nodeId);
             if (myIndex !== -1 && myIndex < sameSideSiblings.length - 1) {
               this.selectNode(sameSideSiblings[myIndex + 1].id);
@@ -515,7 +575,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       this.emit('model:load', data);
       this.emit('model:change', undefined);
     } catch (e) {
-      console.error("Failed to load data", e);
+      console.error('Failed to load data', e);
     }
   }
 
@@ -553,7 +613,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       lastTime = currentTime;
 
       // Time-based smoothing
-      // decay constant: higher = faster snap. 
+      // decay constant: higher = faster snap.
       // 15 was too fast. 8 is slower/smoother.
       const decay = 8;
 
@@ -589,7 +649,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    * If centerIfOffscreen is true, and the node is out of bounds, it will be centered.
    */
   private ensureNodeVisible(nodeId: string, centerIfOffscreen: boolean = false): void {
-    const nodeEl = this.renderer.container.querySelector(`.mindmap-node[data-id="${nodeId}"]`) as HTMLElement;
+    const nodeEl = this.renderer.container.querySelector(
+      `.mindmap-node[data-id="${nodeId}"]`,
+    ) as HTMLElement;
     if (!nodeEl) return;
 
     const rect = nodeEl.getBoundingClientRect();
@@ -613,19 +675,18 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
       dx = containerCenterX - nodeCenterX;
       dy = containerCenterY - nodeCenterY;
-
     } else {
       // Standard "push into view" logic
       if (isOffLeft) {
-        dx = (containerRect.left + padding) - rect.left;
+        dx = containerRect.left + padding - rect.left;
       } else if (isOffRight) {
-        dx = (containerRect.right - padding) - rect.right;
+        dx = containerRect.right - padding - rect.right;
       }
 
       if (isOffTop) {
-        dy = (containerRect.top + padding) - rect.top;
+        dy = containerRect.top + padding - rect.top;
       } else if (isOffBottom) {
-        dy = (containerRect.bottom - padding) - rect.bottom;
+        dy = containerRect.bottom - padding - rect.bottom;
       }
     }
 
