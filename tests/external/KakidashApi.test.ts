@@ -258,4 +258,77 @@ describe('Kakidash External API', () => {
             expect(listener).toHaveBeenCalledTimes(1); // Should not increase
         });
     });
+
+    describe('New Interface Features', () => {
+        describe('Node Accessors', () => {
+            it('should get root node', () => {
+                const root = board.getRoot();
+                expect(root).toBeDefined();
+                expect(root.isRoot).toBe(true);
+            });
+
+            it('should get specific node by ID', () => {
+                const rootId = board.getRootId();
+                const child = board.addNode(rootId, 'Child');
+                const node = board.getNode(child!.id);
+                expect(node).toBeDefined();
+                expect(node!.id).toBe(child!.id);
+            });
+
+            it('should find nodes by predicate', () => {
+                const rootId = board.getRootId();
+                board.addNode(rootId, 'Target 1');
+                board.addNode(rootId, 'Other');
+                board.addNode(rootId, 'Target 2');
+
+                const targets = board.findNodes(n => n.topic.startsWith('Target'));
+                expect(targets.length).toBe(2);
+            });
+        });
+
+        describe('Batch Operations', () => {
+            it('should execute callback and maintain data integrity', () => {
+                const rootId = board.getRootId();
+                board.batch(() => {
+                    board.addNode(rootId, 'A');
+                    board.addNode(rootId, 'B');
+                });
+                const children = board.getRoot().children;
+                expect(children.length).toBe(2);
+            });
+        });
+
+        describe('Read-only Mode', () => {
+            it('should allow setting read-only mode', () => {
+                // Just verifying method existence and no crash
+                board.setReadOnly(true);
+                board.setReadOnly(false);
+            });
+        });
+
+        describe('Lifecycle', () => {
+            it('should destroy without errors', () => {
+                board.destroy();
+            });
+        });
+
+        describe('Event System Aliases', () => {
+            it('should support addListener alias', () => {
+                const listener = vi.fn();
+                board.addListener('node:add', listener);
+                const rootId = board.getRootId();
+                board.addNode(rootId, 'Test');
+                expect(listener).toHaveBeenCalled();
+            });
+
+            it('should support removeListener alias', () => {
+                const listener = vi.fn();
+                board.addListener('node:add', listener);
+                board.removeListener('node:add', listener);
+                const rootId = board.getRootId();
+                board.addNode(rootId, 'Test');
+                expect(listener).not.toHaveBeenCalled();
+            });
+        });
+    });
 });
