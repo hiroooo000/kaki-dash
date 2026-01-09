@@ -149,6 +149,14 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.render();
   }
 
+  /* ==========================================================================================
+     Core API (Pure Data Operations)
+     ========================================================================================== */
+
+  /**
+   * Adds a new child node to the specified parent.
+   * This is a pure data operation and does not trigger UI actions like auto-focus or scroll.
+   */
   addNode(parentId: string, topic?: string, layoutSide?: 'left' | 'right'): Node | null {
     const node = this.service.addNode(parentId, topic, layoutSide);
     if (node) {
@@ -159,23 +167,118 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     return node;
   }
 
+  /**
+   * Adds a sibling node relative to the reference node.
+   * This is a pure data operation.
+   */
+  addSibling(
+    referenceId: string,
+    position: 'before' | 'after' = 'after',
+    topic: string = 'New Sibling',
+  ): Node | null {
+    const node = this.mindMap.findNode(referenceId);
+    if (!node || !node.parentId) return null;
+
+    const parent = this.mindMap.findNode(node.parentId);
+
+    // Logic for Both mode balancing (data concern)
+    if (parent && parent.isRoot && this.layoutMode === 'Both') {
+      this.ensureExplicitLayoutSides(parent);
+    }
+
+    const newNode = this.service.addSibling(referenceId, position, topic);
+    if (newNode) {
+      // Inherit layoutSide if sibling of Root
+      if (parent && parent.isRoot && this.layoutMode === 'Both') {
+        const currentSide =
+          node.layoutSide || (parent.children.indexOf(node) % 2 === 0 ? 'right' : 'left');
+        newNode.layoutSide = currentSide;
+      }
+
+      this.render();
+      this.emit('node:add', { id: newNode.id, topic: newNode.topic });
+      this.emit('model:change', undefined);
+    }
+    return newNode;
+  }
+
+  /**
+   * Inserts a parent node above the specified node.
+   * This is a pure data operation.
+   */
+  insertParent(targetId: string, topic: string = 'New Parent'): Node | null {
+    const newNode = this.service.insertParent(targetId, topic);
+    if (newNode) {
+      this.render();
+      this.emit('node:add', { id: newNode.id, topic: newNode.topic });
+      this.emit('model:change', undefined);
+    }
+    return newNode;
+  }
+
+  /**
+   * Removes a node.
+   * This is a pure data operation.
+   * (Previously removeNode, keeping alias or usage consistent)
+   */
+  deleteNode(nodeId: string): void {
+    // Current removeNode implementation has UI selection logic mixed in.
+    // We should separate it.
+    // However, removeNode return type was void in original? No, it was just doing logic.
+    // Let's implement pure delete here.
+    const result = this.service.removeNode(nodeId);
+    if (result) {
+      this.render();
+      this.emit('node:remove', nodeId);
+      this.emit('model:change', undefined);
+    }
+  }
+
+  /**
+   * Updates a node's topic or style.
+   * This is a pure data operation.
+   */
+  updateNode(
+    nodeId: string,
+    updates: { topic?: string; style?: Partial<NodeStyle> },
+  ): void {
+    let changed = false;
+    if (updates.topic !== undefined) {
+      if (this.service.updateNodeTopic(nodeId, updates.topic)) changed = true;
+    }
+    if (updates.style !== undefined) {
+      if (this.service.updateNodeStyle(nodeId, updates.style)) changed = true;
+    }
+
+    if (changed) {
+      this.render();
+      if (updates.topic !== undefined) {
+        // We emit node:update mainly for topic changes in the current event map
+        this.emit('node:update', { id: nodeId, topic: updates.topic });
+      }
+      this.emit('model:change', undefined);
+    }
+  }
+
+  /* ==========================================================================================
+     Interaction API (Composite Actions with UI)
+     ========================================================================================== */
+
   addChildNode(parentId: string): void {
     const parent = this.mindMap.findNode(parentId);
 
-    // Lock existing sides before adding new node in Both mode
+    // Lock sides logic is now partially in addNode/addSibling if needed, but 'ensureExplicitLayoutSides' is private helper.
+    // Let's keep specific interaction logic here if it's about "how to place new node" specifically for user action.
     if (parent && parent.isRoot && this.layoutMode === 'Both') {
       this.ensureExplicitLayoutSides(parent);
     }
 
     let side: 'left' | 'right' | undefined;
-
-    // Auto-balance logic for Root in Both mode
     if (this.layoutMode === 'Both') {
       if (parent && parent.isRoot) {
         let leftCount = 0;
         let rightCount = 0;
         parent.children.forEach((child: Node, index: number) => {
-          // Now most children should have layoutSide, but fallback just in case
           const dir = child.layoutSide || (index % 2 === 0 ? 'right' : 'left');
           if (dir === 'left') leftCount++;
           else rightCount++;
@@ -184,50 +287,58 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       }
     }
 
+    // Call Core API
     const node = this.addNode(parentId, 'New Child', side);
     if (node) {
+      // Interaction Side Effects
       this.selectNode(node.id);
-      // Auto-pan to new node before editing
       this.ensureNodeVisible(node.id);
-      // Auto-edit new node
       this.interactionHandler.editNode(node.id);
     }
   }
 
   addSiblingNode(nodeId: string, position: 'before' | 'after' = 'after'): void {
-    const node = this.mindMap.findNode(nodeId);
-    if (node && node.parentId) {
-      const parent = this.mindMap.findNode(node.parentId);
-
-      // Lock existing sides before adding new sibling if parent is Root and in Both mode
-      if (parent && parent.isRoot && this.layoutMode === 'Both') {
-        this.ensureExplicitLayoutSides(parent);
-      }
-
-      const newNode = this.service.addSibling(nodeId, position, 'New Sibling');
-      if (newNode) {
-        // Inherit layoutSide if sibling of Root
-        if (parent && parent.isRoot && this.layoutMode === 'Both') {
-          // If existing node has explicit side, copy it.
-          // If not, infer it (though ensureExplicitLayoutSides should have set it just now).
-          const currentSide =
-            node.layoutSide || (parent.children.indexOf(node) % 2 === 0 ? 'right' : 'left');
-          newNode.layoutSide = currentSide;
-        }
-
-        this.render();
-        this.selectNode(newNode.id);
-        this.emit('node:add', { id: newNode.id, topic: newNode.topic });
-        this.emit('model:change', undefined);
-
-        // Auto-pan to new node before editing
-        this.ensureNodeVisible(newNode.id);
-        // Auto-edit new node
-        this.interactionHandler.editNode(newNode.id);
-      }
+    // Call Core API
+    const newNode = this.addSibling(nodeId, position, 'New Sibling');
+    if (newNode) {
+      // Interaction Side Effects
+      this.selectNode(newNode.id);
+      this.ensureNodeVisible(newNode.id);
+      this.interactionHandler.editNode(newNode.id);
     }
   }
 
+  insertParentNode(nodeId: string): void {
+    // Call Core API
+    const newNode = this.insertParent(nodeId, 'New Parent');
+    if (newNode) {
+      // Interaction Side Effects
+      this.selectNode(newNode.id);
+      this.ensureNodeVisible(newNode.id);
+      this.interactionHandler.editNode(newNode.id);
+    }
+  }
+
+  /**
+   * Wrapper for deleteNode that handles selection update (Interaction concern).
+   */
+  removeNode(nodeId: string): void {
+    const node = this.mindMap.findNode(nodeId);
+    const parentId = node?.parentId || null;
+    const isSelected = this.selectedNodeId === nodeId;
+
+    this.deleteNode(nodeId);
+
+    // If deleted node was selected, move selection to parent
+    if (isSelected && parentId) {
+      this.selectNode(parentId);
+    }
+  }
+
+  /**
+   * Helper to ensure sides are locked when modifying Root children in Both mode.
+   * (Kept as private helper for internal use)
+   */
   private ensureExplicitLayoutSides(parent: Node): void {
     if (!parent.isRoot || this.layoutMode !== 'Both') return;
 
@@ -238,35 +349,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     });
   }
 
-  insertParentNode(nodeId: string): void {
-    const newNode = this.service.insertParent(nodeId, 'New Parent');
-    if (newNode) {
-      this.render();
-      this.selectNode(newNode.id);
-      this.emit('node:add', { id: newNode.id, topic: newNode.topic });
-      this.emit('model:change', undefined);
-
-      // Auto-pan to new node before editing
-      this.ensureNodeVisible(newNode.id);
-      // Auto-edit new node
-      this.interactionHandler.editNode(newNode.id);
-    }
-  }
-
-  removeNode(nodeId: string): void {
-    const node = this.mindMap.findNode(nodeId);
-    const parentId = node?.parentId || null;
-
-    if (this.service.removeNode(nodeId)) {
-      if (this.selectedNodeId === nodeId) {
-        this.selectNode(parentId); // Select parent
-      } else {
-        this.render();
-      }
-      this.emit('node:remove', nodeId);
-      this.emit('model:change', undefined);
-    }
-  }
+  /* ==========================================================================================
+     Other Methods
+     ========================================================================================== */
 
   moveNode(nodeId: string, targetId: string, position: 'top' | 'bottom' | 'left' | 'right'): void {
     const target = this.mindMap.findNode(targetId);
@@ -323,13 +408,10 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   updateNodeTopic(nodeId: string, topic: string): void {
-    if (this.service.updateNodeTopic(nodeId, topic)) {
-      this.render();
-      this.emit('node:update', { id: nodeId, topic });
-      this.emit('model:change', undefined);
-      // Ensure node is visible after update (auto-pan if needed)
-      setTimeout(() => this.ensureNodeVisible(nodeId), 0);
-    }
+    // Composite action: Update data AND ensure visible
+    this.updateNode(nodeId, { topic });
+    // Ensure node is visible after update (auto-pan if needed)
+    setTimeout(() => this.ensureNodeVisible(nodeId), 0);
   }
 
   selectNode(nodeId: string | null): void {
