@@ -578,6 +578,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       this.selectNode(newNode.id);
       this.emit('node:add', { id: newNode.id, topic: newNode.topic });
       this.emit('model:change', undefined);
+      setTimeout(() => this.ensureNodeVisible(newNode.id, true), 0);
     }
   }
 
@@ -588,6 +589,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       this.selectNode(newNode.id);
       this.emit('node:add', { id: newNode.id, topic: '' }); // Image nodes have empty topic
       this.emit('model:change', undefined);
+      setTimeout(() => this.ensureNodeVisible(newNode.id, true), 0);
     }
   }
 
