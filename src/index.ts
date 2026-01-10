@@ -73,6 +73,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.layoutSwitcher = new LayoutSwitcher(uiLayer, {
       // Pass uiLayer
       onLayoutChange: (mode) => this.setLayoutMode(mode),
+      onThemeChange: (theme) => this.setTheme(theme),
       onZoomReset: () => this.resetZoom(),
     });
 
@@ -286,6 +287,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   public setTheme(theme: Theme): void {
     this.service.setTheme(theme);
+    this.layoutSwitcher.setTheme(theme);
     this.render();
     this.emit('model:change', undefined);
   }
@@ -766,6 +768,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       this.selectNode(null);
       this.render();
       this.emit('model:load', data);
+      if (data.theme) {
+        this.layoutSwitcher.setTheme(data.theme);
+      }
       this.emit('model:change', undefined);
     } catch (e) {
       console.error('Failed to load data', e);

@@ -556,7 +556,7 @@ export class InteractionHandler {
         });
 
         // Drag End (Cleanup if cancelled)
-        addListener(this.container, 'dragend', (e) => {
+        addListener(this.container, 'dragend', () => {
             this.draggedNodeId = null;
             this.container.querySelectorAll('.mindmap-node').forEach((el) => {
                 el.classList.remove(
