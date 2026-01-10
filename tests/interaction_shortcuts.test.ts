@@ -20,6 +20,7 @@ describe('InteractionHandler Shortcuts', () => {
       onAddSibling: vi.fn(),
       onDeleteNode: vi.fn(),
       onDropNode: vi.fn(),
+      onNavigate: vi.fn(),
       onStyleAction: vi.fn(), // We are testing this
     };
     handler = new InteractionHandler(container, options);
@@ -93,5 +94,28 @@ describe('InteractionHandler Shortcuts', () => {
     handler.updateSelection(null);
     triggerKey('b', { ctrlKey: true });
     expect(options.onStyleAction).not.toHaveBeenCalled();
+    expect(options.onStyleAction).not.toHaveBeenCalled();
+  });
+
+  describe('Vim-style Navigation', () => {
+    it('triggers Navigate Left on h', () => {
+      triggerKey('h');
+      expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Left');
+    });
+
+    it('triggers Navigate Down on j', () => {
+      triggerKey('j');
+      expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Down');
+    });
+
+    it('triggers Navigate Up on k', () => {
+      triggerKey('k');
+      expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Up');
+    });
+
+    it('triggers Navigate Right on l', () => {
+      triggerKey('l');
+      expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Right');
+    });
   });
 });

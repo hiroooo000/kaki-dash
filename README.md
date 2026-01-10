@@ -2,7 +2,7 @@
 
 # kakidash
 
-Mindmap Javascript Library.
+Mindmap Typescript / Javascript Library.
 
 ## Concept
 
@@ -146,7 +146,8 @@ board.on('model:change', () => {
 | Key | Description |
 | --- | --- |
 | `Arrow Keys` | Navigate between nodes |
-| `Space` | Start editing node |
+| `h` / `j` / `k` / `l` | Navigate between nodes (Vim-style) |
+| `F2` / `DblClick` | Start editing node |
 | `Enter` | Add sibling node (below) |
 | `Shift + Enter` | Add sibling node (above) |
 | `Tab` | Add child node |

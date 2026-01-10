@@ -205,6 +205,7 @@ export class InteractionHandler {
                 // Delete, Enter (Add Sibling), Tab (Add Child/Parent) -> Blocked.
                 const allowedKeys = [
                     'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+                    'h', 'j', 'k', 'l',
                     'c', // Copy
                 ];
                 // We also need to block style shortcuts like 'b', 'i', '+', '-'

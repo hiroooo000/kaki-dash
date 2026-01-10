@@ -2,15 +2,17 @@
 
 # kakidash
 
-Mindmap Javascript Library.
+Mindmap Typescript/Javascript Library.
 
 ## Concept
 
 **「思考を、ダッシュで書き出す」**
 
 Kakidashのミッションは、**アウトプット速度の最大化**です。
+
 脳内に浮かぶ膨大な思考やアイデアを、ボトルネックなくすべて書き出し切るために。
-キーボードショートカットを駆使し、思考のスピードでマップを広げていく体験を提供します。
+
+キーボードショートカットを駆使し、思考のスピードでマインドマップを広げていく体験を提供します。
 
 ## Features
 
@@ -149,7 +151,8 @@ board.on('model:change', () => {
 | Key | Description |
 | --- | --- |
 | `Arrow Keys` | ノード間の移動 |
-| `Space` | ノードの編集を開始 |
+| `h` / `j` / `k` / `l` | ノード間の移動 (Vim風) |
+| `F2` / `DblClick` | ノードの編集を開始 |
 | `Enter` | 兄弟ノードを追加 (下) |
 | `Shift + Enter` | 兄弟ノードを追加 (上) |
 | `Tab` | 子ノードを追加 |
