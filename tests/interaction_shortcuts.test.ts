@@ -22,7 +22,6 @@ describe('InteractionHandler Shortcuts', () => {
       onDropNode: vi.fn(),
       onNavigate: vi.fn(),
       onStyleAction: vi.fn(), // We are testing this
-      onNavigate: vi.fn(),
     };
     handler = new InteractionHandler(container, options);
     handler.updateSelection('test-node-id');
@@ -118,27 +117,6 @@ describe('InteractionHandler Shortcuts', () => {
       triggerKey('l');
       expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Right');
     });
-  });
-
-  // Vim Navigation Tests
-  it('triggers traverse Up on k', () => {
-    triggerKey('k');
-    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Up');
-  });
-
-  it('triggers traverse Down on j', () => {
-    triggerKey('j');
-    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Down');
-  });
-
-  it('triggers traverse Left on h', () => {
-    triggerKey('h');
-    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Left');
-  });
-
-  it('triggers traverse Right on l', () => {
-    triggerKey('l');
-    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Right');
   });
 
   it('triggers edit mode on i', () => {
