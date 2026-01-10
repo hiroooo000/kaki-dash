@@ -30,6 +30,11 @@
     "author": "",
     "license": "MIT",
     "devDependencies": {
+        "@types/argparse": "^2.0.17",
+        "@types/estree": "^1.0.8",
+        "@types/node": "^25.0.5",
+        "@types/whatwg-mimetype": "^3.0.2",
+        "@types/ws": "^8.18.1",
         "@typescript-eslint/eslint-plugin": "^7.0.0",
         "@typescript-eslint/parser": "^7.0.0",
         "eslint": "^8.57.0",
