@@ -205,6 +205,7 @@ export class InteractionHandler {
                 // Delete, Enter (Add Sibling), Tab (Add Child/Parent) -> Blocked.
                 const allowedKeys = [
                     'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+                    'h', 'j', 'k', 'l', // Vim navigation
                     'c', // Copy
                 ];
                 // We also need to block style shortcuts like 'b', 'i', '+', '-'
@@ -215,12 +216,14 @@ export class InteractionHandler {
             }
 
             // Prevent default browser behaviors for these keys
-            const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+            const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'h', 'j', 'k', 'l'];
             const actionKeys = ['Tab', 'Enter', 'Delete', 'Backspace'];
 
             if (actionKeys.includes(ke.key) || navKeys.includes(ke.key)) {
                 // Need to be careful not to block typing if we add editing later
                 // Editing input handles its own keydown and stops propagation, so this is safe for global shortcuts
+                // For 'i', we only prevent default if it triggers startEditing, which we handle in switch.
+                // But 'i' is not in navKeys.
                 ke.preventDefault();
             }
 
@@ -243,16 +246,28 @@ export class InteractionHandler {
                     this.options.onDeleteNode(this.selectedNodeId);
                     break;
                 case 'ArrowUp':
-                    this.options.onNavigate?.(this.selectedNodeId, 'Up');
+                case 'k':
+                    if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
+                        this.options.onNavigate?.(this.selectedNodeId, 'Up');
+                    }
                     break;
                 case 'ArrowDown':
-                    this.options.onNavigate?.(this.selectedNodeId, 'Down');
+                case 'j':
+                    if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
+                        this.options.onNavigate?.(this.selectedNodeId, 'Down');
+                    }
                     break;
                 case 'ArrowLeft':
-                    this.options.onNavigate?.(this.selectedNodeId, 'Left');
+                case 'h':
+                    if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
+                        this.options.onNavigate?.(this.selectedNodeId, 'Left');
+                    }
                     break;
                 case 'ArrowRight':
-                    this.options.onNavigate?.(this.selectedNodeId, 'Right');
+                case 'l':
+                    if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
+                        this.options.onNavigate?.(this.selectedNodeId, 'Right');
+                    }
                     break;
                 case 'F2': {
                     if (this.isReadOnly) return;
@@ -311,13 +326,25 @@ export class InteractionHandler {
                         this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
                     }
                     break;
-                case 'i':
+                case 'i': {
                     if (this.isReadOnly) return;
                     if (ke.metaKey || ke.ctrlKey) {
+                        // Italic
                         ke.preventDefault();
                         this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
+                    } else {
+                        // Vim-style Edit
+                        ke.preventDefault();
+                        const selectedNodeEl = this.container.querySelector(
+                            `.mindmap-node[data-id="${this.selectedNodeId}"]`,
+                        ) as HTMLElement;
+                        if (selectedNodeEl) {
+                            this.startEditing(selectedNodeEl, this.selectedNodeId);
+                        }
                     }
                     break;
+                }
+
                 // Font Size
                 case '+':
                 case '=': // Often + is Shift+=
