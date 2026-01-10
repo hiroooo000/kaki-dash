@@ -555,6 +555,19 @@ export class InteractionHandler {
             this.draggedNodeId = null;
         });
 
+        // Drag End (Cleanup if cancelled)
+        addListener(this.container, 'dragend', () => {
+            this.draggedNodeId = null;
+            this.container.querySelectorAll('.mindmap-node').forEach((el) => {
+                el.classList.remove(
+                    'drag-over-top',
+                    'drag-over-bottom',
+                    'drag-over-left',
+                    'drag-over-right',
+                );
+            });
+        });
+
         // Double click to edit
         addListener(this.container, 'dblclick', (e) => {
             if (this.isReadOnly) return;
@@ -597,11 +610,29 @@ export class InteractionHandler {
         input.style.boxSizing = 'border-box'; // Ensure padding is included in width calculation if relevant
         // Copy border to blend in? Or keep default input border?
         // User screenshot shows white box.
-        input.style.border = computed.border;
+        input.style.backgroundColor = computed.backgroundColor;
+
+        // Reset defaults
+        input.style.border = 'none';
+        input.style.outline = 'none';
+        input.style.boxShadow = 'none';
+
+        // Copy individual border properties as shorthand 'border' might be empty if sides differ
+        input.style.borderTop = computed.borderTop;
+        input.style.borderRight = computed.borderRight;
+        input.style.borderBottom = computed.borderBottom;
+        input.style.borderLeft = computed.borderLeft;
         input.style.borderRadius = computed.borderRadius;
-        input.style.backgroundColor = 'white';
+        // Keep outline none to avoid double focus indication if we want to mimic node exactly
+
 
         input.style.zIndex = '100';
+
+        // Store original outline/shadow to restore later
+        const originalOutline = element.style.outline;
+        const originalBoxShadow = element.style.boxShadow;
+        element.style.outline = 'none';
+        element.style.boxShadow = 'none';
 
         const updateSize = () => {
             const span = document.createElement('span');
@@ -637,6 +668,15 @@ export class InteractionHandler {
 
         let isFinishing = false;
 
+        const cleanup = () => {
+            if (input.parentNode && input.parentNode.contains(input)) {
+                input.parentNode.removeChild(input);
+            }
+            // Restore outline/shadow
+            element.style.outline = originalOutline;
+            element.style.boxShadow = originalBoxShadow;
+        };
+
         const finishEditing = () => {
             if (isFinishing) return;
             isFinishing = true;
@@ -649,10 +689,7 @@ export class InteractionHandler {
                 }
             }
 
-            // Remove input safely
-            if (input.parentNode && input.parentNode.contains(input)) {
-                input.parentNode.removeChild(input);
-            }
+            cleanup();
         };
 
         input.addEventListener('blur', () => {
@@ -666,9 +703,7 @@ export class InteractionHandler {
         const cancelEditing = () => {
             if (isFinishing) return;
             isFinishing = true;
-            if (input.parentNode && input.parentNode.contains(input)) {
-                input.parentNode.removeChild(input);
-            }
+            cleanup();
         };
 
         input.addEventListener('keydown', (e) => {

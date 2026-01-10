@@ -15,9 +15,11 @@ export interface MindMapNodeData {
   layoutSide?: 'left' | 'right';
 }
 
+export type Theme = 'default' | 'simple' | 'colorful';
+
 export interface MindMapData {
   nodeData: MindMapNodeData;
   linkData?: any;
-  theme?: any;
+  theme?: Theme;
   direction?: number;
 }
