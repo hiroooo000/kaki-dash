@@ -249,12 +249,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    * Updates a node's topic or style.
    * This is a pure data operation.
    */
-  updateNode(
-    nodeId: string,
-    updates: { topic?: string; style?: Partial<NodeStyle> },
-  ): void {
+  updateNode(nodeId: string, updates: { topic?: string; style?: Partial<NodeStyle> }): void {
     let changed = false;
-    if (this.interactionHandler.isReadOnly) return; // Prevent updates via public API if readonly? 
+    if (this.interactionHandler.isReadOnly) return; // Prevent updates via public API if readonly?
     // Actually, usually programmatic API bypasses UI readonly, but for "setReadOnly" typically means "Interactive ReadOnly".
     // API users can still modify data if they want? Or should we block it?
     // "Read-only Mode" usually implies UI interaction. API users are "Gods".
@@ -342,7 +339,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       // We appended a UI layer... we should probably keep a reference or just empty the container if we own it?
       // But the user passed the container. We appended uiLayer.
       // We should remove what we added.
-      // But we didn't store uiLayer on 'this'. 
+      // But we didn't store uiLayer on 'this'.
       // We can find it by z-index or strict reference if we stored it.
       // For now, let's assume specific destroy checks are minor compared to event listeners.
     }
@@ -629,7 +626,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   updateLayout(mode: 'Standard' | 'Left' | 'Right'): void {
     if (mode === 'Standard') {
-      this.setLayoutMode('Both' as any); // Mapping 'Standard' to 'Both' for internal logic?
+      this.setLayoutMode('Both'); // Mapping 'Standard' to 'Both' for internal logic?
       // Wait, LayoutMode is 'Left' | 'Right' | 'Both'?
       // The interface defines it. Let's check definition.
       // Assuming LayoutMode includes 'Both'.
@@ -658,7 +655,6 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
     this.render();
   }
-
 
   getLayoutMode(): LayoutMode {
     return this.layoutMode;

@@ -19,6 +19,7 @@ export type Theme = 'default' | 'simple' | 'colorful';
 
 export interface MindMapData {
   nodeData: MindMapNodeData;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   linkData?: any;
   theme?: Theme;
   direction?: number;
