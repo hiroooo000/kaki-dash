@@ -1,7 +1,15 @@
 {
     "name": "kakidash",
     "version": "0.0.1",
-    "description": "Mindmap Javascript Library",
+    "description": "A lightweight, dependency-free Mindmap library for the browser.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/hiroooo000/kakidash.git"
+    },
+    "homepage": "https://github.com/hiroooo000/kakidash#readme",
+    "bugs": {
+        "url": "https://github.com/hiroooo000/kakidash/issues"
+    },
     "type": "module",
     "main": "./dist/kakidash.umd.js",
     "module": "./dist/kakidash.es.js",
@@ -25,10 +33,14 @@
     "keywords": [
         "mindmap",
         "javascript",
-        "typescript"
+        "typescript",
+        "svg",
+        "visualization",
+        "diagram"
     ],
-    "author": "",
+    "author": "hiroooo000 <hiroooo000@gmail.com>",
     "license": "MIT",
+    "sideEffects": false,
     "devDependencies": {
         "@eslint/js": "^9.39.2",
         "@types/argparse": "^2.0.17",
