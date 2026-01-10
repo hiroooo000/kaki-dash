@@ -222,7 +222,7 @@ export class SvgRenderer implements Renderer {
         el.style.transform = 'translate(0, -50%)'; // Vertically centered on Y
 
         el.style.zIndex = '10';
-        el.style.cursor = node.isRoot ? 'default' : 'grab';
+        el.style.cursor = 'default';
         el.style.userSelect = 'none';
 
         if (node.id === selectedNodeId) {

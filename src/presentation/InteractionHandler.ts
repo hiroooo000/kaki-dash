@@ -46,6 +46,7 @@ export class InteractionHandler {
         // Make container focusable to capture keyboard/paste events
         this.container.tabIndex = 0;
         this.container.style.outline = 'none';
+        this.container.style.cursor = 'default';
         this.options = options;
         this.attachEvents();
     }
@@ -128,7 +129,7 @@ export class InteractionHandler {
                 this.isPanning = true;
                 this.lastMouseX = me.clientX;
                 this.lastMouseY = me.clientY;
-                this.container.style.cursor = 'grabbing';
+                this.container.style.cursor = 'all-scroll';
             }
         });
 
@@ -149,7 +150,7 @@ export class InteractionHandler {
         const stopPanning = () => {
             if (this.isPanning) {
                 this.isPanning = false;
-                this.container.style.cursor = '';
+                this.container.style.cursor = 'default';
             }
         };
 
