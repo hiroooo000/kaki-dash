@@ -1,7 +1,9 @@
 import { Node } from './Node';
+import { Theme } from '../interfaces/MindMapData';
 
 export class MindMap {
   root: Node;
+  theme: Theme = 'default';
 
   constructor(rootNode: Node) {
     this.root = rootNode;

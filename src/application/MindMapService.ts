@@ -100,6 +100,13 @@ export class MindMapService {
     return false;
   }
 
+  setTheme(theme: import('../domain/interfaces/MindMapData').Theme): void {
+    if (this.mindMap.theme !== theme) {
+      this.saveState();
+      this.mindMap.theme = theme;
+    }
+  }
+
   moveNode(nodeId: string, newParentId: string, layoutSide?: 'left' | 'right'): boolean {
     // Handle side update for same parent (re-layout)
     const node = this.mindMap.findNode(nodeId);
@@ -366,6 +373,7 @@ export class MindMapService {
 
     return {
       nodeData: buildNodeData(this.mindMap.root),
+      theme: this.mindMap.theme,
     };
   }
 
@@ -389,5 +397,8 @@ export class MindMapService {
     };
 
     this.mindMap.root = buildNodeFromData(data.nodeData);
+    if (data.theme) {
+      this.mindMap.theme = data.theme;
+    }
   }
 }

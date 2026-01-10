@@ -55,16 +55,21 @@
     <button id="btn-export">Export to JSON</button>
     <textarea id="json-data" placeholder="Paste JSON here or click Export"></textarea>
     <button id="btn-import">Import from JSON</button>
-    <label style="margin-left: 10px;">
-      <input type="checkbox" id="chk-readonly"> ReadOnly
-    </label>
+    <button id="layout-left">Left</button>
+    <button id="layout-right">Right</button>
+    <button id="layout-standard">Standard</button>
+    <select id="theme-select" style="margin-left: 10px; padding: 5px;">
+      <option value="default">Default Theme</option>
+      <option value="simple">Simple Theme</option>
+      <option value="colorful">Colorful Theme</option>
+    </select>
   </div>
-  <div id="app"></div>
+  <div id="mindmap-container"></div>
   <script type="module">
     import { Kakidash } from '/src/index.ts';
 
     try {
-      const app = document.getElementById('app');
+      const app = document.getElementById('mindmap-container');
 
       const board = new Kakidash(app);
       window.kakidash = board; // For manual testing console access
@@ -89,6 +94,15 @@
 
 
       // GUI Event Listeners
+      document.getElementById('layout-standard').addEventListener('click', () => {
+        kakidash.updateLayout('Standard');
+      });
+
+      const themeSelect = document.getElementById('theme-select');
+      themeSelect.addEventListener('change', (e) => {
+        kakidash.setTheme(e.target.value);
+      });
+
       document.getElementById('btn-export').addEventListener('click', () => {
         const data = board.getData();
         const json = JSON.stringify(data, null, 2);
@@ -107,11 +121,8 @@
       });
 
       // ReadOnly Toggle
-      document.getElementById('chk-readonly').addEventListener('change', (e) => {
-        const isReadOnly = e.target.checked;
-        board.setReadOnly(isReadOnly);
-        console.log(`ReadOnly mode set to: ${isReadOnly}`);
-      });
+      // ReadOnly removed from UI temporarily as per previous edits, but keeping listener logic clean if needed
+      // or just closing the try block properly.
     } catch (e) {
       console.error('Initialization error:', e);
       document.body.innerHTML += `<div style="color:red; padding: 20px;">Error: ${e.message}</div>`;

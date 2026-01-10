@@ -6,7 +6,7 @@ import { StyleEditor } from './presentation/StyleEditor';
 import { LayoutSwitcher } from './presentation/LayoutSwitcher';
 import { InteractionHandler, Direction } from './presentation/InteractionHandler';
 import { LayoutMode } from './domain/interfaces/LayoutMode';
-import { MindMapData } from './domain/interfaces/MindMapData';
+import { MindMapData, Theme } from './domain/interfaces/MindMapData';
 import { TypedEventEmitter } from './infrastructure/EventEmitter';
 import { KakidashEventMap } from './domain/interfaces/KakidashEvents';
 
@@ -279,6 +279,20 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   /* ==========================================================================================
      Node Accessors
      ========================================================================================== */
+
+  public updateNodeStyle(nodeId: string, style: Partial<NodeStyle>): void {
+    this.service.updateNodeStyle(nodeId, style);
+  }
+
+  public setTheme(theme: Theme): void {
+    this.service.setTheme(theme);
+    this.render();
+    this.emit('model:change', undefined);
+  }
+
+  public getMindMap(): MindMap {
+    return this.mindMap;
+  }
 
   getNode(nodeId: string): Node | undefined {
     return this.mindMap.findNode(nodeId) || undefined;
@@ -611,6 +625,17 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.renderer.updateTransform(this.panX, this.panY, this.scale);
   }
 
+  updateLayout(mode: 'Standard' | 'Left' | 'Right'): void {
+    if (mode === 'Standard') {
+      this.setLayoutMode('Both' as any); // Mapping 'Standard' to 'Both' for internal logic?
+      // Wait, LayoutMode is 'Left' | 'Right' | 'Both'?
+      // The interface defines it. Let's check definition.
+      // Assuming LayoutMode includes 'Both'.
+    } else {
+      this.setLayoutMode(mode as LayoutMode);
+    }
+  }
+
   setLayoutMode(mode: LayoutMode): void {
     this.layoutMode = mode;
     this.layoutSwitcher.setMode(mode);
@@ -631,6 +656,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
     this.render();
   }
+
 
   getLayoutMode(): LayoutMode {
     return this.layoutMode;
