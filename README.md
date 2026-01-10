@@ -4,6 +4,14 @@
 
 Mindmap Javascript Library.
 
+## Concept
+
+**"Dash through your thoughts"**
+
+Kakidash's mission is to **maximize output speed**.
+It is designed to capture every fleeing thought and vast idea without bottlenecks.
+Master the shortcuts and expand your mind map at the speed of thought.
+
 ## Features
 
 - **Mindmap Creation**: Add nodes, manipulate siblings and child nodes.
