@@ -281,7 +281,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
      ========================================================================================== */
 
   getNode(nodeId: string): Node | undefined {
-    return this.mindMap.findNode(nodeId);
+    return this.mindMap.findNode(nodeId) || undefined;
   }
 
   getRoot(): Node {
