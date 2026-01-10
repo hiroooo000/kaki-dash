@@ -55,6 +55,9 @@
     <button id="btn-export">Export to JSON</button>
     <textarea id="json-data" placeholder="Paste JSON here or click Export"></textarea>
     <button id="btn-import">Import from JSON</button>
+    <label style="margin-left: 10px;">
+      <input type="checkbox" id="chk-readonly"> ReadOnly
+    </label>
   </div>
   <div id="app"></div>
   <script type="module">
@@ -101,6 +104,13 @@
           console.error('Import failed:', err);
           alert('Invalid JSON');
         }
+      });
+
+      // ReadOnly Toggle
+      document.getElementById('chk-readonly').addEventListener('change', (e) => {
+        const isReadOnly = e.target.checked;
+        board.setReadOnly(isReadOnly);
+        console.log(`ReadOnly mode set to: ${isReadOnly}`);
       });
     } catch (e) {
       console.error('Initialization error:', e);
