@@ -22,6 +22,7 @@ describe('InteractionHandler Shortcuts', () => {
       onDropNode: vi.fn(),
       onNavigate: vi.fn(),
       onStyleAction: vi.fn(), // We are testing this
+      onNavigate: vi.fn(),
     };
     handler = new InteractionHandler(container, options);
     handler.updateSelection('test-node-id');
@@ -117,5 +118,50 @@ describe('InteractionHandler Shortcuts', () => {
       triggerKey('l');
       expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Right');
     });
+  });
+
+  // Vim Navigation Tests
+  it('triggers traverse Up on k', () => {
+    triggerKey('k');
+    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Up');
+  });
+
+  it('triggers traverse Down on j', () => {
+    triggerKey('j');
+    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Down');
+  });
+
+  it('triggers traverse Left on h', () => {
+    triggerKey('h');
+    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Left');
+  });
+
+  it('triggers traverse Right on l', () => {
+    triggerKey('l');
+    expect(options.onNavigate).toHaveBeenCalledWith('test-node-id', 'Right');
+  });
+
+  it('triggers edit mode on i', () => {
+    // Setup a node element in the DOM for startEditing to find
+    const nodeEl = document.createElement('div');
+    nodeEl.classList.add('mindmap-node');
+    nodeEl.dataset.id = 'test-node-id';
+    nodeEl.textContent = 'Test Topic';
+    // Style needed for positioning logic in startEditing
+    nodeEl.style.top = '100px';
+    nodeEl.style.left = '100px';
+    container.appendChild(nodeEl);
+
+    triggerKey('i');
+
+    // Check if textarea is created
+    const textarea = container.querySelector('textarea') || document.body.querySelector('textarea');
+    expect(textarea).not.toBeNull();
+    if (textarea) {
+      expect(textarea.value).toBe('Test Topic');
+      // Clean up
+      textarea.remove();
+    }
+    nodeEl.remove();
   });
 });
