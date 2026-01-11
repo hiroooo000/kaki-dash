@@ -11,13 +11,13 @@
         "url": "https://github.com/hiroooo000/kakidash/issues"
     },
     "type": "module",
-    "main": "./dist/kakidash.umd.js",
+    "main": "./dist/kakidash.cjs",
     "module": "./dist/kakidash.es.js",
     "types": "./dist/index.d.ts",
     "exports": {
         ".": {
             "import": "./dist/kakidash.es.js",
-            "require": "./dist/kakidash.umd.js"
+            "require": "./dist/kakidash.cjs"
         }
     },
     "files": [

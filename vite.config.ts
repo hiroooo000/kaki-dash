@@ -8,12 +8,18 @@ export default defineConfig({
         lib: {
             entry: path.resolve(__dirname, 'src/index.ts'),
             name: 'kakidash',
-            fileName: (format) => `kakidash.${format}.js`
+            fileName: (format) => {
+                if (format === 'es') return 'kakidash.es.js';
+                if (format === 'umd') return 'kakidash.umd.js';
+                return `kakidash.${format}`; // cjs -> kakidash.cjs
+            },
+            formats: ['es', 'umd', 'cjs']
         },
         rollupOptions: {
             external: [], // 外部依存があればここに追加
             output: {
-                globals: {}
+                globals: {},
+                exports: 'named'
             }
         }
     },
