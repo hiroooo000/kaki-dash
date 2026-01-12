@@ -1,12 +1,10 @@
-// Mock requestAnimationFrame to prevent infinite loops and ensure tests run in node/happy-dom
-if (!global.requestAnimationFrame) {
-  global.requestAnimationFrame = (callback: FrameRequestCallback) => {
-    return setTimeout(() => callback(Date.now()), 0) as unknown as number;
-  };
-}
+import { vi } from 'vitest';
 
-if (!global.cancelAnimationFrame) {
-  global.cancelAnimationFrame = (id: number) => {
-    clearTimeout(id);
-  };
-}
+// Mock requestAnimationFrame to prevent infinite loops in Kakidash.startAnimationLoop
+vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => {
+  return 1; // Return dummy ID, do NOT call callback
+});
+
+vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((_id) => {
+  // No-op
+});

@@ -23,6 +23,11 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private layoutSwitcher: LayoutSwitcher;
   private layoutMode: LayoutMode = 'Right';
   private selectedNodeId: string | null = null;
+  /**
+   * Flag to track if we just created a node via UI interaction and are waiting for edit completion
+   * to emit the final model:change event.
+   */
+  private pendingNodeCreation: boolean = false;
 
   private panX: number = 0;
   private panY: number = 0;
@@ -151,6 +156,13 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
           }
         }
       },
+      onEditEnd: (_) => {
+        // If we were waiting for node creation to complete (e.g. user finished editing new node name or cancelled)
+        if (this.pendingNodeCreation) {
+          this.pendingNodeCreation = false;
+          this.emit('model:change', undefined);
+        }
+      },
     });
 
     this.render();
@@ -164,12 +176,19 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    * Adds a new child node to the specified parent.
    * This is a pure data operation and does not trigger UI actions like auto-focus or scroll.
    */
-  addNode(parentId: string, topic?: string, layoutSide?: 'left' | 'right'): Node | null {
+  addNode(
+    parentId: string,
+    topic?: string,
+    layoutSide?: 'left' | 'right',
+    options: { emitChange?: boolean } = { emitChange: true },
+  ): Node | null {
     const node = this.service.addNode(parentId, topic, layoutSide);
     if (node) {
       this.render();
       this.emit('node:add', { id: node.id, topic: node.topic });
-      this.emit('model:change', undefined);
+      if (options.emitChange) {
+        this.emit('model:change', undefined);
+      }
     }
     return node;
   }
@@ -182,6 +201,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     referenceId: string,
     position: 'before' | 'after' = 'after',
     topic: string = 'New Sibling',
+    options: { emitChange?: boolean } = { emitChange: true },
   ): Node | null {
     const node = this.mindMap.findNode(referenceId);
     if (!node || !node.parentId) return null;
@@ -204,7 +224,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
       this.render();
       this.emit('node:add', { id: newNode.id, topic: newNode.topic });
-      this.emit('model:change', undefined);
+      if (options.emitChange) {
+        this.emit('model:change', undefined);
+      }
     }
     return newNode;
   }
@@ -213,12 +235,18 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    * Inserts a parent node above the specified node.
    * This is a pure data operation.
    */
-  insertParent(targetId: string, topic: string = 'New Parent'): Node | null {
+  insertParent(
+    targetId: string,
+    topic: string = 'New Parent',
+    options: { emitChange?: boolean } = { emitChange: true },
+  ): Node | null {
     const newNode = this.service.insertParent(targetId, topic);
     if (newNode) {
       this.render();
       this.emit('node:add', { id: newNode.id, topic: newNode.topic });
-      this.emit('model:change', undefined);
+      if (options.emitChange) {
+        this.emit('model:change', undefined);
+      }
     }
     return newNode;
   }
@@ -271,6 +299,15 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         this.emit('node:update', { id: nodeId, topic: updates.topic });
       }
       this.emit('model:change', undefined);
+      // If this update triggered a change, we can clear pending creation flag as we emitted change here.
+      // But actually, onUpdateNode is called from InteractionHandler finishEditing.
+      // If we emit change here, we don't need to emit again in onEditEnd for the same action?
+      // InteractionHandler calls onUpdateNode THEN cleans up.
+      // onEditEnd is called during cleanup.
+      // If we emit here, we should perhaps reset pendingNodeCreation to prevent double emission?
+      if (this.pendingNodeCreation) {
+        this.pendingNodeCreation = false;
+      }
     }
   }
 
@@ -382,8 +419,10 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       }
     }
 
-    // Call Core API
-    const node = this.addNode(parentId, 'New Child', side);
+    // Call Core API with silent change if we want to defer it until edit completion?
+    // Yes, for UI interaction (addChildNode), we want to defer model:change until user types name.
+    this.pendingNodeCreation = true;
+    const node = this.addNode(parentId, 'New Child', side, { emitChange: false });
     if (node) {
       // Interaction Side Effects
       this.selectNode(node.id);
@@ -394,7 +433,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   addSiblingNode(nodeId: string, position: 'before' | 'after' = 'after'): void {
     // Call Core API
-    const newNode = this.addSibling(nodeId, position, 'New Sibling');
+    this.pendingNodeCreation = true;
+    const newNode = this.addSibling(nodeId, position, 'New Sibling', { emitChange: false });
     if (newNode) {
       // Interaction Side Effects
       this.selectNode(newNode.id);
@@ -405,7 +445,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   insertParentNode(nodeId: string): void {
     // Call Core API
-    const newNode = this.insertParent(nodeId, 'New Parent');
+    this.pendingNodeCreation = true;
+    const newNode = this.insertParent(nodeId, 'New Parent', { emitChange: false });
     if (newNode) {
       // Interaction Side Effects
       this.selectNode(newNode.id);
