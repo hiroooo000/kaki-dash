@@ -199,7 +199,48 @@ export class InteractionHandler {
     // Keyboard handling
     addListener(document, 'keydown', (e) => {
       const ke = e as KeyboardEvent;
-      if (!this.selectedNodeId) return;
+      const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'h', 'j', 'k', 'l'];
+      const actionKeys = ['Tab', 'Enter', 'Delete', 'Backspace'];
+
+      if (!this.selectedNodeId) {
+        if (navKeys.includes(ke.key)) {
+          ke.preventDefault();
+          // Find closest node to center
+          let closestId: string | null = null;
+          let minDistance = Infinity;
+
+          const nodes = this.container.querySelectorAll('.mindmap-node');
+          nodes.forEach((el) => {
+            const hEl = el as HTMLElement;
+            if (!hEl.dataset.id) return;
+
+            // easier comparison: Get bounding client rect of node.
+            const nodeRect = hEl.getBoundingClientRect();
+            const nodeCenterX = nodeRect.left + nodeRect.width / 2;
+            const nodeCenterY = nodeRect.top + nodeRect.height / 2;
+
+            // Compare to container center in client coords
+            const containerRect = this.container.getBoundingClientRect();
+            const containerCenterX = containerRect.left + containerRect.width / 2;
+            const containerCenterY = containerRect.top + containerRect.height / 2;
+
+            const dist =
+              Math.pow(nodeCenterX - containerCenterX, 2) +
+              Math.pow(nodeCenterY - containerCenterY, 2);
+
+            if (dist < minDistance) {
+              minDistance = dist;
+              closestId = hEl.dataset.id;
+            }
+          });
+
+          if (closestId) {
+            this.options.onNodeClick(closestId);
+          }
+        }
+        return;
+      }
+
       if (this.isReadOnly) {
         // In ReadOnly mode, prevent editing keys.
         // Navigation (Arrow) is allowed.
@@ -224,8 +265,7 @@ export class InteractionHandler {
       }
 
       // Prevent default browser behaviors for these keys
-      const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'h', 'j', 'k', 'l'];
-      const actionKeys = ['Tab', 'Enter', 'Delete', 'Backspace'];
+      // navKeys and actionKeys are defined at the top of the listener
 
       if (actionKeys.includes(ke.key) || navKeys.includes(ke.key)) {
         // Need to be careful not to block typing if we add editing later
@@ -285,6 +325,10 @@ export class InteractionHandler {
             `.mindmap-node[data-id="${this.selectedNodeId}"]`,
           ) as HTMLElement;
           if (selectedNodeEl) {
+            // If it's an image node, do not start editing
+            if (selectedNodeEl.querySelector('img')) {
+              return;
+            }
             this.startEditing(selectedNodeEl, this.selectedNodeId);
           }
           break;
@@ -347,11 +391,32 @@ export class InteractionHandler {
               `.mindmap-node[data-id="${this.selectedNodeId}"]`,
             ) as HTMLElement;
             if (selectedNodeEl) {
+              // If it's an image node, do not start editing
+              if (selectedNodeEl.querySelector('img')) {
+                return;
+              }
               this.startEditing(selectedNodeEl, this.selectedNodeId);
             }
           }
           break;
         }
+
+        case ' ': // Space key
+          if (this.isReadOnly) return;
+          ke.preventDefault(); // Stop scrolling
+          {
+            const selectedNodeEl = this.container.querySelector(
+              `.mindmap-node[data-id="${this.selectedNodeId}"]`,
+            ) as HTMLElement;
+            if (selectedNodeEl) {
+              // Check if image node mechanism (has zoom button)
+              const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
+              if (zoomBtn) {
+                zoomBtn.click();
+              }
+            }
+          }
+          break;
 
         // Font Size
         case '+':

@@ -3,4 +3,4 @@ dist
 .env
 .DS_Store
 coverage
-vite.config.ts-timestamp*
+vite.config.ts.timestamp*

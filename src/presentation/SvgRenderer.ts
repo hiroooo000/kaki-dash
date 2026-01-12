@@ -3,12 +3,17 @@ import { MindMap } from '../domain/entities/MindMap';
 import { Node } from '../domain/entities/Node';
 import { LayoutMode } from '../domain/interfaces/LayoutMode';
 
+export interface SvgRendererOptions {
+  onImageZoom?: (active: boolean) => void;
+}
+
 export class SvgRenderer implements Renderer {
   container: HTMLElement;
   svg: SVGSVGElement;
   nodeContainer: HTMLDivElement;
+  options: SvgRendererOptions;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, options: SvgRendererOptions = {}) {
     this.container = container;
     this.container.style.position = 'relative';
     this.container.style.width = '100%';
@@ -38,6 +43,7 @@ export class SvgRenderer implements Renderer {
     this.nodeContainer.style.zIndex = '1';
     this.nodeContainer.style.transformOrigin = '0 0';
     this.container.appendChild(this.nodeContainer);
+    this.options = options;
   }
 
   render(
@@ -441,6 +447,9 @@ export class SvgRenderer implements Renderer {
   }
 
   private showImageModal(imageData: string): void {
+    if (this.options.onImageZoom) {
+      this.options.onImageZoom(true);
+    }
     const modal = document.createElement('div');
     modal.style.position = 'fixed';
     modal.style.top = '0';
@@ -463,8 +472,33 @@ export class SvgRenderer implements Renderer {
     modal.appendChild(img);
     document.body.appendChild(modal);
 
+    // Forward declaration for closure
+    // eslint-disable-next-line prefer-const
+    let handleKeydown: (e: KeyboardEvent) => void;
+
+    const closeModal = () => {
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+      if (handleKeydown) {
+        document.removeEventListener('keydown', handleKeydown, true);
+      }
+      if (this.options.onImageZoom) {
+        this.options.onImageZoom(false);
+      }
+      this.container.focus();
+    };
+
+    handleKeydown = (e: KeyboardEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      closeModal();
+    };
+
+    document.addEventListener('keydown', handleKeydown, true);
+
     modal.addEventListener('click', () => {
-      document.body.removeChild(modal);
+      closeModal();
     });
   }
 }

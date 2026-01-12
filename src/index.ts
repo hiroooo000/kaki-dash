@@ -43,7 +43,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     const rootNode = new Node('root', 'Root Topic', null, true);
     this.mindMap = new MindMap(rootNode);
     this.service = new MindMapService(this.mindMap);
-    this.renderer = new SvgRenderer(container);
+    this.renderer = new SvgRenderer(container, {
+      onImageZoom: (active) => this.setReadOnly(active),
+    });
 
     // dedicated UI layer to ensure z-index separation and stability
     const uiLayer = document.createElement('div');
@@ -358,8 +360,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.interactionHandler.setReadOnly(readOnly);
     if (readOnly) {
       this.styleEditor.hide();
-      // Maybe blur selection?
-      this.selectNode(null);
+      // Keep selection active so it restores when ReadOnly is disabled
+      // this.selectNode(null);
     } else {
       // Restore? No need.
     }
