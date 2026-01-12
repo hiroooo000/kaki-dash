@@ -43,7 +43,9 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     const rootNode = new Node('root', 'Root Topic', null, true);
     this.mindMap = new MindMap(rootNode);
     this.service = new MindMapService(this.mindMap);
-    this.renderer = new SvgRenderer(container);
+    this.renderer = new SvgRenderer(container, {
+      onImageZoom: (active) => this.setReadOnly(active),
+    });
 
     // dedicated UI layer to ensure z-index separation and stability
     const uiLayer = document.createElement('div');
