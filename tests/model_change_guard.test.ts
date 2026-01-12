@@ -122,7 +122,7 @@ describe('Kakidash Model Change Event Guard', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' }));
 
     // Check: Node should be added (node:add fires), but model:change should NOT fire yet
-    expect(board.findNodes((n) => n.topic === 'New Child')).toHaveLength(1);
+    expect(board.findNodes((n) => n.topic === 'New topic')).toHaveLength(1);
     expect(onChangeSpy).not.toHaveBeenCalled();
 
     // Wait for edit to start (async usually? No, synchronous in code but good to verify)
@@ -165,6 +165,6 @@ describe('Kakidash Model Change Event Guard', () => {
     // Since the node was added (even if topic didn't change from default), we effectively committed the "Add" operation on cancel.
     // So change event SHOULD fire to signal the model now has this new node permanently (until deleted).
     expect(onChangeSpy).toHaveBeenCalledTimes(1);
-    expect(board.findNodes((n) => n.topic === 'New Child')).toHaveLength(1);
+    expect(board.findNodes((n) => n.topic === 'New topic')).toHaveLength(1);
   });
 });

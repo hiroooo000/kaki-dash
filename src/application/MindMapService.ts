@@ -31,7 +31,7 @@ export class MindMapService {
 
   addNode(
     parentId: string,
-    topic: string = 'New Node',
+    topic: string = 'New topic',
     layoutSide?: 'left' | 'right',
   ): Node | null {
     const parent = this.mindMap.findNode(parentId);
@@ -148,7 +148,7 @@ export class MindMapService {
   addSibling(
     referenceId: string,
     position: 'before' | 'after',
-    topic: string = 'New Node',
+    topic: string = 'New topic',
   ): Node | null {
     const referenceNode = this.mindMap.findNode(referenceId);
     if (!referenceNode || !referenceNode.parentId) return null;
@@ -274,7 +274,7 @@ export class MindMapService {
     return true;
   }
 
-  insertParent(targetId: string, topic: string = 'New Parent'): Node | null {
+  insertParent(targetId: string, topic: string = 'New topic'): Node | null {
     const targetNode = this.mindMap.findNode(targetId);
     if (!targetNode || !targetNode.parentId) return null;
 

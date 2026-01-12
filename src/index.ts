@@ -200,7 +200,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   addSibling(
     referenceId: string,
     position: 'before' | 'after' = 'after',
-    topic: string = 'New Sibling',
+    topic: string = 'New topic',
     options: { emitChange?: boolean } = { emitChange: true },
   ): Node | null {
     const node = this.mindMap.findNode(referenceId);
@@ -237,7 +237,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    */
   insertParent(
     targetId: string,
-    topic: string = 'New Parent',
+    topic: string = 'New topic',
     options: { emitChange?: boolean } = { emitChange: true },
   ): Node | null {
     const newNode = this.service.insertParent(targetId, topic);
@@ -422,7 +422,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     // Call Core API with silent change if we want to defer it until edit completion?
     // Yes, for UI interaction (addChildNode), we want to defer model:change until user types name.
     this.pendingNodeCreation = true;
-    const node = this.addNode(parentId, 'New Child', side, { emitChange: false });
+    const node = this.addNode(parentId, 'New topic', side, { emitChange: false });
     if (node) {
       // Interaction Side Effects
       this.selectNode(node.id);
@@ -434,7 +434,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   addSiblingNode(nodeId: string, position: 'before' | 'after' = 'after'): void {
     // Call Core API
     this.pendingNodeCreation = true;
-    const newNode = this.addSibling(nodeId, position, 'New Sibling', { emitChange: false });
+    const newNode = this.addSibling(nodeId, position, 'New topic', { emitChange: false });
     if (newNode) {
       // Interaction Side Effects
       this.selectNode(newNode.id);
@@ -446,7 +446,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   insertParentNode(nodeId: string): void {
     // Call Core API
     this.pendingNodeCreation = true;
-    const newNode = this.insertParent(nodeId, 'New Parent', { emitChange: false });
+    const newNode = this.insertParent(nodeId, 'New topic', { emitChange: false });
     if (newNode) {
       // Interaction Side Effects
       this.selectNode(newNode.id);

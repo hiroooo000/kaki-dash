@@ -171,7 +171,7 @@ describe('Advanced Drag and Drop', () => {
 
     // Add left child
     const leftNode = board.addNode(rootId, 'Left Node', 'left');
-    const newNode = board.addNode(rootId, 'New Node');
+    const newNode = board.addNode(rootId, 'New topic');
 
     // On Left side node:
     // Left is outer (child) -> Add Child
