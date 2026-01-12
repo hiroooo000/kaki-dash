@@ -472,17 +472,24 @@ export class SvgRenderer implements Renderer {
     modal.appendChild(img);
     document.body.appendChild(modal);
 
+    // Forward declaration for closure
+    // eslint-disable-next-line prefer-const
+    let handleKeydown: (e: KeyboardEvent) => void;
+
     const closeModal = () => {
       if (document.body.contains(modal)) {
         document.body.removeChild(modal);
       }
-      document.removeEventListener('keydown', handleKeydown, true);
+      if (handleKeydown) {
+        document.removeEventListener('keydown', handleKeydown, true);
+      }
       if (this.options.onImageZoom) {
         this.options.onImageZoom(false);
       }
+      this.container.focus();
     };
 
-    const handleKeydown = (e: KeyboardEvent) => {
+    handleKeydown = (e: KeyboardEvent) => {
       e.stopPropagation();
       e.preventDefault();
       closeModal();

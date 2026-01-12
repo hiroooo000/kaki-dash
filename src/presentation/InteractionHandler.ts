@@ -325,6 +325,10 @@ export class InteractionHandler {
             `.mindmap-node[data-id="${this.selectedNodeId}"]`,
           ) as HTMLElement;
           if (selectedNodeEl) {
+            // If it's an image node, do not start editing
+            if (selectedNodeEl.querySelector('img')) {
+              return;
+            }
             this.startEditing(selectedNodeEl, this.selectedNodeId);
           }
           break;
@@ -387,11 +391,32 @@ export class InteractionHandler {
               `.mindmap-node[data-id="${this.selectedNodeId}"]`,
             ) as HTMLElement;
             if (selectedNodeEl) {
+              // If it's an image node, do not start editing
+              if (selectedNodeEl.querySelector('img')) {
+                return;
+              }
               this.startEditing(selectedNodeEl, this.selectedNodeId);
             }
           }
           break;
         }
+
+        case ' ': // Space key
+          if (this.isReadOnly) return;
+          ke.preventDefault(); // Stop scrolling
+          {
+            const selectedNodeEl = this.container.querySelector(
+              `.mindmap-node[data-id="${this.selectedNodeId}"]`,
+            ) as HTMLElement;
+            if (selectedNodeEl) {
+              // Check if image node mechanism (has zoom button)
+              const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
+              if (zoomBtn) {
+                zoomBtn.click();
+              }
+            }
+          }
+          break;
 
         // Font Size
         case '+':

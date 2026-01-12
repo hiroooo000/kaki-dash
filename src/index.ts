@@ -360,8 +360,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.interactionHandler.setReadOnly(readOnly);
     if (readOnly) {
       this.styleEditor.hide();
-      // Maybe blur selection?
-      this.selectNode(null);
+      // Keep selection active so it restores when ReadOnly is disabled
+      // this.selectNode(null);
     } else {
       // Restore? No need.
     }
