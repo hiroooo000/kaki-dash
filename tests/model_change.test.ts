@@ -34,7 +34,7 @@ describe('Kakidash model:change Event Coverage', () => {
     const child = board.addNode(getRootId(), 'Child 1');
     onChangeSpy.mockClear();
 
-    board.insertParent(child!.id, 'New Parent');
+    board.insertParent(child!.id, 'New topic');
     expect(onChangeSpy).toHaveBeenCalled();
   });
 

@@ -27,6 +27,7 @@ export interface InteractionOptions {
   onZoom?: (delta: number, x: number, y: number) => void;
   onUndo?: () => void;
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
+  onEditEnd?: (nodeId: string) => void;
 }
 
 export class InteractionHandler {
@@ -723,6 +724,10 @@ export class InteractionHandler {
       }
 
       cleanup();
+
+      if (this.options.onEditEnd) {
+        this.options.onEditEnd(nodeId);
+      }
     };
 
     input.addEventListener('blur', () => {
@@ -736,7 +741,12 @@ export class InteractionHandler {
     const cancelEditing = () => {
       if (isFinishing) return;
       isFinishing = true;
+      isFinishing = true;
       cleanup();
+
+      if (this.options.onEditEnd) {
+        this.options.onEditEnd(nodeId);
+      }
     };
 
     input.addEventListener('keydown', (e) => {

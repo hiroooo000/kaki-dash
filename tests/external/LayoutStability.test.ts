@@ -131,7 +131,7 @@ describe('Layout Stability in Both Mode', () => {
     // 2. Insert sibling BEFORE Child 2
     // This pushes Child 2 to index 2 (if Child 1 is 0).
     // 0: Child 1 (Right)
-    // 1: New Sibling
+    // 1: New topic
     // 2: Child 2 (Left)
     // If Child 2 side was NOT locked, index 2 % 2 == 0 -> Right! (Flip!)
     // But with our fix, Child 2 side should be locked to Left.
@@ -148,7 +148,7 @@ describe('Layout Stability in Both Mode', () => {
 
     const newSibling = children.find((c) => c.id !== child1Id && c.id !== child2Id);
     // New sibling inherits side from Child 2 (where we pressed enter/insert)
-    // Child 2 was Left, so New Sibling should be Left.
+    // Child 2 was Left, so New topic should be Left.
     expect(newSibling?.layoutSide).toBe('left');
   });
 });

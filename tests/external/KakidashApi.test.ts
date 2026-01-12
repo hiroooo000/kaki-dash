@@ -101,7 +101,7 @@ describe('Kakidash External API', () => {
       const selectListener = vi.fn();
       board.on('node:select', selectListener);
 
-      const newParent = board.insertParent(child!.id, 'New Parent');
+      const newParent = board.insertParent(child!.id, 'New topic');
 
       expect(newParent).not.toBeNull();
       expect(selectListener).not.toHaveBeenCalled();

@@ -88,7 +88,7 @@ describe('MindMapService', () => {
 
     expect(child1).toBeDefined();
     if (child1) {
-      const newNode = service.insertParent(child1.id, 'New Parent');
+      const newNode = service.insertParent(child1.id, 'New topic');
       expect(newNode).toBeDefined();
 
       // Verify hierarchy: Root -> New Parent -> Child 1
