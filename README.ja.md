@@ -152,7 +152,7 @@ board.on('model:change', () => {
 | --- | --- |
 | `Arrow Keys` | ノード間の移動 |
 | `h` / `j` / `k` / `l` | ノード間の移動 (Vim風) |
-| `F2` / `DblClick` | ノードの編集を開始 |
+| `F2` / `DblClick` / `Space` | ノードの編集を開始 (画像の場合はズーム) |
 | `Enter` | 兄弟ノードを追加 (下) |
 | `Shift + Enter` | 兄弟ノードを追加 (上) |
 | `Tab` | 子ノードを追加 |
@@ -177,8 +177,8 @@ board.on('model:change', () => {
 ### Styling (Since selection)
 | Key | Description |
 | --- | --- |
-| `Ctrl/Cmd + B` | 太字 (Bold) 切り替え |
-| `Ctrl/Cmd + I` | 斜体 (Italic) 切り替え |
+| `b` | 太字 (Bold) 切り替え |
+| `i` | 斜体 (Italic) 切り替え |
 | `+` | フォントサイズ拡大 |
 | `-` | フォントサイズ縮小 |
 | `1` - `7` | ノードの色を変更 (パレット順) |
