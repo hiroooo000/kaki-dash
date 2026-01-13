@@ -41,13 +41,13 @@ describe('InteractionHandler Shortcuts', () => {
     document.dispatchEvent(event);
   };
 
-  it('triggers bold action on Ctrl+B', () => {
-    triggerKey('b', { ctrlKey: true });
+  it('triggers bold action on b', () => {
+    triggerKey('b');
     expect(options.onStyleAction).toHaveBeenCalledWith('test-node-id', { type: 'bold' });
   });
 
-  it('triggers italic action on Ctrl+I', () => {
-    triggerKey('i', { ctrlKey: true });
+  it('triggers italic action on i', () => {
+    triggerKey('i');
     expect(options.onStyleAction).toHaveBeenCalledWith('test-node-id', { type: 'italic' });
   });
 
@@ -114,7 +114,7 @@ describe('InteractionHandler Shortcuts', () => {
     });
   });
 
-  it('triggers edit mode on i', () => {
+  it('triggers edit mode on Space', () => {
     // Setup a node element in the DOM for startEditing to find
     const nodeEl = document.createElement('div');
     nodeEl.classList.add('mindmap-node');
@@ -125,7 +125,7 @@ describe('InteractionHandler Shortcuts', () => {
     nodeEl.style.left = '100px';
     container.appendChild(nodeEl);
 
-    triggerKey('i');
+    triggerKey(' ');
 
     // Check if textarea is created
     const textarea = container.querySelector('textarea') || document.body.querySelector('textarea');
@@ -135,6 +135,53 @@ describe('InteractionHandler Shortcuts', () => {
       // Clean up
       textarea.remove();
     }
+    nodeEl.remove();
+  });
+
+  it('does not trigger actions when typing in an input', () => {
+    // Create an input element and focus it
+    const input = document.createElement('input');
+    document.body.appendChild(input);
+    input.focus();
+
+    // Trigger 'b' (Bold)
+    const event = new KeyboardEvent('keydown', {
+      key: 'b',
+      bubbles: true,
+      cancelable: true,
+    });
+    input.dispatchEvent(event);
+
+    // Should NOT trigger style action
+    expect(options.onStyleAction).not.toHaveBeenCalled();
+
+    document.body.removeChild(input);
+  });
+  it('triggers zoom on Space for image nodes', () => {
+    // Setup an image node element with a zoom button
+    const nodeEl = document.createElement('div');
+    nodeEl.classList.add('mindmap-node');
+    nodeEl.dataset.id = 'test-image-node-id';
+    nodeEl.style.top = '100px';
+    nodeEl.style.left = '100px';
+
+    // Mock zoom button
+    const zoomBtn = document.createElement('button');
+    zoomBtn.title = 'Zoom Image';
+    const clickSpy = vi.spyOn(zoomBtn, 'click');
+    nodeEl.appendChild(zoomBtn);
+
+    container.appendChild(nodeEl);
+    handler.updateSelection('test-image-node-id');
+
+    triggerKey(' ');
+
+    expect(clickSpy).toHaveBeenCalled();
+
+    // Should NOT trigger edit mode (textarea creation)
+    const textarea = container.querySelector('textarea') || document.body.querySelector('textarea');
+    expect(textarea).toBeNull();
+
     nodeEl.remove();
   });
 });
