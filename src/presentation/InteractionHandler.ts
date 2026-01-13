@@ -199,6 +199,16 @@ export class InteractionHandler {
     // Keyboard handling
     addListener(document, 'keydown', (e) => {
       const ke = e as KeyboardEvent;
+      const target = ke.target as HTMLElement;
+
+      // START CHANGE: Safety check for input elements
+      // If we are typing in an input/textarea or contentEditable element,
+      // we should not trigger these global shortcuts.
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      // END CHANGE
+
       const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'h', 'j', 'k', 'l'];
       const actionKeys = ['Tab', 'Enter', 'Delete', 'Backspace'];
 
@@ -373,50 +383,45 @@ export class InteractionHandler {
           break;
         case 'b':
           if (this.isReadOnly) return;
-          if (ke.metaKey || ke.ctrlKey) {
-            ke.preventDefault();
-            this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
-          }
+          // MODIFIED: Changed from (ke.metaKey || ke.ctrlKey) to just 'b'
+          ke.preventDefault();
+          this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
           break;
         case 'i': {
           if (this.isReadOnly) return;
-          if (ke.metaKey || ke.ctrlKey) {
-            // Italic
-            ke.preventDefault();
-            this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
-          } else {
-            // Vim-style Edit
-            ke.preventDefault();
-            const selectedNodeEl = this.container.querySelector(
-              `.mindmap-node[data-id="${this.selectedNodeId}"]`,
-            ) as HTMLElement;
-            if (selectedNodeEl) {
-              // If it's an image node, do not start editing
-              if (selectedNodeEl.querySelector('img')) {
-                return;
-              }
-              this.startEditing(selectedNodeEl, this.selectedNodeId);
-            }
-          }
+          // MODIFIED: Changed from (ke.metaKey || ke.ctrlKey) to just 'i'
+          // Also removed the "Vim-style Edit" logic (formerly 'i' without modifier)
+          ke.preventDefault();
+          this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
           break;
         }
 
-        case ' ': // Space key
+        case ' ': {
+          // Space key
           if (this.isReadOnly) return;
           ke.preventDefault(); // Stop scrolling
-          {
-            const selectedNodeEl = this.container.querySelector(
-              `.mindmap-node[data-id="${this.selectedNodeId}"]`,
-            ) as HTMLElement;
-            if (selectedNodeEl) {
-              // Check if image node mechanism (has zoom button)
-              const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
-              if (zoomBtn) {
-                zoomBtn.click();
-              }
+
+          // MODIFIED: Space now triggers Edit (like F2) or Zoom (if image)
+          const selectedNodeEl = this.container.querySelector(
+            `.mindmap-node[data-id="${this.selectedNodeId}"]`,
+          ) as HTMLElement;
+          if (selectedNodeEl) {
+            // Restore Zoom: Check if image node mechanism (has zoom button)
+            const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
+            if (zoomBtn) {
+              zoomBtn.click();
+              return;
             }
+
+            // If it's an image node but no zoom button (shouldn't happen for images usually, but just in case)
+            // or if it's explicitly an image, do not start editing text.
+            if (selectedNodeEl.querySelector('img')) {
+              return;
+            }
+            this.startEditing(selectedNodeEl, this.selectedNodeId);
           }
           break;
+        }
 
         // Font Size
         case '+':
