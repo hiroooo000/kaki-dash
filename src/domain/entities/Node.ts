@@ -15,6 +15,7 @@ export class Node {
   isRoot: boolean;
   image?: string;
   layoutSide?: 'left' | 'right';
+  isFolded: boolean;
 
   constructor(
     id: string,
@@ -23,6 +24,7 @@ export class Node {
     isRoot: boolean = false,
     image?: string,
     layoutSide?: 'left' | 'right',
+    isFolded: boolean = false,
   ) {
     this.id = id;
     this.topic = topic;
@@ -32,6 +34,7 @@ export class Node {
     this.isRoot = isRoot;
     this.image = image;
     this.layoutSide = layoutSide;
+    this.isFolded = isFolded;
   }
 
   addChild(node: Node): void {

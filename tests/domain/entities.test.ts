@@ -10,6 +10,7 @@ describe('Node Entity', () => {
     expect(node.parentId).toBeNull();
     expect(node.isRoot).toBe(true);
     expect(node.children).toEqual([]);
+    expect(node.isFolded).toBe(false);
   });
 
   it('should add a child node', () => {

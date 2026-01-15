@@ -9,7 +9,7 @@ export interface MindMapNodeData {
   };
   children?: MindMapNodeData[];
   root?: boolean;
-  expanded?: boolean;
+  isFolded?: boolean;
   parentId?: string;
   image?: string;
   layoutSide?: 'left' | 'right';

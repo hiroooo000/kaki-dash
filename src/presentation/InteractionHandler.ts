@@ -28,6 +28,7 @@ export interface InteractionOptions {
   onUndo?: () => void;
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
   onEditEnd?: (nodeId: string) => void;
+  onToggleFold?: (nodeId: string) => void;
 }
 
 export class InteractionHandler {
@@ -441,6 +442,12 @@ export class InteractionHandler {
           // Similarly check against Ctrl - (Zoom out)
           // If just '-', verify.
           this.options.onStyleAction?.(this.selectedNodeId, { type: 'decreaseSize' });
+          break;
+        case 'f':
+          if (this.isReadOnly) return;
+          if (!ke.ctrlKey && !ke.metaKey && !ke.altKey) {
+            this.options.onToggleFold?.(this.selectedNodeId);
+          }
           break;
       }
 

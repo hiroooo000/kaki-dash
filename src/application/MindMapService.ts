@@ -43,7 +43,7 @@ export class MindMapService {
       typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
         : Date.now().toString(36) + Math.random().toString(36).substr(2);
-    const newNode = new Node(id, topic, null, false, undefined, layoutSide);
+    const newNode = new Node(id, topic, null, false, undefined, layoutSide, false);
     parent.addChild(newNode);
     return newNode;
   }
@@ -59,7 +59,7 @@ export class MindMapService {
         ? crypto.randomUUID()
         : Date.now().toString(36) + Math.random().toString(36).substr(2);
     // Image nodes have empty topic
-    const newNode = new Node(id, '', parentId, false, imageData);
+    const newNode = new Node(id, '', parentId, false, imageData, undefined, false);
     parent.addChild(newNode);
     return newNode;
   }
@@ -95,6 +95,16 @@ export class MindMapService {
     if (node) {
       this.saveState();
       node.style = { ...node.style, ...style };
+      return true;
+    }
+    return false;
+  }
+
+  toggleNodeFold(id: string): boolean {
+    const node = this.mindMap.findNode(id);
+    if (node) {
+      this.saveState();
+      node.isFolded = !node.isFolded;
       return true;
     }
     return false;
@@ -337,7 +347,15 @@ export class MindMapService {
   }
 
   private deepCloneNode(node: Node): Node {
-    const clone = new Node(node.id, node.topic, null, false, node.image, node.layoutSide);
+    const clone = new Node(
+      node.id,
+      node.topic,
+      null,
+      false,
+      node.image,
+      node.layoutSide,
+      node.isFolded,
+    );
     clone.style = { ...node.style };
     // Determine how to handle children. Recursively clone them.
     clone.children = node.children.map((child) => this.deepCloneNode(child));
@@ -367,6 +385,7 @@ export class MindMapService {
         style: Object.keys(node.style).length > 0 ? node.style : undefined,
         image: node.image,
         layoutSide: node.layoutSide,
+        isFolded: node.isFolded,
       };
       return data;
     };
@@ -380,7 +399,15 @@ export class MindMapService {
   importData(data: MindMapData): void {
     const buildNodeFromData = (data: MindMapNodeData, parentId: string | null = null): Node => {
       const isRoot = !!data.root;
-      const node = new Node(data.id, data.topic, parentId, isRoot, data.image, data.layoutSide);
+      const node = new Node(
+        data.id,
+        data.topic,
+        parentId,
+        isRoot,
+        data.image,
+        data.layoutSide,
+        data.isFolded || false,
+      );
 
       if (data.style) {
         node.style = { ...data.style };

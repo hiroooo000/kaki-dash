@@ -5,6 +5,7 @@ import { LayoutMode } from '../domain/interfaces/LayoutMode';
 
 export interface SvgRendererOptions {
   onImageZoom?: (active: boolean) => void;
+  onToggleFold?: (nodeId: string) => void;
 }
 
 export class SvgRenderer implements Renderer {
@@ -241,6 +242,58 @@ export class SvgRenderer implements Renderer {
     this.nodeContainer.appendChild(el);
 
     if (node.children.length === 0) return;
+
+    // Toggle Fold Button
+    if (this.options.onToggleFold) {
+      const positions: number[] = [];
+
+      if (isRoot && layoutMode === 'Both') {
+        // Both sides
+        positions.push(finalX + nodeWidth); // Right
+        positions.push(finalX); // Left
+      } else {
+        // Single side
+        let isRightSide = direction === 'right';
+        if (isRoot) {
+          if (layoutMode === 'Left') isRightSide = false;
+          else isRightSide = true; // Right
+        }
+        positions.push(isRightSide ? finalX + nodeWidth : finalX);
+      }
+
+      positions.forEach((btnX) => {
+        const toggleBtn = document.createElement('div');
+        toggleBtn.className = 'mindmap-toggle-btn';
+        toggleBtn.innerHTML = node.isFolded ? '+' : '-';
+        toggleBtn.style.position = 'absolute';
+        toggleBtn.style.width = '16px';
+        toggleBtn.style.height = '16px';
+        toggleBtn.style.fontSize = '12px';
+        toggleBtn.style.lineHeight = '14px';
+        toggleBtn.style.textAlign = 'center';
+        toggleBtn.style.borderRadius = '50%';
+        toggleBtn.style.border = '1px solid #999';
+        toggleBtn.style.backgroundColor = '#fff';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.zIndex = '11';
+        toggleBtn.style.userSelect = 'none';
+
+        // Adjust position to sit squarely on the edge (center of button on the border line)
+        const edgeOffset = 0;
+        toggleBtn.style.left = `${btnX + edgeOffset}px`;
+        toggleBtn.style.top = `${y}px`;
+        toggleBtn.style.transform = `translate(-50%, -50%)`;
+
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.options.onToggleFold?.(node.id);
+        });
+
+        this.nodeContainer.appendChild(toggleBtn);
+      });
+    }
+
+    if (node.isFolded) return;
 
     // Calculate layout
     // For Both mode at Root: Split children.
