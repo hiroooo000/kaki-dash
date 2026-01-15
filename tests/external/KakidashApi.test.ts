@@ -298,6 +298,31 @@ describe('Kakidash External API', () => {
       });
     });
 
+    describe('Data Persistence (Focus)', () => {
+      it('should save and restoer selected node ID', () => {
+        const rootId = board.getRootId();
+        const child = board.addNode(rootId, 'Focus Target');
+        board.selectNode(child!.id);
+
+        const data = board.getData();
+        expect(data.selectedId).toBe(child!.id);
+
+        // Simulate reload
+        const newBoard = new Kakidash(container);
+        newBoard.loadData(data);
+
+        // selectedNodeId is private, but we can check via behavior or hacky access if needed.
+        // Or check if 'node:select' event fires on load?
+        // Let's check internal state via 'any' casting or use a getter if we add one.
+        // Actually, internal state `selectedNodeId` is private.
+        // But we can check via interactionHandler selection update or visual class?
+        // Or simply add a getter for tests?
+        // Or we can rely on `getData()` again on the new board!
+        const newData = newBoard.getData();
+        expect(newData.selectedId).toBe(child!.id);
+      });
+    });
+
     describe('Read-only Mode', () => {
       it('should allow setting read-only mode', () => {
         // Just verifying method existence and no crash
