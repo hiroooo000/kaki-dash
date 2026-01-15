@@ -226,5 +226,39 @@ describe('MindMapService', () => {
       expect(gc1?.parentId).toBe('c1');
       expect(gc1?.topic).toBe('GrandChild 1');
     });
+
+    it('should persist folded state', () => {
+      const child1 = service.addNode('root', 'Child 1');
+      expect(child1).toBeDefined();
+
+      if (child1) {
+        service.toggleNodeFold(child1.id);
+        expect(child1.isFolded).toBe(true);
+
+        const data = service.exportData();
+        const childData = data.nodeData.children?.find((c) => c.id === child1.id);
+        expect(childData?.isFolded).toBe(true);
+
+        // Import back
+        service.importData(data);
+        const importedChild = service.mindMap.findNode(child1.id);
+        expect(importedChild).toBeDefined();
+        expect(importedChild?.isFolded).toBe(true);
+      }
+    });
+
+    it('should toggle node fold state', () => {
+      const child1 = service.addNode('root', 'Child 1');
+      expect(child1).toBeDefined();
+      if (child1) {
+        expect(child1.isFolded).toBe(false);
+        const result = service.toggleNodeFold(child1.id);
+        expect(result).toBe(true);
+        expect(child1.isFolded).toBe(true);
+
+        service.toggleNodeFold(child1.id);
+        expect(child1.isFolded).toBe(false);
+      }
+    });
   });
 });

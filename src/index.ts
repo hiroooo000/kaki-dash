@@ -45,6 +45,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.service = new MindMapService(this.mindMap);
     this.renderer = new SvgRenderer(container, {
       onImageZoom: (active) => this.setReadOnly(active),
+      onToggleFold: (nodeId) => {
+        if (this.service.toggleNodeFold(nodeId)) {
+          this.render();
+          this.emit('model:change', undefined);
+        }
+      },
     });
 
     // dedicated UI layer to ensure z-index separation and stability
@@ -162,6 +168,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         // If we were waiting for node creation to complete (e.g. user finished editing new node name or cancelled)
         if (this.pendingNodeCreation) {
           this.pendingNodeCreation = false;
+          this.emit('model:change', undefined);
+        }
+      },
+      onToggleFold: (nodeId) => {
+        if (this.service.toggleNodeFold(nodeId)) {
+          this.render();
           this.emit('model:change', undefined);
         }
       },

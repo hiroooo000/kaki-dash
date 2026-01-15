@@ -166,6 +166,7 @@ board.on('model:change', () => {
 | `Wheel` | 上下スクロール (パン) |
 | `Shift + Wheel` | 左右スクロール (パン) |
 | `Ctrl/Cmd + Wheel` | ズームイン/アウト |
+| Click `+/-` / `f` | ノードの展開/折り畳み |
 
 ### Editing (Text Input)
 | Key | Description |

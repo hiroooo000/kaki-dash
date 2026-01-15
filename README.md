@@ -161,6 +161,7 @@ board.on('model:change', () => {
 | `Wheel` | Vertical scroll (Pan) |
 | `Shift + Wheel` | Horizontal scroll (Pan) |
 | `Ctrl/Cmd + Wheel` | Zoom in/out |
+| Click `+/-` / `f` | Toggle node folding |
 
 ### Editing (Text Input)
 | Key | Description |
