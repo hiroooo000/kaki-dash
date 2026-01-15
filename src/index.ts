@@ -810,13 +810,19 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   getData(): MindMapData {
-    return this.service.exportData();
+    const data = this.service.exportData();
+    data.selectedId = this.selectedNodeId || undefined;
+    return data;
   }
 
   loadData(data: MindMapData): void {
     try {
       this.service.importData(data);
-      this.selectNode(null);
+      if (data.selectedId) {
+        this.selectNode(data.selectedId);
+      } else {
+        this.selectNode(null);
+      }
       this.render();
       this.emit('model:load', data);
       if (data.theme) {

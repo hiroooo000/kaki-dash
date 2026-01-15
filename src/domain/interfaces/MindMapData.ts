@@ -23,4 +23,5 @@ export interface MindMapData {
   linkData?: any;
   theme?: Theme;
   direction?: number;
+  selectedId?: string;
 }
