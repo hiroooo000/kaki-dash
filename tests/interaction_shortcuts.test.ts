@@ -140,7 +140,6 @@ describe('InteractionHandler Shortcuts', () => {
     nodeEl.remove();
   });
 
-
   it('triggers Undo on Ctrl+Z', () => {
     triggerKey('z', { ctrlKey: true });
     expect(options.onUndo).toHaveBeenCalled();

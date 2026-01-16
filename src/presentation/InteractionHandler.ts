@@ -93,8 +93,8 @@ export class InteractionHandler {
       });
     };
 
-    addListener(this.container, 'focus', () => { });
-    addListener(this.container, 'blur', () => { });
+    addListener(this.container, 'focus', () => {});
+    addListener(this.container, 'blur', () => {});
 
     // Prevent accidental scrolling of the container (we use transform for pan)
     // Prevent accidental scrolling of the container (we use transform for pan)
