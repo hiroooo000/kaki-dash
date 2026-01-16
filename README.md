@@ -123,6 +123,10 @@ Use the built `umd` file. The library will be exposed under the global variable 
 - **`board.loadData(data)`**: Loads JSON data and renders the mindmap.
 - **`board.updateLayout(mode)`**: Changes layout mode ('Standard', 'Left', 'Right').
 - **`board.setReadOnly(boolean)`**: Toggles read-only mode.
+- **`board.undo()`**: Undo the last change.
+- **`board.redo()`**: Redo the last undone change.
+- **`board.toggleFold(nodeId)`**: Toggle fold state of a node.
+- **`board.getSelectedNodeId()`**: Get the ID of the currently selected node.
 
 ### Events
 
@@ -153,7 +157,8 @@ board.on('model:change', () => {
 | `Tab` | Add child node |
 | `Shift + Tab` | Insert parent node |
 | `Delete` / `Backspace` | Delete node |
-| `Ctrl/Cmd + Z` | Undo |
+| `Ctrl/Cmd + z` | Undo |
+| `Ctrl/Cmd + Shift + z` / `Ctrl + y` | Redo |
 | `Ctrl/Cmd + C` | Copy |
 | `Ctrl/Cmd + X` | Cut |
 | `Ctrl/Cmd + V` | Paste (Images supported) |

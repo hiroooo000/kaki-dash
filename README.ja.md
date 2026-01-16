@@ -128,6 +128,10 @@ board.addNode(board.getRootId(), 'Hello World');
 - **`board.loadData(data)`**: JSONデータを読み込み、マインドマップを描画します。
 - **`board.updateLayout(mode)`**: レイアウトモードを変更します ('Standard', 'Left', 'Right')。
 - **`board.setReadOnly(boolean)`**: 読み取り専用モードを切り替えます。
+- **`board.undo()`**: 変更を元に戻します。
+- **`board.redo()`**: 元に戻した変更をやり直します。
+- **`board.toggleFold(nodeId)`**: ノードの折り畳み/展開を切り替えます。
+- **`board.getSelectedNodeId()`**: 現在選択されているノードのIDを取得します。
 
 ### Events
 
@@ -158,7 +162,8 @@ board.on('model:change', () => {
 | `Tab` | 子ノードを追加 |
 | `Shift + Tab` | 親ノードを挿入 |
 | `Delete` / `Backspace` | ノードを削除 |
-| `Ctrl/Cmd + Z` | 元に戻す (Undo) |
+| `Ctrl/Cmd + z` | 元に戻す (Undo) |
+| `Ctrl/Cmd + Shift + z` / `Ctrl + y` | やり直し (Redo) |
 | `Ctrl/Cmd + C` | コピー |
 | `Ctrl/Cmd + X` | 切り取り |
 | `Ctrl/Cmd + V` | 貼り付け (画像も可) |

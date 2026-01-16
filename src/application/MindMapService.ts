@@ -25,8 +25,21 @@ export class MindMapService {
     return false;
   }
 
+  redo(): boolean {
+    const nextState = this.historyManager.redo(this.exportData());
+    if (nextState) {
+      this.importData(nextState);
+      return true;
+    }
+    return false;
+  }
+
   get canUndo(): boolean {
     return this.historyManager.canUndo;
+  }
+
+  get canRedo(): boolean {
+    return this.historyManager.canRedo;
   }
 
   addNode(
