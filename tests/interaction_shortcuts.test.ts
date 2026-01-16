@@ -16,7 +16,9 @@ describe('InteractionHandler Shortcuts', () => {
       onDeleteNode: vi.fn(),
       onDropNode: vi.fn(),
       onNavigate: vi.fn(),
-      onStyleAction: vi.fn(), // We are testing this
+      onStyleAction: vi.fn(),
+      onUndo: vi.fn(),
+      onRedo: vi.fn(),
     };
     handler = new InteractionHandler(container, options);
     handler.updateSelection('test-node-id');
@@ -136,6 +138,25 @@ describe('InteractionHandler Shortcuts', () => {
       textarea.remove();
     }
     nodeEl.remove();
+  });
+
+
+  it('triggers Undo on Ctrl+Z', () => {
+    triggerKey('z', { ctrlKey: true });
+    expect(options.onUndo).toHaveBeenCalled();
+    expect(options.onRedo).not.toHaveBeenCalled();
+  });
+
+  it('triggers Redo on Ctrl+Shift+Z', () => {
+    // Note: When Shift is held, key is usually uppercase 'Z'
+    triggerKey('Z', { ctrlKey: true, shiftKey: true });
+    expect(options.onRedo).toHaveBeenCalled();
+    expect(options.onUndo).not.toHaveBeenCalled();
+  });
+
+  it('triggers Redo on Ctrl+Y', () => {
+    triggerKey('y', { ctrlKey: true });
+    expect(options.onRedo).toHaveBeenCalled();
   });
 
   it('does not trigger actions when typing in an input', () => {

@@ -113,6 +113,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
           this.emit('model:change', undefined);
         }
       },
+      onRedo: () => {
+        if (this.service.redo()) {
+          this.render();
+          this.emit('model:change', undefined);
+        }
+      },
       onStyleAction: (nodeId, action) => {
         if (this.interactionHandler.isReadOnly) return;
 
@@ -323,6 +329,43 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         this.pendingNodeCreation = false;
       }
     }
+  }
+
+  /**
+   * Undo the last change.
+   */
+  public undo(): void {
+    if (this.service.undo()) {
+      this.render();
+      this.emit('model:change', undefined);
+    }
+  }
+
+  /**
+   * Redo the last undone change.
+   */
+  public redo(): void {
+    if (this.service.redo()) {
+      this.render();
+      this.emit('model:change', undefined);
+    }
+  }
+
+  /**
+   * Toggle fold state of a node.
+   */
+  public toggleFold(nodeId: string): void {
+    if (this.service.toggleNodeFold(nodeId)) {
+      this.render();
+      this.emit('model:change', undefined);
+    }
+  }
+
+  /**
+   * Get the ID of the currently selected node.
+   */
+  public getSelectedNodeId(): string | null {
+    return this.selectedNodeId;
   }
 
   /* ==========================================================================================

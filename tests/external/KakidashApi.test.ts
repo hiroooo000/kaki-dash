@@ -355,5 +355,44 @@ describe('Kakidash External API', () => {
         expect(listener).not.toHaveBeenCalled();
       });
     });
+
+    describe('Undo/Redo & Fold API', () => {
+      it('should undo and redo changes', () => {
+        const rootId = board.getRootId();
+        const child = board.addNode(rootId, 'Undo Target');
+        expect(board.getNode(child!.id)).toBeDefined();
+
+        board.undo();
+        expect(board.getNode(child!.id)).toBeUndefined();
+
+        board.redo();
+        expect(board.getNode(child!.id)).toBeDefined();
+      });
+
+      it('should toggle fold state', () => {
+        const rootId = board.getRootId();
+        const child = board.addNode(rootId, 'Fold Target');
+
+        // Initial state
+        expect(child!.isFolded).toBe(false);
+
+        board.toggleFold(child!.id);
+        expect(board.getNode(child!.id)!.isFolded).toBe(true);
+
+        board.toggleFold(child!.id);
+        expect(board.getNode(child!.id)!.isFolded).toBe(false);
+      });
+
+      it('should get selected node ID', () => {
+        const rootId = board.getRootId();
+        const child = board.addNode(rootId, 'Select Target');
+
+        board.selectNode(child!.id);
+        expect(board.getSelectedNodeId()).toBe(child!.id);
+
+        board.selectNode(null);
+        expect(board.getSelectedNodeId()).toBeNull();
+      });
+    });
   });
 });

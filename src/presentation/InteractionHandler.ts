@@ -26,6 +26,7 @@ export interface InteractionOptions {
   onPasteImage?: (parentId: string, imageData: string) => void;
   onZoom?: (delta: number, x: number, y: number) => void;
   onUndo?: () => void;
+  onRedo?: () => void;
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
   onEditEnd?: (nodeId: string) => void;
   onToggleFold?: (nodeId: string) => void;
@@ -92,8 +93,8 @@ export class InteractionHandler {
       });
     };
 
-    addListener(this.container, 'focus', () => {});
-    addListener(this.container, 'blur', () => {});
+    addListener(this.container, 'focus', () => { });
+    addListener(this.container, 'blur', () => { });
 
     // Prevent accidental scrolling of the container (we use transform for pan)
     // Prevent accidental scrolling of the container (we use transform for pan)
@@ -372,14 +373,24 @@ export class InteractionHandler {
           }
           break;
         case 'z':
+        case 'Z':
           // Undo might be allowed in ReadOnly if we consider "view state changes" (which we don't have many of)
           // But usually undo changes data.
           if (this.isReadOnly) return;
           if (ke.metaKey || ke.ctrlKey) {
             ke.preventDefault();
-            if (!ke.shiftKey) {
+            if (ke.shiftKey) {
+              this.options.onRedo?.();
+            } else {
               this.options.onUndo?.();
             }
+          }
+          break;
+        case 'y':
+          if (this.isReadOnly) return;
+          if (ke.metaKey || ke.ctrlKey) {
+            ke.preventDefault();
+            this.options.onRedo?.();
           }
           break;
         case 'b':
