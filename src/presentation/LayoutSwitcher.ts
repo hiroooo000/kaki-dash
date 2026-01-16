@@ -5,6 +5,7 @@ export interface LayoutSwitcherOptions {
   onLayoutChange: (mode: LayoutMode) => void;
   onThemeChange: (theme: Theme) => void;
   onZoomReset?: () => void;
+  onShowShortcuts?: () => void;
 }
 
 export class LayoutSwitcher {
@@ -58,6 +59,13 @@ export class LayoutSwitcher {
     // Zoom Reset Button
     this.createIconActionButton('Reset Zoom', this.getZoomResetIcon(), () => {
       if (this.options.onZoomReset) this.options.onZoomReset();
+    });
+
+    this.addSeparator();
+
+    // Help Button
+    this.createIconActionButton('Shortcuts Help', this.getHelpIcon(), () => {
+      if (this.options.onShowShortcuts) this.options.onShowShortcuts();
     });
 
     this.container.appendChild(this.element);
@@ -224,5 +232,13 @@ export class LayoutSwitcher {
   <line x1="5" y1="5" x2="17" y2="17"></line>
   <line x1="17" y1="5" x2="5" y2="17"></line>
 </svg>`;
+  }
+
+  private getHelpIcon(): string {
+    return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>`;
   }
 }

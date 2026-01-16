@@ -88,6 +88,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       onLayoutChange: (mode) => this.setLayoutMode(mode),
       onThemeChange: (theme) => this.setTheme(theme),
       onZoomReset: () => this.resetZoom(),
+      onShowShortcuts: () => this.showShortcutModal(),
     });
 
     this.startAnimationLoop();
@@ -994,5 +995,195 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     if (dx !== 0 || dy !== 0) {
       this.panBoard(dx, dy);
     }
+  }
+
+  /* ==========================================================================================
+     Modal
+     ========================================================================================== */
+
+  private showShortcutModal(): void {
+    const modalOverlay = document.createElement('div');
+    modalOverlay.style.position = 'fixed';
+    modalOverlay.style.top = '0';
+    modalOverlay.style.left = '0';
+    modalOverlay.style.width = '100vw';
+    modalOverlay.style.height = '100vh';
+    modalOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+    modalOverlay.style.zIndex = '3000';
+    modalOverlay.style.display = 'flex';
+    modalOverlay.style.justifyContent = 'center';
+    modalOverlay.style.alignItems = 'center';
+    modalOverlay.style.opacity = '0';
+    modalOverlay.style.transition = 'opacity 0.2s';
+
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = 'white';
+    modalContent.style.padding = '20px';
+    modalContent.style.borderRadius = '8px';
+    modalContent.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    modalContent.style.maxWidth = '600px';
+    modalContent.style.width = '90%';
+    modalContent.style.maxHeight = '90vh';
+    modalContent.style.overflowY = 'auto';
+    modalContent.style.position = 'relative';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Keyboard Shortcuts';
+    title.style.margin = '0 0 15px 0';
+    title.style.fontSize = '1.5em';
+    title.style.borderBottom = '1px solid #eee';
+    title.style.paddingBottom = '10px';
+    modalContent.appendChild(title);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.style.position = 'absolute';
+    closeBtn.style.top = '10px';
+    closeBtn.style.right = '15px';
+    closeBtn.style.background = 'none';
+    closeBtn.style.border = 'none';
+    closeBtn.style.fontSize = '24px';
+    closeBtn.style.cursor = 'pointer';
+    closeBtn.style.color = '#999';
+    closeBtn.addEventListener('click', () => {
+      closeModal();
+    });
+    modalContent.appendChild(closeBtn);
+
+    const sections = [
+      {
+        title: 'General',
+        shortcuts: [
+          { key: 'Arrow Keys', desc: 'ノード間の移動' },
+          { key: 'h / j / k / l', desc: 'ノード間の移動 (Vim風)' },
+          { key: 'F2 / DblClick / Space', desc: 'ノードの編集を開始 (画像の場合はズーム)' },
+          { key: 'Enter', desc: '兄弟ノードを追加 (下)' },
+          { key: 'Shift + Enter', desc: '兄弟ノードを追加 (上)' },
+          { key: 'Tab', desc: '子ノードを追加' },
+          { key: 'Shift + Tab', desc: '親ノードを挿入' },
+          { key: 'Delete / Backspace', desc: 'ノードを削除' },
+          { key: 'Ctrl/Cmd + z', desc: '元に戻す (Undo)' },
+          { key: 'Ctrl/Cmd + Shift + z / Ctrl + y', desc: 'やり直し (Redo)' },
+          { key: 'Ctrl/Cmd + c', desc: 'コピー' },
+          { key: 'Ctrl/Cmd + x', desc: '切り取り' },
+          { key: 'Ctrl/Cmd + v', desc: '貼り付け (画像も可)' },
+          { key: 'Drag (Canvas)', desc: '画面のパン (移動)' },
+          { key: 'Wheel', desc: '上下スクロール (パン)' },
+          { key: 'Shift + Wheel', desc: '左右スクロール (パン)' },
+          { key: 'Ctrl/Cmd + Wheel', desc: 'ズームイン/アウト' },
+          { key: 'Click +/- / f', desc: 'ノードの展開/折り畳み' },
+        ],
+      },
+      {
+        title: 'Editing (Text Input)',
+        shortcuts: [
+          { key: 'Enter', desc: '編集を確定' },
+          { key: 'Shift + Enter', desc: '改行' },
+          { key: 'Esc', desc: '編集をキャンセル' },
+        ],
+      },
+      {
+        title: 'Styling (Selection)',
+        shortcuts: [
+          { key: 'b', desc: '太字 (Bold) 切り替え' },
+          { key: 'i', desc: '斜体 (Italic) 切り替え' },
+          { key: '+', desc: 'フォントサイズ拡大' },
+          { key: '-', desc: 'フォントサイズ縮小' },
+          { key: '1 - 7', desc: 'ノードの色を変更 (パレット順)' },
+        ],
+      },
+    ];
+
+    sections.forEach((section) => {
+      const sectionTitle = document.createElement('h3');
+      sectionTitle.textContent = section.title;
+      sectionTitle.style.marginTop = '20px';
+      sectionTitle.style.marginBottom = '10px';
+      sectionTitle.style.fontSize = '1.2em';
+      sectionTitle.style.color = '#333';
+      sectionTitle.style.borderBottom = '1px solid #f0f0f0';
+      modalContent.appendChild(sectionTitle);
+
+      const table = document.createElement('table');
+      table.style.width = '100%';
+      table.style.borderCollapse = 'collapse';
+      table.style.fontSize = '0.9em';
+
+      // Header Row
+      const thead = document.createElement('tr');
+      thead.style.borderBottom = '2px solid #ddd';
+
+      const thKey = document.createElement('th');
+      thKey.textContent = 'Key';
+      thKey.style.textAlign = 'left';
+      thKey.style.padding = '8px 0';
+      thKey.style.width = '40%';
+      thKey.style.color = '#666';
+
+      const thDesc = document.createElement('th');
+      thDesc.textContent = 'Description';
+      thDesc.style.textAlign = 'right';
+      thDesc.style.padding = '8px 0';
+      thDesc.style.color = '#666';
+
+      thead.appendChild(thKey);
+      thead.appendChild(thDesc);
+      table.appendChild(thead);
+
+      section.shortcuts.forEach((s) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #f9f9f9';
+
+        const tdKey = document.createElement('td');
+        tdKey.textContent = s.key;
+        tdKey.style.padding = '6px 0';
+        tdKey.style.fontWeight = 'bold';
+        tdKey.style.color = '#555';
+        tdKey.style.minWidth = '180px';
+
+        const tdDesc = document.createElement('td');
+        tdDesc.textContent = s.desc;
+        tdDesc.style.padding = '6px 0';
+        tdDesc.style.textAlign = 'right';
+        tdDesc.style.color = '#333';
+
+        tr.appendChild(tdKey);
+        tr.appendChild(tdDesc);
+        table.appendChild(tr);
+      });
+
+      modalContent.appendChild(table);
+    });
+
+    modalOverlay.appendChild(modalContent);
+    document.body.appendChild(modalOverlay);
+
+    // Trigger transition
+    requestAnimationFrame(() => {
+      modalOverlay.style.opacity = '1';
+    });
+
+    const closeModal = () => {
+      modalOverlay.style.opacity = '0';
+      setTimeout(() => {
+        if (document.body.contains(modalOverlay)) {
+          document.body.removeChild(modalOverlay);
+        }
+      }, 200);
+      document.removeEventListener('keydown', handleEsc);
+    };
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleEsc);
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        closeModal();
+      }
+    });
   }
 }
