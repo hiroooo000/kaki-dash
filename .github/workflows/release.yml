@@ -25,7 +25,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          # Removed registry-url to avoid .npmrc generation with empty token
+          # 修正1: Trusted Publishingでもこれは必須です。これにより.npmrcが生成されます。
+          registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
       - name: Install dependencies
@@ -76,5 +77,8 @@ jobs:
       - name: Publish to npm
         # Allow publish if tag was just created OR if manually triggered (retry)
         if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
+        # 修正2: .npmrcの構文エラーを防ぐため、プレースホルダーとしてGITHUB_TOKENを渡します。
+        # 実際の認証は --provenance (OIDC) が行うため、このトークンの中身は影響しません。
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm publish --provenance
-        # Removed NODE_AUTH_TOKEN env to use Trusted Publishing (id-token)
