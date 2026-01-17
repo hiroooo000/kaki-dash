@@ -22,9 +22,10 @@ jobs:
           fetch-depth: 0
 
       - name: Use Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
       - name: Install dependencies
@@ -73,8 +74,4 @@ jobs:
           path: dist/kakidash.umd.${{ env.VERSION }}.js
 
       - name: Publish to npm
-        # Allow publish if tag was just created OR if manually triggered (retry)
-        if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
-        run: |
-          echo "registry=https://registry.npmjs.org/" > .npmrc
-          npm publish --provenance
+        run: npm publish --provenance --access public
