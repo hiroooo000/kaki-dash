@@ -25,8 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          # Fix 1: Required for Trusted Publishing to generate .npmrc properly.
-          registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
       - name: Install dependencies
@@ -77,8 +75,6 @@ jobs:
       - name: Publish to npm
         # Allow publish if tag was just created OR if manually triggered (retry)
         if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
-        # Fix 2: Pass GITHUB_TOKEN as a placeholder to prevent .npmrc syntax errors.
-        # Actual authentication is handled by --provenance (OIDC), so the token content does not matter.
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm publish --provenance
+        run: 
+          echo "registry=https://registry.npmjs.org/" > .npmrc
+          npm publish --provenance
