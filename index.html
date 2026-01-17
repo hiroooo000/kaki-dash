@@ -73,6 +73,13 @@
       <button id="applyMaxWidthBtn">Set</button>
       <span style="font-size: 0.8em; color: #666;">(-1 = none)</span>
     </div>
+    <div
+      style="display: flex; gap: 5px; align-items: center; border-left: 1px solid #999; padding-left: 10px; margin-left: 10px;">
+      <label>Shortcuts (JSON):</label>
+      <textarea id="shortcuts-input" style="width: 200px; height: 30px; vertical-align: middle;"
+        placeholder='{"addChild": [...]}'>{"addChild": [{ "key": "m" }]}</textarea>
+      <button id="btn-reload-shortcuts">Reload</button>
+    </div>
   </div>
   <div id="mindmap-container"></div>
   <script type="module">
@@ -80,9 +87,27 @@
 
     try {
       const app = document.getElementById('mindmap-container');
+      let board;
 
-      const board = new Kakidash(app);
-      window.kakidash = board; // For manual testing console access
+      function initialize(shortcuts = {}) {
+        if (board) {
+          board.destroy();
+          app.innerHTML = ''; // Ensure container is clear
+        }
+
+        board = new Kakidash(app, { shortcuts });
+        window.kakidash = board;
+
+        // Debug logging
+        board.on('node:select', (id) => console.log('EVENT node:select', id));
+        board.on('node:add', (payload) => console.log('EVENT node:add', payload));
+        board.on('node:remove', (id) => console.log('EVENT node:remove', id));
+        board.on('node:update', (payload) => console.log('EVENT node:update', payload));
+        board.on('node:move', (payload) => console.log('EVENT node:move', payload));
+      }
+
+      // Initial load
+      initialize();
 
       // Add some sample nodes
       const rootId = board.getRootId();
@@ -93,15 +118,6 @@
         board.addNode(child1.id, 'GrandChild 1.1');
         board.addNode(child1.id, 'GrandChild 1.2');
       }
-
-
-      // Debug logging
-      board.on('node:select', (id) => console.log('EVENT node:select', id));
-      board.on('node:add', (payload) => console.log('EVENT node:add', payload));
-      board.on('node:remove', (id) => console.log('EVENT node:remove', id));
-      board.on('node:update', (payload) => console.log('EVENT node:update', payload));
-      board.on('node:move', (payload) => console.log('EVENT node:move', payload));
-
 
       // GUI Event Listeners
 
@@ -129,6 +145,24 @@
           board.setMaxNodeWidth(width);
         });
       }
+
+      document.getElementById('btn-reload-shortcuts').addEventListener('click', () => {
+        const input = document.getElementById('shortcuts-input').value;
+        let shortcuts = {};
+        try {
+          if (input.trim()) {
+            shortcuts = JSON.parse(input);
+          }
+          // Preserve data
+          const currentData = board.getData();
+          initialize(shortcuts);
+          board.loadData(currentData);
+          console.log('Reloaded with shortcuts:', shortcuts);
+        } catch (e) {
+          alert('Invalid JSON for shortcuts');
+          console.error(e);
+        }
+      });
 
 
       document.getElementById('btn-export').addEventListener('click', () => {

@@ -1,3 +1,9 @@
+import {
+  ShortcutConfig,
+  DEFAULT_SHORTCUTS,
+  ShortcutAction,
+} from '../domain/interfaces/ShortcutConfig';
+
 export type Direction = 'Up' | 'Down' | 'Left' | 'Right';
 export type StyleAction =
   | { type: 'bold' }
@@ -30,6 +36,7 @@ export interface InteractionOptions {
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
   onEditEnd?: (nodeId: string) => void;
   onToggleFold?: (nodeId: string) => void;
+  shortcuts?: ShortcutConfig;
 }
 
 export class InteractionHandler {
@@ -42,6 +49,7 @@ export class InteractionHandler {
   lastMouseX: number = 0;
   lastMouseY: number = 0;
   isReadOnly: boolean = false;
+  private shortcuts: ShortcutConfig;
 
   private cleanupFns: Array<() => void> = [];
 
@@ -52,7 +60,12 @@ export class InteractionHandler {
     this.container.style.outline = 'none';
     this.container.style.cursor = 'default';
     this.options = options;
+    this.shortcuts = { ...DEFAULT_SHORTCUTS, ...options.shortcuts };
     this.attachEvents();
+  }
+
+  getShortcuts(): ShortcutConfig {
+    return this.shortcuts;
   }
 
   setReadOnly(readOnly: boolean): void {
@@ -74,6 +87,26 @@ export class InteractionHandler {
 
   updateSelection(nodeId: string | null) {
     this.selectedNodeId = nodeId;
+  }
+
+  private matchesShortcut(e: KeyboardEvent, action: ShortcutAction): boolean {
+    const bindings = this.shortcuts[action];
+    if (!bindings) return false;
+    return bindings.some((b) => {
+      // Default to false for modifiers if undefined
+      const ctrl = b.ctrlKey ?? false;
+      const meta = b.metaKey ?? false;
+      const alt = b.altKey ?? false;
+      const shift = b.shiftKey ?? false;
+
+      if (e.ctrlKey !== ctrl) return false;
+      if (e.metaKey !== meta) return false;
+      if (e.altKey !== alt) return false;
+      if (e.shiftKey !== shift) return false;
+
+      // Check key
+      return b.key.toLowerCase() === e.key.toLowerCase();
+    });
   }
 
   private attachEvents(): void {
@@ -212,11 +245,14 @@ export class InteractionHandler {
       }
       // END CHANGE
 
-      const navKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'h', 'j', 'k', 'l'];
-      const actionKeys = ['Tab', 'Enter', 'Delete', 'Backspace'];
-
+      // Handle No Selection (Initial Focus)
       if (!this.selectedNodeId) {
-        if (navKeys.includes(ke.key)) {
+        if (
+          this.matchesShortcut(ke, 'navUp') ||
+          this.matchesShortcut(ke, 'navDown') ||
+          this.matchesShortcut(ke, 'navLeft') ||
+          this.matchesShortcut(ke, 'navRight')
+        ) {
           ke.preventDefault();
           // Find closest node to center
           let closestId: string | null = null;
@@ -254,223 +290,164 @@ export class InteractionHandler {
         return;
       }
 
-      if (this.isReadOnly) {
-        // In ReadOnly mode, prevent editing keys.
-        // Navigation (Arrow) is allowed.
-        // Copy is allowed.
-        // Delete, Enter (Add Sibling), Tab (Add Child/Parent) -> Blocked.
-        const allowedKeys = [
-          'ArrowUp',
-          'ArrowDown',
-          'ArrowLeft',
-          'ArrowRight',
-          'h',
-          'j',
-          'k',
-          'l', // Vim navigation
-          'c', // Copy
-        ];
-        // We also need to block style shortcuts like 'b', 'i', '+', '-'
-
-        if (!allowedKeys.includes(ke.key)) {
-          return;
+      // Actions
+      if (this.matchesShortcut(ke, 'navUp')) {
+        if (this.isReadOnly) {
+          // Allowed
         }
-      }
-
-      // Prevent default browser behaviors for these keys
-      // navKeys and actionKeys are defined at the top of the listener
-
-      if (actionKeys.includes(ke.key) || navKeys.includes(ke.key)) {
-        // Need to be careful not to block typing if we add editing later
-        // Editing input handles its own keydown and stops propagation, so this is safe for global shortcuts
-        // For 'i', we only prevent default if it triggers startEditing, which we handle in switch.
-        // But 'i' is not in navKeys.
         ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Up');
+        return;
+      }
+      if (this.matchesShortcut(ke, 'navDown')) {
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Down');
+        return;
+      }
+      if (this.matchesShortcut(ke, 'navLeft')) {
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Left');
+        return;
+      }
+      if (this.matchesShortcut(ke, 'navRight')) {
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Right');
+        return;
       }
 
-      switch (ke.key) {
-        case 'Tab':
-          if (this.isReadOnly) return;
-          if (ke.shiftKey) {
-            this.options.onInsertParent?.(this.selectedNodeId);
-          } else {
-            this.options.onAddChild(this.selectedNodeId);
-          }
-          break;
-        case 'Enter':
-          if (this.isReadOnly) return;
-          this.options.onAddSibling(this.selectedNodeId, ke.shiftKey ? 'before' : 'after');
-          break;
-        case 'Delete':
-        case 'Backspace':
-          if (this.isReadOnly) return;
-          this.options.onDeleteNode(this.selectedNodeId);
-          break;
-        case 'ArrowUp':
-        case 'k':
-          if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
-            this.options.onNavigate?.(this.selectedNodeId, 'Up');
-          }
-          break;
-        case 'ArrowDown':
-        case 'j':
-          if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
-            this.options.onNavigate?.(this.selectedNodeId, 'Down');
-          }
-          break;
-        case 'ArrowLeft':
-        case 'h':
-          if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
-            this.options.onNavigate?.(this.selectedNodeId, 'Left');
-          }
-          break;
-        case 'ArrowRight':
-        case 'l':
-          if (this.isReadOnly || (!ke.ctrlKey && !ke.metaKey && !ke.altKey)) {
-            this.options.onNavigate?.(this.selectedNodeId, 'Right');
-          }
-          break;
-        case 'F2': {
-          if (this.isReadOnly) return;
-          ke.preventDefault();
-          // Find the node element to start editing
-          const selectedNodeEl = this.container.querySelector(
-            `.mindmap-node[data-id="${this.selectedNodeId}"]`,
-          ) as HTMLElement;
-          if (selectedNodeEl) {
-            // If it's an image node, do not start editing
-            if (selectedNodeEl.querySelector('img')) {
-              return;
-            }
-            this.startEditing(selectedNodeEl, this.selectedNodeId);
-          }
-          break;
-        }
-        case 'c':
-          if (ke.metaKey || ke.ctrlKey) {
-            ke.preventDefault();
-            this.options.onCopyNode?.(this.selectedNodeId);
-          }
-          break;
-        case 'v':
-          if (this.isReadOnly) return;
-          if (ke.metaKey || ke.ctrlKey) {
-            // Do NOT prevent default here to allow 'paste' event to fire for images.
-            // But set a timeout to fallback to internal paste if event doesn't fire.
-            if (pasteTimeout) clearTimeout(pasteTimeout);
-
-            pasteTimeout = setTimeout(() => {
-              if (this.selectedNodeId) {
-                this.options.onPasteNode?.(this.selectedNodeId);
-              }
-            }, 50);
-          }
-          break;
-        case 'x':
-          if (this.isReadOnly) return;
-          if (ke.metaKey || ke.ctrlKey) {
-            ke.preventDefault();
-            this.options.onCutNode?.(this.selectedNodeId);
-          }
-          break;
-        case 'z':
-        case 'Z':
-          // Undo might be allowed in ReadOnly if we consider "view state changes" (which we don't have many of)
-          // But usually undo changes data.
-          if (this.isReadOnly) return;
-          if (ke.metaKey || ke.ctrlKey) {
-            ke.preventDefault();
-            if (ke.shiftKey) {
-              this.options.onRedo?.();
-            } else {
-              this.options.onUndo?.();
-            }
-          }
-          break;
-        case 'y':
-          if (this.isReadOnly) return;
-          if (ke.metaKey || ke.ctrlKey) {
-            ke.preventDefault();
-            this.options.onRedo?.();
-          }
-          break;
-        case 'b':
-          if (this.isReadOnly) return;
-          // MODIFIED: Changed from (ke.metaKey || ke.ctrlKey) to just 'b'
-          ke.preventDefault();
-          this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
-          break;
-        case 'i': {
-          if (this.isReadOnly) return;
-          // MODIFIED: Changed from (ke.metaKey || ke.ctrlKey) to just 'i'
-          // Also removed the "Vim-style Edit" logic (formerly 'i' without modifier)
-          ke.preventDefault();
-          this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
-          break;
-        }
-
-        case ' ': {
-          // Space key
-          if (this.isReadOnly) return;
-          ke.preventDefault(); // Stop scrolling
-
-          // MODIFIED: Space now triggers Edit (like F2) or Zoom (if image)
-          const selectedNodeEl = this.container.querySelector(
-            `.mindmap-node[data-id="${this.selectedNodeId}"]`,
-          ) as HTMLElement;
-          if (selectedNodeEl) {
-            // Restore Zoom: Check if image node mechanism (has zoom button)
-            const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
-            if (zoomBtn) {
-              zoomBtn.click();
-              return;
-            }
-
-            // If it's an image node but no zoom button (shouldn't happen for images usually, but just in case)
-            // or if it's explicitly an image, do not start editing text.
-            if (selectedNodeEl.querySelector('img')) {
-              return;
-            }
-            this.startEditing(selectedNodeEl, this.selectedNodeId);
-          }
-          break;
-        }
-
-        // Font Size
-        case '+':
-        case '=': // Often + is Shift+=
-          if (this.isReadOnly) return;
-          // Check for actual + char or just key code if shift is pressed?
-          // e.key is reliable for produced character.
-          if (ke.key === '+' || (ke.key === '=' && ke.shiftKey)) {
-            // Prevent default zoom if specific browser default?
-            // Usually Ctrl + is zoom. Just + might be typing if editable?
-            // But we are in "Selection" mode (not editing input).
-            this.options.onStyleAction?.(this.selectedNodeId, { type: 'increaseSize' });
-          }
-          break;
-        case '-':
-          if (this.isReadOnly) return;
-          // Similarly check against Ctrl - (Zoom out)
-          // If just '-', verify.
-          this.options.onStyleAction?.(this.selectedNodeId, { type: 'decreaseSize' });
-          break;
-        case 'f':
-          if (this.isReadOnly) return;
-          if (!ke.ctrlKey && !ke.metaKey && !ke.altKey) {
-            this.options.onToggleFold?.(this.selectedNodeId);
-          }
-          break;
-      }
-
-      // Number keys for Color (1-7)
-      if (/^[1-7]$/.test(ke.key)) {
+      if (this.matchesShortcut(ke, 'addChild')) {
         if (this.isReadOnly) return;
-        // Ensure we aren't holding modifiers that would mean something else?
-        // e.g. Ctrl-1 might be switch tab.
-        if (!ke.ctrlKey && !ke.metaKey && !ke.altKey) {
-          const index = parseInt(ke.key) - 1; // 0-based index
-          this.options.onStyleAction?.(this.selectedNodeId, { type: 'color', index });
+        ke.preventDefault();
+        this.options.onAddChild(this.selectedNodeId);
+        return;
+      }
+      if (this.matchesShortcut(ke, 'insertParent')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onInsertParent?.(this.selectedNodeId);
+        return;
+      }
+      if (this.matchesShortcut(ke, 'addSibling')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onAddSibling(this.selectedNodeId, 'after');
+        return;
+      }
+      if (this.matchesShortcut(ke, 'addSiblingBefore')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onAddSibling(this.selectedNodeId, 'before');
+        return;
+      }
+      if (this.matchesShortcut(ke, 'deleteNode')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onDeleteNode(this.selectedNodeId);
+        return;
+      }
+
+      if (this.matchesShortcut(ke, 'beginEdit')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        // Check for Zoom Image or Image Node first
+        const selectedNodeEl = this.container.querySelector(
+          `.mindmap-node[data-id="${this.selectedNodeId}"]`,
+        ) as HTMLElement;
+        if (selectedNodeEl) {
+          // Restore Zoom: Check if image node mechanism (has zoom button)
+          const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
+          if (zoomBtn) {
+            zoomBtn.click();
+            return;
+          }
+          // If it's an image node but no zoom button, or explicitly an image, do not start editing text.
+          if (selectedNodeEl.querySelector('img')) {
+            return;
+          }
+          this.startEditing(selectedNodeEl, this.selectedNodeId);
+        }
+        return;
+      }
+
+      if (this.matchesShortcut(ke, 'copy')) {
+        // Copy allowed in ReadOnly
+        ke.preventDefault();
+        this.options.onCopyNode?.(this.selectedNodeId);
+        return;
+      }
+      // Paste has its own event listener 'paste', but 'v' shortcut usually just relies on system paste?
+      // Actually code had explicit 'v' handler fallback.
+      if (this.matchesShortcut(ke, 'paste')) {
+        if (this.isReadOnly) return;
+        // The original code allowed default to fire 'paste' event, and set a fallback timeout.
+        // We should replicate that.
+        // But matching keys means we detected 'v'.
+        if (pasteTimeout) clearTimeout(pasteTimeout);
+        pasteTimeout = setTimeout(() => {
+          if (this.selectedNodeId) {
+            this.options.onPasteNode?.(this.selectedNodeId);
+          }
+        }, 50);
+        return;
+      }
+      if (this.matchesShortcut(ke, 'cut')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onCutNode?.(this.selectedNodeId);
+        return;
+      }
+      if (this.matchesShortcut(ke, 'undo')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onUndo?.();
+        return;
+      }
+      if (this.matchesShortcut(ke, 'redo')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onRedo?.();
+        return;
+      }
+
+      if (this.matchesShortcut(ke, 'bold')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
+        return;
+      }
+      if (this.matchesShortcut(ke, 'italic')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
+        return;
+      }
+      if (this.matchesShortcut(ke, 'zoomIn')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'increaseSize' });
+        return;
+      }
+      if (this.matchesShortcut(ke, 'zoomOut')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'decreaseSize' });
+        return;
+      }
+      if (this.matchesShortcut(ke, 'toggleFold')) {
+        if (this.isReadOnly) return;
+        ke.preventDefault();
+        this.options.onToggleFold?.(this.selectedNodeId);
+        return;
+      }
+
+      // Colors
+      for (let i = 1; i <= 7; i++) {
+        // @ts-expect-error - Event property exists on window but missing from TS defs in this context
+        if (this.matchesShortcut(ke, `selectColor${i}`)) {
+          if (this.isReadOnly) return;
+          ke.preventDefault();
+          this.options.onStyleAction?.(this.selectedNodeId, { type: 'color', index: i - 1 });
+          return;
         }
       }
     });
