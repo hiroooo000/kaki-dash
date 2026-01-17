@@ -1,6 +1,6 @@
 {
     "name": "kakidash",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "A lightweight, dependency-free Mindmap library for the browser.",
     "repository": {
         "type": "git",
