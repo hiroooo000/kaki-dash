@@ -84,10 +84,10 @@ import { Kakidash } from 'kakidash';
 const container = document.getElementById('mindmap-container');
 
 // Instantiate
-const board = new Kakidash(container);
+const kakidash = new Kakidash(container);
 
 // Add initial data or nodes if needed
-board.addNode(board.getRootId(), 'Hello World');
+kakidash.addNode(kakidash.getRootId(), 'Hello World');
 ```
 
 #### B. Browser Direct Import (Script Tag / CDN)
@@ -107,9 +107,9 @@ Use the built `umd` file. The library will be exposed under the global variable 
 
     // Initialize
     const container = document.getElementById('mindmap-container');
-    const board = new Kakidash(container);
+    const kakidash = new Kakidash(container);
     
-    console.log('Kakidash initialized:', board);
+    console.log('Kakidash initialized:', kakidash);
 </script>
 ```
 
@@ -118,30 +118,30 @@ Use the built `umd` file. The library will be exposed under the global variable 
 ### Methods
 
 - **`new Kakidash(container: HTMLElement)`**: Creates a new instance.
-- **`board.addNode(parentId, topic)`**: Adds a new child node to the specified parent node.
-- **`board.getData()`**: Retrieves current mindmap data as a JSON object.
-- **`board.loadData(data)`**: Loads JSON data and renders the mindmap.
-- **`board.updateLayout(mode)`**: Changes layout mode ('Standard', 'Left', 'Right').
-- **`board.setReadOnly(boolean)`**: Toggles read-only mode.
-- **`board.setMaxNodeWidth(width: number)`**: Sets main node width (-1 for unlimited).
-- **`board.getMaxNodeWidth()`**: Gets current max node width.
-- **`board.undo()`**: Undo the last change.
-- **`board.redo()`**: Redo the last undone change.
-- **`board.toggleFold(nodeId)`**: Toggle fold state of a node.
-- **`board.getSelectedNodeId()`**: Get the ID of the currently selected node.
+- **`kakidash.addNode(parentId, topic)`**: Adds a new child node to the specified parent node.
+- **`kakidash.getData()`**: Retrieves current mindmap data as a JSON object.
+- **`kakidash.loadData(data)`**: Loads JSON data and renders the mindmap.
+- **`kakidash.updateLayout(mode)`**: Changes layout mode ('Standard', 'Left', 'Right').
+- **`kakidash.setReadOnly(boolean)`**: Toggles read-only mode.
+- **`kakidash.setMaxNodeWidth(width: number)`**: Sets main node width (-1 for unlimited).
+- **`kakidash.getMaxNodeWidth()`**: Gets current max node width.
+- **`kakidash.undo()`**: Undo the last change.
+- **`kakidash.redo()`**: Redo the last undone change.
+- **`kakidash.toggleFold(nodeId)`**: Toggle fold state of a node.
+- **`kakidash.getSelectedNodeId()`**: Get the ID of the currently selected node.
 
 ### Events
 
 ```typescript
-board.on('node:select', (nodeId) => {
+kakidash.on('node:select', (nodeId) => {
   console.log('Selected:', nodeId);
 });
 
-board.on('node:add', (payload) => {
+kakidash.on('node:add', (payload) => {
   console.log('Added:', payload);
 });
 
-board.on('model:change', () => {
+kakidash.on('model:change', () => {
   console.log('Data changed');
 });
 ```
@@ -153,7 +153,7 @@ board.on('model:change', () => {
 You can customize keyboard shortcuts by passing an option to the constructor.
 
 ```typescript
-const board = new Kakidash(container, {
+const kakidash = new Kakidash(container, {
   shortcuts: {
     // Override 'addChild' to Ctrl+N
     addChild: [{ key: 'n', ctrlKey: true }],
