@@ -55,10 +55,24 @@
     <button id="btn-export">Export to JSON</button>
     <textarea id="json-data" placeholder="Paste JSON here or click Export"></textarea>
     <button id="btn-import">Import from JSON</button>
-    <button id="layout-left" style="display:none">Left</button>
-    <button id="layout-right" style="display:none">Right</button>
-    <button id="layout-standard" style="display:none">Standard</button>
-    <!-- Theme select removed, moved to StyleSwitcher UI -->
+
+    <div
+      style="display: flex; gap: 5px; align-items: center; border-left: 1px solid #999; padding-left: 10px; margin-left: 10px;">
+      <label>Layout:</label>
+      <select id="layoutMode">
+        <option value="Right">Right Only</option>
+        <option value="Left">Left Only</option>
+        <option value="Both">Both Sides</option>
+      </select>
+    </div>
+
+    <div
+      style="display: flex; gap: 5px; align-items: center; border-left: 1px solid #999; padding-left: 10px; margin-left: 10px;">
+      <label>Max Width:</label>
+      <input type="number" id="maxWidthInput" value="-1" step="50" style="width: 60px;" />
+      <button id="applyMaxWidthBtn">Set</button>
+      <span style="font-size: 0.8em; color: #666;">(-1 = none)</span>
+    </div>
   </div>
   <div id="mindmap-container"></div>
   <script type="module">
@@ -90,10 +104,31 @@
 
 
       // GUI Event Listeners
-      document.getElementById('layout-standard').addEventListener('click', () => {
-        kakidash.updateLayout('Standard');
-      });
 
+
+
+      const layoutSelect = document.getElementById('layoutMode');
+      if (layoutSelect) { // Added check for element existence
+        layoutSelect.addEventListener('change', (e) => {
+          board.setLayoutMode(e.target.value); // Changed mindMap to board
+        });
+      }
+
+      const maxWidthInput = document.getElementById('maxWidthInput');
+      const applyMaxWidthBtn = document.getElementById('applyMaxWidthBtn');
+
+      if (maxWidthInput && applyMaxWidthBtn) {
+        applyMaxWidthBtn.addEventListener('click', () => {
+          // @ts-ignore
+          let width = parseInt(maxWidthInput.value, 10);
+          if (isNaN(width) || width < 0) {
+            width = -1;
+            // @ts-ignore
+            maxWidthInput.value = -1; // Reflect correction
+          }
+          board.setMaxNodeWidth(width);
+        });
+      }
 
 
       document.getElementById('btn-export').addEventListener('click', () => {

@@ -128,6 +128,8 @@ board.addNode(board.getRootId(), 'Hello World');
 - **`board.loadData(data)`**: JSONデータを読み込み、マインドマップを描画します。
 - **`board.updateLayout(mode)`**: レイアウトモードを変更します ('Standard', 'Left', 'Right')。
 - **`board.setReadOnly(boolean)`**: 読み取り専用モードを切り替えます。
+- **`board.setMaxNodeWidth(width: number)`**: テキストノードの最大幅を設定します（-1で無制限）。
+- **`board.getMaxNodeWidth()`**: 現在の最大ノード幅を取得します。
 - **`board.undo()`**: 変更を元に戻します。
 - **`board.redo()`**: 元に戻した変更をやり直します。
 - **`board.toggleFold(nodeId)`**: ノードの折り畳み/展開を切り替えます。
