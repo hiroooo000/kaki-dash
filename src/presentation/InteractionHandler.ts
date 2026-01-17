@@ -64,6 +64,10 @@ export class InteractionHandler {
     this.attachEvents();
   }
 
+  getShortcuts(): ShortcutConfig {
+    return this.shortcuts;
+  }
+
   setReadOnly(readOnly: boolean): void {
     this.isReadOnly = readOnly;
     // Maybe cancel any ongoing edit/drag?

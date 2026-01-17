@@ -93,4 +93,16 @@ describe('InteractionHandler Shortcuts', () => {
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Insert', bubbles: true }));
     expect(options.onAddChild).toHaveBeenCalledTimes(2);
   });
+
+  it('should return configured shortcuts', () => {
+    const customShortcuts: ShortcutConfig = {
+      addChild: [{ key: 'n', ctrlKey: true }],
+    };
+    const handler = new InteractionHandler(container, { ...options, shortcuts: customShortcuts });
+
+    // Check if it returns merged shortcuts (default + custom)
+    const shortcuts = handler.getShortcuts();
+    expect(shortcuts.addChild).toEqual([{ key: 'n', ctrlKey: true }]); // overridden
+    expect(shortcuts.undo).toBeDefined(); // defaults should exist
+  });
 });
