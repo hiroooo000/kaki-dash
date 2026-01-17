@@ -75,6 +75,6 @@ jobs:
       - name: Publish to npm
         # Allow publish if tag was just created OR if manually triggered (retry)
         if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
-        run: 
+        run: |
           echo "registry=https://registry.npmjs.org/" > .npmrc
           npm publish --provenance
