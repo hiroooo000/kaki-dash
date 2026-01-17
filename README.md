@@ -123,6 +123,8 @@ Use the built `umd` file. The library will be exposed under the global variable 
 - **`board.loadData(data)`**: Loads JSON data and renders the mindmap.
 - **`board.updateLayout(mode)`**: Changes layout mode ('Standard', 'Left', 'Right').
 - **`board.setReadOnly(boolean)`**: Toggles read-only mode.
+- **`board.setMaxNodeWidth(width: number)`**: Sets main node width (-1 for unlimited).
+- **`board.getMaxNodeWidth()`**: Gets current max node width.
 - **`board.undo()`**: Undo the last change.
 - **`board.redo()`**: Redo the last undone change.
 - **`board.toggleFold(nodeId)`**: Toggle fold state of a node.

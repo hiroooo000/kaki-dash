@@ -35,6 +35,7 @@ export interface InteractionOptions {
 export class InteractionHandler {
   container: HTMLElement;
   options: InteractionOptions;
+  maxWidth: number = -1;
   selectedNodeId: string | null = null;
   draggedNodeId: string | null = null;
   isPanning: boolean = false;
@@ -726,6 +727,16 @@ export class InteractionHandler {
     input.style.resize = 'none';
     input.style.minHeight = '1em';
 
+    if (this.maxWidth !== -1) {
+      input.style.whiteSpace = 'pre-wrap';
+      input.style.wordBreak = 'break-all';
+      input.style.wordWrap = 'break-word';
+      input.style.overflowWrap = 'anywhere';
+      input.style.maxWidth = `${this.maxWidth}px`;
+    } else {
+      input.style.whiteSpace = 'pre';
+    }
+
     // Copy styles to match appearance
     const computed = window.getComputedStyle(element);
     input.style.font = computed.font;
@@ -760,7 +771,16 @@ export class InteractionHandler {
       const span = document.createElement('span');
       span.style.font = computed.font;
       span.style.padding = computed.padding;
-      span.style.whiteSpace = 'pre-wrap';
+
+      if (this.maxWidth !== -1) {
+        span.style.whiteSpace = 'pre-wrap';
+        span.style.wordBreak = 'break-all';
+        span.style.wordWrap = 'break-word';
+        span.style.overflowWrap = 'anywhere';
+        span.style.maxWidth = `${this.maxWidth}px`;
+      } else {
+        span.style.whiteSpace = 'pre';
+      }
       span.style.visibility = 'hidden';
       span.style.position = 'absolute';
       span.textContent = input.value || '';

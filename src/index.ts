@@ -37,6 +37,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   private isBatching: boolean = false;
   private animationFrameId: number | null = null;
+  private maxWidth: number = -1;
 
   constructor(container: HTMLElement) {
     super();
@@ -411,6 +412,17 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   /* ==========================================================================================
      Lifecycle & Modes
      ========================================================================================== */
+
+  setMaxNodeWidth(width: number): void {
+    this.maxWidth = width;
+    this.renderer.maxWidth = width;
+    this.interactionHandler.maxWidth = width;
+    this.render();
+  }
+
+  getMaxNodeWidth(): number {
+    return this.maxWidth;
+  }
 
   setReadOnly(readOnly: boolean): void {
     this.interactionHandler.setReadOnly(readOnly);
