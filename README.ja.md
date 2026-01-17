@@ -87,10 +87,10 @@ import { Kakidash } from 'kakidash';
 const container = document.getElementById('mindmap-container');
 
 // インスタンス化
-const board = new Kakidash(container);
+const kakidash = new Kakidash(container);
 
 // 必要に応じて初期データをロードしたり、ノードを追加したりします
-board.addNode(board.getRootId(), 'Hello World');
+kakidash.addNode(kakidash.getRootId(), 'Hello World');
 ```
 
 #### B. ブラウザ直接読み込み (Script Tag / CDN)
@@ -111,10 +111,10 @@ board.addNode(board.getRootId(), 'Hello World');
 
     // 初期化
     const container = document.getElementById('mindmap-container');
-    const board = new Kakidash(container);
+    const kakidash = new Kakidash(container);
     
     // 動作確認
-    console.log('Kakidash initialized:', board);
+    console.log('Kakidash initialized:', kakidash);
 </script>
 ```
 
@@ -123,30 +123,30 @@ board.addNode(board.getRootId(), 'Hello World');
 ### Methods
 
 - **`new Kakidash(container: HTMLElement)`**: インスタンスを生成します。
-- **`board.addNode(parentId, topic)`**: 指定した親ノードに新しい子ノードを追加します。
-- **`board.getData()`**: 現在のマインドマップデータをJSONオブジェクトとして取得します。
-- **`board.loadData(data)`**: JSONデータを読み込み、マインドマップを描画します。
-- **`board.updateLayout(mode)`**: レイアウトモードを変更します ('Standard', 'Left', 'Right')。
-- **`board.setReadOnly(boolean)`**: 読み取り専用モードを切り替えます。
-- **`board.setMaxNodeWidth(width: number)`**: テキストノードの最大幅を設定します（-1で無制限）。
-- **`board.getMaxNodeWidth()`**: 現在の最大ノード幅を取得します。
-- **`board.undo()`**: 変更を元に戻します。
-- **`board.redo()`**: 元に戻した変更をやり直します。
-- **`board.toggleFold(nodeId)`**: ノードの折り畳み/展開を切り替えます。
-- **`board.getSelectedNodeId()`**: 現在選択されているノードのIDを取得します。
+- **`kakidash.addNode(parentId, topic)`**: 指定した親ノードに新しい子ノードを追加します。
+- **`kakidash.getData()`**: 現在のマインドマップデータをJSONオブジェクトとして取得します。
+- **`kakidash.loadData(data)`**: JSONデータを読み込み、マインドマップを描画します。
+- **`kakidash.updateLayout(mode)`**: レイアウトモードを変更します ('Standard', 'Left', 'Right')。
+- **`kakidash.setReadOnly(boolean)`**: 読み取り専用モードを切り替えます。
+- **`kakidash.setMaxNodeWidth(width: number)`**: テキストノードの最大幅を設定します（-1で無制限）。
+- **`kakidash.getMaxNodeWidth()`**: 現在の最大ノード幅を取得します。
+- **`kakidash.undo()`**: 変更を元に戻します。
+- **`kakidash.redo()`**: 元に戻した変更をやり直します。
+- **`kakidash.toggleFold(nodeId)`**: ノードの折り畳み/展開を切り替えます。
+- **`kakidash.getSelectedNodeId()`**: 現在選択されているノードのIDを取得します。
 
 ### Events
 
 ```typescript
-board.on('node:select', (nodeId) => {
+kakidash.on('node:select', (nodeId) => {
   console.log('Selected:', nodeId);
 });
 
-board.on('node:add', (payload) => {
+kakidash.on('node:add', (payload) => {
   console.log('Added:', payload);
 });
 
-board.on('model:change', () => {
+kakidash.on('model:change', () => {
   console.log('Data changed');
 });
 ```
@@ -158,7 +158,7 @@ board.on('model:change', () => {
 コンストラクタのオプションでキーボードショートカットをカスタマイズできます。
 
 ```typescript
-const board = new Kakidash(container, {
+const kakidash = new Kakidash(container, {
   shortcuts: {
     // 'addChild' を Ctrl+N に変更する例
     addChild: [{ key: 'n', ctrlKey: true }],

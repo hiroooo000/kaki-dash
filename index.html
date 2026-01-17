@@ -87,36 +87,36 @@
 
     try {
       const app = document.getElementById('mindmap-container');
-      let board;
+      let kakidash;
 
       function initialize(shortcuts = {}) {
-        if (board) {
-          board.destroy();
+        if (kakidash) {
+          kakidash.destroy();
           app.innerHTML = ''; // Ensure container is clear
         }
 
-        board = new Kakidash(app, { shortcuts });
-        window.kakidash = board;
+        kakidash = new Kakidash(app, { shortcuts });
+        window.kakidash = kakidash;
 
         // Debug logging
-        board.on('node:select', (id) => console.log('EVENT node:select', id));
-        board.on('node:add', (payload) => console.log('EVENT node:add', payload));
-        board.on('node:remove', (id) => console.log('EVENT node:remove', id));
-        board.on('node:update', (payload) => console.log('EVENT node:update', payload));
-        board.on('node:move', (payload) => console.log('EVENT node:move', payload));
+        kakidash.on('node:select', (id) => console.log('EVENT node:select', id));
+        kakidash.on('node:add', (payload) => console.log('EVENT node:add', payload));
+        kakidash.on('node:remove', (id) => console.log('EVENT node:remove', id));
+        kakidash.on('node:update', (payload) => console.log('EVENT node:update', payload));
+        kakidash.on('node:move', (payload) => console.log('EVENT node:move', payload));
       }
 
       // Initial load
       initialize();
 
       // Add some sample nodes
-      const rootId = board.getRootId();
-      const child1 = board.addNode(rootId, 'Child 1');
-      const child2 = board.addNode(rootId, 'Child 2');
+      const rootId = kakidash.getRootId();
+      const child1 = kakidash.addNode(rootId, 'Child 1');
+      const child2 = kakidash.addNode(rootId, 'Child 2');
 
       if (child1) {
-        board.addNode(child1.id, 'GrandChild 1.1');
-        board.addNode(child1.id, 'GrandChild 1.2');
+        kakidash.addNode(child1.id, 'GrandChild 1.1');
+        kakidash.addNode(child1.id, 'GrandChild 1.2');
       }
 
       // GUI Event Listeners
@@ -126,7 +126,7 @@
       const layoutSelect = document.getElementById('layoutMode');
       if (layoutSelect) { // Added check for element existence
         layoutSelect.addEventListener('change', (e) => {
-          board.setLayoutMode(e.target.value); // Changed mindMap to board
+          kakidash.setLayoutMode(e.target.value); // Changed mindMap to kakidash
         });
       }
 
@@ -142,7 +142,8 @@
             // @ts-ignore
             maxWidthInput.value = -1; // Reflect correction
           }
-          board.setMaxNodeWidth(width);
+
+          kakidash.setMaxNodeWidth(width);
         });
       }
 
@@ -154,9 +155,9 @@
             shortcuts = JSON.parse(input);
           }
           // Preserve data
-          const currentData = board.getData();
+          const currentData = kakidash.getData();
           initialize(shortcuts);
-          board.loadData(currentData);
+          kakidash.loadData(currentData);
           console.log('Reloaded with shortcuts:', shortcuts);
         } catch (e) {
           alert('Invalid JSON for shortcuts');
@@ -166,7 +167,7 @@
 
 
       document.getElementById('btn-export').addEventListener('click', () => {
-        const data = board.getData();
+        const data = kakidash.getData();
         const json = JSON.stringify(data, null, 2);
         document.getElementById('json-data').value = json;
       });
@@ -175,7 +176,7 @@
         const jsonStr = document.getElementById('json-data').value;
         try {
           const data = JSON.parse(jsonStr);
-          board.loadData(data);
+          kakidash.loadData(data);
         } catch (err) {
           console.error('Import failed:', err);
           alert('Invalid JSON');
