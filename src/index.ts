@@ -9,10 +9,16 @@ import { LayoutMode } from './domain/interfaces/LayoutMode';
 import { MindMapData, Theme } from './domain/interfaces/MindMapData';
 import { TypedEventEmitter } from './infrastructure/EventEmitter';
 import { KakidashEventMap } from './domain/interfaces/KakidashEvents';
+import { ShortcutConfig } from './domain/interfaces/ShortcutConfig';
 
 export type { MindMapData } from './domain/interfaces/MindMapData';
 export type { KakidashEventMap } from './domain/interfaces/KakidashEvents';
 export type { LayoutMode } from './domain/interfaces/LayoutMode';
+export type { ShortcutConfig } from './domain/interfaces/ShortcutConfig';
+
+export interface KakidashOptions {
+  shortcuts?: ShortcutConfig;
+}
 
 export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private mindMap: MindMap;
@@ -39,7 +45,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private animationFrameId: number | null = null;
   private maxWidth: number = -1;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, options: KakidashOptions = {}) {
     super();
     const rootNode = new Node('root', 'Root Topic', null, true);
     this.mindMap = new MindMap(rootNode);
@@ -185,6 +191,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
           this.emit('model:change', undefined);
         }
       },
+      shortcuts: options.shortcuts,
     });
 
     this.render();
