@@ -151,6 +151,95 @@ board.on('model:change', () => {
 });
 ```
 
+## Configuration
+
+### Custom Shortcuts
+
+コンストラクタのオプションでキーボードショートカットをカスタマイズできます。
+
+```typescript
+const board = new Kakidash(container, {
+  shortcuts: {
+    // 'addChild' を Ctrl+N に変更する例
+    addChild: [{ key: 'n', ctrlKey: true }],
+  }
+});
+```
+
+### Default Shortcuts Configuration (JSON)
+
+以下はデフォルト設定の全量です。必要なキーのみを部分的に上書きできます。
+
+```json
+{
+  "navUp": [
+    { "key": "ArrowUp" },
+    { "key": "k" }
+  ],
+  "navDown": [
+    { "key": "ArrowDown" },
+    { "key": "j" }
+  ],
+  "navLeft": [
+    { "key": "ArrowLeft" },
+    { "key": "h" }
+  ],
+  "navRight": [
+    { "key": "ArrowRight" },
+    { "key": "l" }
+  ],
+  "addChild": [{ "key": "Tab" }],
+  "insertParent": [{ "key": "Tab", "shiftKey": true }],
+  "addSibling": [{ "key": "Enter" }],
+  "addSiblingBefore": [{ "key": "Enter", "shiftKey": true }],
+  "deleteNode": [
+    { "key": "Delete" },
+    { "key": "Backspace" }
+  ],
+  "beginEdit": [
+    { "key": "F2" },
+    { "key": " " }
+  ],
+  "copy": [
+    { "key": "c", "ctrlKey": true },
+    { "key": "c", "metaKey": true }
+  ],
+  "paste": [
+    { "key": "v", "ctrlKey": true },
+    { "key": "v", "metaKey": true }
+  ],
+  "cut": [
+    { "key": "x", "ctrlKey": true },
+    { "key": "x", "metaKey": true }
+  ],
+  "undo": [
+    { "key": "z", "ctrlKey": true },
+    { "key": "z", "metaKey": true }
+  ],
+  "redo": [
+    { "key": "Z", "ctrlKey": true, "shiftKey": true },
+    { "key": "Z", "metaKey": true, "shiftKey": true },
+    { "key": "y", "ctrlKey": true },
+    { "key": "y", "metaKey": true }
+  ],
+  "bold": [{ "key": "b" }],
+  "italic": [{ "key": "i" }],
+  "zoomIn": [
+    { "key": "+" },
+    { "key": "=" }
+  ],
+  "zoomOut": [{ "key": "-" }],
+  "toggleFold": [{ "key": "f" }],
+  "selectColor1": [{ "key": "1" }],
+  "selectColor2": [{ "key": "2" }],
+  "selectColor3": [{ "key": "3" }],
+  "selectColor4": [{ "key": "4" }],
+  "selectColor5": [{ "key": "5" }],
+  "selectColor6": [{ "key": "6" }],
+  "selectColor7": [{ "key": "7" }]
+}
+```
+
 ## Shortcuts
 
 ### General
