@@ -4,7 +4,7 @@
     "description": "A lightweight, dependency-free Mindmap library for the browser.",
     "repository": {
         "type": "git",
-        "url": "https://github.com/hiroooo000/kakidash.git"
+        "url": "git+https://github.com/hiroooo000/kakidash.git"
     },
     "homepage": "https://github.com/hiroooo000/kakidash#readme",
     "bugs": {
