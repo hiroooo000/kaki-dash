@@ -7,29 +7,35 @@ import { Kakidash } from '../../src/index';
 
 // Mock UI components
 vi.mock('../../src/presentation/StyleEditor', () => ({
-  StyleEditor: vi.fn().mockImplementation(() => ({
-    show: vi.fn(),
-    hide: vi.fn(),
-    onUpdate: vi.fn(),
-  })),
+  StyleEditor: vi.fn().mockImplementation(function () {
+    return {
+      show: vi.fn(),
+      hide: vi.fn(),
+      onUpdate: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../src/presentation/LayoutSwitcher', () => ({
-  LayoutSwitcher: vi.fn().mockImplementation(() => ({
-    setMode: vi.fn(),
-  })),
+  LayoutSwitcher: vi.fn().mockImplementation(function () {
+    return {
+      setMode: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../src/presentation/SvgRenderer', () => ({
-  SvgRenderer: vi.fn().mockImplementation(() => ({
-    render: vi.fn(),
-    updateTransform: vi.fn(),
-    container: {
-      getBoundingClientRect: () => ({ left: 0, top: 0 }),
-      clientWidth: 1000,
-      clientHeight: 800,
-    },
-  })),
+  SvgRenderer: vi.fn().mockImplementation(function () {
+    return {
+      render: vi.fn(),
+      updateTransform: vi.fn(),
+      container: {
+        getBoundingClientRect: () => ({ left: 0, top: 0 }),
+        clientWidth: 1000,
+        clientHeight: 800,
+      },
+    };
+  }),
 }));
 
 // Mock DOM

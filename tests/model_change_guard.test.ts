@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { Kakidash } from '../src/index';
 
 describe('Kakidash Model Change Event Guard', () => {
   let container: HTMLElement;
   let board: Kakidash;
-  let onChangeSpy: ReturnType<typeof vi.fn>;
+  let onChangeSpy: Mock<(payload: void) => void>;
 
   beforeEach(() => {
     // Mock requestAnimationFrame to prevent infinite loop
