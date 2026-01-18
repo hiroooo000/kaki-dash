@@ -116,6 +116,11 @@ export class MindMapService {
   toggleNodeFold(id: string): boolean {
     const node = this.mindMap.findNode(id);
     if (node) {
+      // Prevent folding if no children (but allow unfolding)
+      if (node.children.length === 0 && !node.isFolded) {
+        return false;
+      }
+
       this.saveState();
       node.isFolded = !node.isFolded;
       return true;

@@ -373,6 +373,9 @@ describe('Kakidash External API', () => {
         const rootId = board.getRootId();
         const child = board.addNode(rootId, 'Fold Target');
 
+        // Add a child to allow folding
+        board.addNode(child!.id, 'GrandChild');
+
         // Initial state
         expect(child!.isFolded).toBe(false);
 

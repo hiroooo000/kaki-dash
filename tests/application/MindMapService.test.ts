@@ -232,6 +232,8 @@ describe('MindMapService', () => {
       expect(child1).toBeDefined();
 
       if (child1) {
+        service.addNode(child1.id, 'GrandChild'); // Add child to allow fold
+
         service.toggleNodeFold(child1.id);
         expect(child1.isFolded).toBe(true);
 
@@ -251,6 +253,9 @@ describe('MindMapService', () => {
       const child1 = service.addNode('root', 'Child 1');
       expect(child1).toBeDefined();
       if (child1) {
+        // Must add a child for fold to work
+        service.addNode(child1.id, 'GrandChild');
+
         expect(child1.isFolded).toBe(false);
         const result = service.toggleNodeFold(child1.id);
         expect(result).toBe(true);
