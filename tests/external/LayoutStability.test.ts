@@ -7,25 +7,31 @@ import { Kakidash } from '../../src/index';
 
 // Mock UI components to avoid DOM dependencies
 vi.mock('../../src/presentation/StyleEditor', () => ({
-  StyleEditor: vi.fn().mockImplementation(() => ({
-    show: vi.fn(),
-    hide: vi.fn(),
-    onUpdate: vi.fn(), // Public property to capture callback
-  })),
+  StyleEditor: vi.fn().mockImplementation(function () {
+    return {
+      show: vi.fn(),
+      hide: vi.fn(),
+      onUpdate: vi.fn(), // Public property to capture callback
+    };
+  }),
 }));
 
 vi.mock('../../src/presentation/LayoutSwitcher', () => ({
-  LayoutSwitcher: vi.fn().mockImplementation(() => ({
-    setMode: vi.fn(),
-  })),
+  LayoutSwitcher: vi.fn().mockImplementation(function () {
+    return {
+      setMode: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../src/presentation/SvgRenderer', () => ({
-  SvgRenderer: vi.fn().mockImplementation((container: any) => ({
-    render: vi.fn(),
-    updateTransform: vi.fn(),
-    container: container,
-  })),
+  SvgRenderer: vi.fn().mockImplementation(function (container: any) {
+    return {
+      render: vi.fn(),
+      updateTransform: vi.fn(),
+      container: container,
+    };
+  }),
 }));
 
 // Mock DOM dependencies

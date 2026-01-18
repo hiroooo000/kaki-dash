@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { Kakidash } from '../src/index';
 
 describe('Kakidash model:change Event Coverage', () => {
   let container: HTMLElement;
   let board: Kakidash;
-  let onChangeSpy: ReturnType<typeof vi.fn>;
+  let onChangeSpy: Mock<(payload: void) => void>;
 
   beforeEach(() => {
     container = document.createElement('div');
