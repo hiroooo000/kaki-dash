@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kakidash Theme Verification</title>
+    <style>
+        :root {
+            /* Default to Dark Mode Variables */
+            --vscode-editor-background: #1e1e1e;
+            --vscode-editor-foreground: #d4d4d4;
+            --vscode-widget-border: #454545;
+            --vscode-focusBorder: #007fd4;
+            --vscode-icon-foreground: #cccccc;
+        }
+
+        /* Light Mode Variables Override */
+        body.light-mode {
+            --vscode-editor-background: #ffffff;
+            --vscode-editor-foreground: #000000;
+            --vscode-widget-border: #cecece;
+            --vscode-focusBorder: #0090f1;
+            --vscode-icon-foreground: #424242;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #toolbar {
+            padding: 10px;
+            border-bottom: 1px solid var(--vscode-widget-border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+            background: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            border: 1px solid var(--vscode-widget-border);
+        }
+
+        #mindmap-container {
+            flex: 1;
+            border: 1px solid var(--vscode-widget-border);
+            /* Testing border variable too */
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="toolbar">
+        <button id="toggle-theme">Toggle Theme (Current: Dark)</button>
+        <span>Test Switching Dark/Light Modes</span>
+    </div>
+    <div id="mindmap-container"></div>
+
+    <script type="module">
+        import { Kakidash } from '/src/index.ts';
+
+        const container = document.getElementById('mindmap-container');
+        const toggleBtn = document.getElementById('toggle-theme');
+        let isDark = true;
+
+        toggleBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            if (isDark) {
+                document.body.classList.remove('light-mode');
+                toggleBtn.textContent = 'Toggle Theme (Current: Dark)';
+            } else {
+                document.body.classList.add('light-mode');
+                toggleBtn.textContent = 'Toggle Theme (Current: Light)';
+            }
+        });
+
+        // Initialize Kakidash
+        try {
+            const kakidash = new Kakidash(container);
+            window.kakidash = kakidash;
+
+            // Create some sample nodes
+            const rootId = kakidash.getRoot().id;
+            kakidash.updateNode(rootId, { topic: 'Root Topic' });
+
+            const child1 = kakidash.addNode(rootId, 'Child 1');
+            const child2 = kakidash.addNode(rootId, 'Child 2');
+            kakidash.addNode(child1.id, 'Grandchild 1.1');
+            kakidash.addNode(child2.id, 'Grandchild 2.1');
+
+            console.log('Verification environment ready (ESM).');
+        } catch (e) {
+            console.error(e);
+            document.body.innerHTML += `<div style="color: red; padding: 20px;">Error: ${e.message}</div>`;
+        }
+    </script>
+</body>
+
+</html>
