@@ -503,7 +503,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     if (node) {
       // Interaction Side Effects
       this.selectNode(node.id);
-      this.ensureNodeVisible(node.id);
+      this.ensureNodeVisible(node.id, false, true);
       this.interactionHandler.editNode(node.id);
     }
   }
@@ -515,7 +515,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     if (newNode) {
       // Interaction Side Effects
       this.selectNode(newNode.id);
-      this.ensureNodeVisible(newNode.id);
+      this.ensureNodeVisible(newNode.id, false, true);
       this.interactionHandler.editNode(newNode.id);
     }
   }
@@ -527,7 +527,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     if (newNode) {
       // Interaction Side Effects
       this.selectNode(newNode.id);
-      this.ensureNodeVisible(newNode.id);
+      this.ensureNodeVisible(newNode.id, false, true);
       this.interactionHandler.editNode(newNode.id);
     }
   }
@@ -969,7 +969,11 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    * Ensures the node is visible in the viewport.
    * If centerIfOffscreen is true, and the node is out of bounds, it will be centered.
    */
-  private ensureNodeVisible(nodeId: string, centerIfOffscreen: boolean = false): void {
+  private ensureNodeVisible(
+    nodeId: string,
+    centerIfOffscreen: boolean = false,
+    immediate: boolean = false,
+  ): void {
     const nodeEl = this.renderer.container.querySelector(
       `.mindmap-node[data-id="${nodeId}"]`,
     ) as HTMLElement;
@@ -1012,7 +1016,15 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     }
 
     if (dx !== 0 || dy !== 0) {
-      this.panBoard(dx, dy);
+      if (immediate) {
+        this.panX += dx;
+        this.panY += dy;
+        this.targetPanX = this.panX;
+        this.targetPanY = this.panY;
+        this.renderer.updateTransform(this.panX, this.panY, this.scale);
+      } else {
+        this.panBoard(dx, dy);
+      }
     }
   }
 

@@ -172,10 +172,11 @@ export class SvgRenderer implements Renderer {
       el.textContent = node.topic;
       if (this.maxWidth !== -1) {
         el.style.whiteSpace = 'pre-wrap';
-        el.style.wordBreak = 'break-all'; // Force break for long strings
+        // el.style.wordBreak = 'break-all'; // REMOVED: Causes short text to wrap globally
         el.style.wordWrap = 'break-word'; // Legacy support
         el.style.overflowWrap = 'anywhere'; // Modern standard
         el.style.maxWidth = `${this.maxWidth}px`;
+        el.style.width = 'max-content'; // Ensure efficient width usage up to maxWidth
       } else {
         el.style.whiteSpace = 'pre';
       }
@@ -462,10 +463,11 @@ export class SvgRenderer implements Renderer {
     el.style.position = 'absolute';
     if (this.maxWidth !== -1) {
       el.style.whiteSpace = 'pre-wrap';
-      el.style.wordBreak = 'break-all';
+      // el.style.wordBreak = 'break-all';
       el.style.wordWrap = 'break-word';
       el.style.overflowWrap = 'anywhere';
       el.style.maxWidth = `${this.maxWidth}px`;
+      el.style.width = 'max-content';
     } else {
       el.style.whiteSpace = 'pre';
     }
