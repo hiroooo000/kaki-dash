@@ -699,6 +699,10 @@ export class InteractionHandler {
     input.style.left = element.style.left;
     input.style.transform = element.style.transform;
 
+    // Prevent any browser auto-scrolling
+    this.container.scrollTop = 0;
+    this.container.scrollLeft = 0;
+
     // Textarea specific reset
     input.style.overflow = 'hidden';
     input.style.resize = 'none';
@@ -706,10 +710,11 @@ export class InteractionHandler {
 
     if (this.maxWidth !== -1) {
       input.style.whiteSpace = 'pre-wrap';
-      input.style.wordBreak = 'break-all';
+      // input.style.wordBreak = 'break-all';
       input.style.wordWrap = 'break-word';
       input.style.overflowWrap = 'anywhere';
       input.style.maxWidth = `${this.maxWidth}px`;
+      input.style.width = 'max-content'; // Match node rendering behavior
     } else {
       input.style.whiteSpace = 'pre';
     }
@@ -751,10 +756,11 @@ export class InteractionHandler {
 
       if (this.maxWidth !== -1) {
         span.style.whiteSpace = 'pre-wrap';
-        span.style.wordBreak = 'break-all';
+        // span.style.wordBreak = 'break-all';
         span.style.wordWrap = 'break-word';
         span.style.overflowWrap = 'anywhere';
         span.style.maxWidth = `${this.maxWidth}px`;
+        span.style.width = 'max-content';
       } else {
         span.style.whiteSpace = 'pre';
       }
