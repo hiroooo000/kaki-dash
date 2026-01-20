@@ -145,11 +145,11 @@ export class SvgRenderer implements Renderer {
       // Zoom overlay/button
       const zoomBtn = document.createElement('div');
       // Lucide 'zoom-in' icon
-      zoomBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`;
+      zoomBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--vscode-icon-foreground, #333)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>`;
       zoomBtn.style.position = 'absolute';
       zoomBtn.style.bottom = '5px';
       zoomBtn.style.right = '5px';
-      zoomBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.9)'; // Slightly more opaque
+      zoomBtn.style.backgroundColor = 'var(--vscode-editor-background, rgba(255, 255, 255, 0.9))'; // Slightly more opaque
       zoomBtn.style.borderRadius = '50%';
       zoomBtn.style.width = '24px';
       zoomBtn.style.height = '24px';
@@ -192,7 +192,8 @@ export class SvgRenderer implements Renderer {
     // Initial styling to measure
     el.style.padding = '8px 12px';
     if (node.image) el.style.padding = '5px';
-    el.style.backgroundColor = 'white';
+    el.style.backgroundColor = 'var(--vscode-editor-background, white)';
+    el.style.color = 'var(--vscode-editor-foreground, black)';
 
     // Theme-based Border
     const theme = mindMap?.theme || 'default';
@@ -204,7 +205,7 @@ export class SvgRenderer implements Renderer {
       if (theme === 'colorful') {
         el.style.border = `2px solid ${themeColor}`;
       } else {
-        el.style.border = '1px solid #ccc';
+        el.style.border = '1px solid var(--vscode-widget-border, #ccc)';
       }
     }
 
@@ -212,7 +213,7 @@ export class SvgRenderer implements Renderer {
     if (node.isRoot) {
       el.style.fontSize = '1.2em';
       el.style.fontWeight = 'bold';
-      el.style.border = '2px solid #333';
+      el.style.border = '2px solid var(--vscode-editor-foreground, #333)';
     }
 
     // Apply custom styles
@@ -250,8 +251,8 @@ export class SvgRenderer implements Renderer {
 
     if (node.id === selectedNodeId) {
       // Use outline for selection to preserve theme border
-      el.style.outline = '2px solid #007bff';
-      el.style.boxShadow = '0 0 5px rgba(0, 123, 255, 0.5)';
+      el.style.outline = '2px solid var(--vscode-focusBorder, #007bff)';
+      el.style.boxShadow = '0 0 5px var(--vscode-focusBorder, rgba(0, 123, 255, 0.5))';
       // Do not overwrite border
     }
 
@@ -288,8 +289,9 @@ export class SvgRenderer implements Renderer {
         toggleBtn.style.lineHeight = '14px';
         toggleBtn.style.textAlign = 'center';
         toggleBtn.style.borderRadius = '50%';
-        toggleBtn.style.border = '1px solid #999';
-        toggleBtn.style.backgroundColor = '#fff';
+        toggleBtn.style.border = '1px solid var(--vscode-widget-border, #999)';
+        toggleBtn.style.backgroundColor = 'var(--vscode-editor-background, #fff)';
+        toggleBtn.style.color = 'var(--vscode-editor-foreground, #000)';
         toggleBtn.style.cursor = 'pointer';
         toggleBtn.style.zIndex = '11';
         toggleBtn.style.userSelect = 'none';
@@ -472,7 +474,7 @@ export class SvgRenderer implements Renderer {
       el.style.whiteSpace = 'pre';
     }
     el.style.padding = '8px 12px';
-    el.style.border = '1px solid #ccc';
+    el.style.border = '1px solid var(--vscode-widget-border, #ccc)';
 
     // Ensure it has a width constraint if we want wrapping behavior similar to render?
     // Actually, in renderNode we don't constrain width (it expands).
@@ -483,7 +485,7 @@ export class SvgRenderer implements Renderer {
     if (node.isRoot) {
       el.style.fontSize = '1.2em';
       el.style.fontWeight = 'bold';
-      el.style.border = '2px solid #333';
+      el.style.border = '2px solid var(--vscode-editor-foreground, #333)';
     }
 
     // Apply custom styles to measurement element
