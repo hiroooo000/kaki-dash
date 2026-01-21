@@ -114,8 +114,46 @@ kakidash.addNode(kakidash.getRootId(), 'Hello World');
     const kakidash = new Kakidash(container);
     
     // 動作確認
+    // 動作確認
     console.log('Kakidash initialized:', kakidash);
 </script>
+```
+
+## スタイルのカスタマイズ
+
+APIを使用して独自のスタイルを適用するには、以下の2つの手順が必要です。
+
+1. テーマを `'custom'` に設定する（必須）
+2. `updateGlobalStyles` メソッドでスタイル定義を渡す
+
+```javascript
+// 1. テーマを 'custom' に変更（必須）
+kakidash.setTheme('custom');
+
+// 2. カスタムスタイルを適用
+kakidash.updateGlobalStyles({
+  // ルートノード（中心）のスタイル
+  rootNode: { 
+    border: '4px solid gold',
+    background: '#ffeeee'
+  },
+  
+  // 子ノード（枝）のスタイル
+  childNode: { 
+    border: '2px dashed blue', 
+    background: 'white' 
+  },
+  
+  // 接続線の色
+  connection: { 
+    color: 'orange' 
+  },
+  
+  // マインドマップ全体の背景
+  canvas: {
+    background: '#fafafa' // 透明にする場合は 'transparent'
+  }
+});
 ```
 
 ## API Reference

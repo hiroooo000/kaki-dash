@@ -20,6 +20,23 @@ export interface KakidashOptions {
   shortcuts?: ShortcutConfig;
 }
 
+export interface MindMapStyles {
+  rootNode?: {
+    border?: string;
+    background?: string;
+  };
+  childNode?: {
+    border?: string;
+    background?: string;
+  };
+  connection?: {
+    color?: string;
+  };
+  canvas?: {
+    background?: string;
+  };
+}
+
 export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private mindMap: MindMap;
   private service: MindMapService;
@@ -388,6 +405,24 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   public setTheme(theme: Theme): void {
     this.service.setTheme(theme);
     this.layoutSwitcher.setTheme(theme);
+
+    if (theme === 'custom') {
+      // Apply "Soft & Rounded" style
+      this.updateGlobalStyles({
+        rootNode: { border: '2px solid #aeb6bf', background: '#ebf5fb' },
+        childNode: { border: '1px solid #d5d8dc', background: '#fdfefe' },
+        connection: { color: '#abb2b9' },
+      });
+    } else {
+      // Reset global styles to allow theme logic (SvgRenderer fallbacks) to take over
+      this.updateGlobalStyles({
+        rootNode: { border: '', background: '' },
+        childNode: { border: '', background: '' },
+        connection: { color: '' },
+        canvas: { background: '' },
+      });
+    }
+
     this.render();
     this.emit('model:change', undefined);
   }
@@ -429,6 +464,84 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   getMaxNodeWidth(): number {
     return this.maxWidth;
+  }
+
+  /**
+   * Update global styles for the mind map using CSS variables.
+   * This allows batch updating of visual appearance without deep re-renders.
+   */
+  updateGlobalStyles(styles: MindMapStyles): void {
+    const cssVars: Record<string, string> = {};
+
+    if (styles.rootNode?.border !== undefined)
+      cssVars['--mindmap-root-border'] = styles.rootNode.border;
+    if (styles.rootNode?.background !== undefined)
+      cssVars['--mindmap-root-background'] = styles.rootNode.background;
+
+    if (styles.childNode?.border !== undefined)
+      cssVars['--mindmap-child-border'] = styles.childNode.border;
+    if (styles.childNode?.background !== undefined)
+      cssVars['--mindmap-child-background'] = styles.childNode.background;
+
+    if (styles.connection?.color !== undefined)
+      cssVars['--mindmap-connection-color'] = styles.connection.color;
+
+    if (styles.canvas?.background !== undefined)
+      cssVars['--mindmap-canvas-background'] = styles.canvas.background;
+
+    // Apply to container
+    const container = this.renderer.container;
+    Object.entries(cssVars).forEach(([key, value]) => {
+      container.style.setProperty(key, value);
+    });
+
+    // Apply canvas background directly to container if variable is set, otherwise reset
+    // We use a CSS var for consistency if we wanted, but container style is direct.
+    // Actually, SvgRenderer doesn't use the var for container bg.
+    // So we must bind the var to the container's background-color style, OR just set it here.
+    // If we set it here directly:
+    if (styles.canvas?.background !== undefined) {
+      container.style.backgroundColor = styles.canvas.background;
+    }
+    // Wait, if it's undefined, we don't touch it? Or if it's '', we reset?
+    // User might want to clear it.
+    // If we want consistency with CSS vars approach (re-entrant, stateless-ish), we should use a var on the container class?
+    // But SvgRenderer didn't implement it.
+    // Let's implement it here:
+    // container.style.backgroundColor = 'var(--mindmap-canvas-background)';
+    // But then we need a fallback. The default fallback is 'transparent' (or whatever CSS rule has).
+    // If we set inline style `background-color: var(...)`, it overrides ID CSS?
+    // Yes.
+    // So let's try strict var usage.
+
+    // Update: We already set the var above in cssVars loop.
+    // Now ensure container uses it.
+    // We should only set this ONCE probably? Or idempotent is fine.
+    // "var(--mindmap-canvas-background, initial)" ?
+    // If usage is restricted to Custom theme, we need to respect that?
+    // The restriction logic is currently inside SvgRenderer (for nodes).
+    // Canvas is outside SvgRenderer logic loop (it's the container).
+    // If we want to restrict Canvas styling to Custom theme too, we should check `this.mindMap.theme`.
+    // BUT updateGlobalStyles is low-level API.
+    // Users might expect it to work.
+    // However, the user said "API settings should only be valid for Custom theme".
+    // So we should enforce that constraint.
+
+    // Check theme
+    if (this.mindMap.theme === 'custom') {
+      container.style.backgroundColor = 'var(--mindmap-canvas-background, transparent)';
+    } else {
+      // Reset to default?
+      // If theme is NOT custom, we should likely NOT apply the var, or apply 'unset'?
+      // The container background is usually managed by the embedding app (USER).
+      // But if they used the API to set it found, they might expect it to revert.
+      container.style.removeProperty('background-color');
+    }
+
+    // Note: SvgRenderer uses these vars directly in renderNode and drawConnection.
+    // DOM updates are automatic for background/borders.
+    // SVG stroke updates automatically only if we set it via style.stroke with var().
+    // We did update SvgRenderer to use style.stroke, so it should be reactive.
   }
 
   setReadOnly(readOnly: boolean): void {

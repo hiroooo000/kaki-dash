@@ -15,7 +15,7 @@ export interface MindMapNodeData {
   layoutSide?: 'left' | 'right';
 }
 
-export type Theme = 'default' | 'simple' | 'colorful';
+export type Theme = 'default' | 'simple' | 'colorful' | 'custom';
 
 export interface MindMapData {
   nodeData: MindMapNodeData;

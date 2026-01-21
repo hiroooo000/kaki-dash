@@ -113,6 +113,42 @@ Use the built `umd` file. The library will be exposed under the global variable 
 </script>
 ```
 
+## Custom Styling
+
+To apply custom styles via API, you must:
+1. Set the theme to `'custom'`.
+2. Use `updateGlobalStyles` to define your styles.
+
+```javascript
+// 1. Set theme to 'custom' (Required)
+kakidash.setTheme('custom');
+
+// 2. Apply custom styles
+kakidash.updateGlobalStyles({
+  // Root node style
+  rootNode: { 
+    border: '4px solid gold',
+    background: '#ffeeee'
+  },
+  
+  // Child nodes style
+  childNode: { 
+    border: '2px dashed blue', 
+    background: 'white' 
+  },
+  
+  // Connection line color
+  connection: { 
+    color: 'orange' 
+  },
+  
+  // Entire canvas background
+  canvas: {
+    background: '#fafafa' // Use 'transparent' for transparency
+  }
+});
+```
+
 ## API Reference
 
 ### Methods
