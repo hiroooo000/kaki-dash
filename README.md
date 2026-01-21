@@ -84,7 +84,13 @@ import { Kakidash } from 'kakidash';
 const container = document.getElementById('mindmap-container');
 
 // Instantiate
-const kakidash = new Kakidash(container);
+// Instantiate with optional configuration
+const kakidash = new Kakidash(container, {
+    maxNodeWidth: 200, // Optional: Maximum width for nodes
+    customStyles: {    // Optional: Initial custom styles
+        rootNode: { border: '2px solid red' }
+    }
+});
 
 // Add initial data or nodes if needed
 kakidash.addNode(kakidash.getRootId(), 'Hello World');
@@ -166,7 +172,10 @@ All values accept standard CSS strings.
 
 ### Methods
 
-- **`new Kakidash(container: HTMLElement)`**: Creates a new instance.
+- **`new Kakidash(container: HTMLElement, options?: KakidashOptions)`**: Creates a new instance.
+  - `options.shortcuts`: Custom keyboard shortcuts.
+  - `options.maxNodeWidth`: Maximum width for text nodes (pixels).
+  - `options.customStyles`: Initial custom styles.
 - **`kakidash.addNode(parentId, topic)`**: Adds a new child node to the specified parent node.
 - **`kakidash.getData()`**: Retrieves current mindmap data as a JSON object.
 - **`kakidash.loadData(data)`**: Loads JSON data and renders the mindmap.
@@ -369,4 +378,4 @@ Generate API documentation using TypeDoc:
 npm run docs
 ```
 
-The documentation will be generated in `docs/api/` directory.
+The documentation will be generated in `docs/` directory.
