@@ -192,8 +192,17 @@ export class SvgRenderer implements Renderer {
     // Initial styling to measure
     el.style.padding = '8px 12px';
     if (node.image) el.style.padding = '5px';
-    // Removed duplicate background setting here, it is handled below with variables
-    el.style.color = 'var(--vscode-editor-foreground, black)';
+
+    // Setting color
+    if (mindMap?.theme === 'custom') {
+      if (node.isRoot) {
+        el.style.color = 'var(--mindmap-root-color, var(--vscode-editor-foreground, black))';
+      } else {
+        el.style.color = 'var(--mindmap-child-color, var(--vscode-editor-foreground, black))';
+      }
+    } else {
+      el.style.color = 'var(--vscode-editor-foreground, black)';
+    }
 
     // Theme-based Border
     const theme = mindMap?.theme || 'default';

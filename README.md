@@ -115,26 +115,24 @@ Use the built `umd` file. The library will be exposed under the global variable 
 
 ## Custom Styling
 
-To apply custom styles via API, you must:
-1. Set the theme to `'custom'`.
-2. Use `updateGlobalStyles` to define your styles.
+You can define custom styles using `updateGlobalStyles`. These settings are persisted and applied whenever the theme is `'custom'`.
 
 ```javascript
-// 1. Set theme to 'custom' (Required)
-kakidash.setTheme('custom');
-
-// 2. Apply custom styles
+// 1. Apply custom styles (Can be done anytime)
+// These settings are saved internally.
 kakidash.updateGlobalStyles({
   // Root node style
   rootNode: { 
     border: '4px solid gold',
-    background: '#ffeeee'
+    background: '#ffeeee',
+    color: '#333' // Font color
   },
   
   // Child nodes style
   childNode: { 
     border: '2px dashed blue', 
-    background: 'white' 
+    background: 'white',
+    color: '#555' // Font color
   },
   
   // Connection line color
@@ -147,7 +145,22 @@ kakidash.updateGlobalStyles({
     background: '#fafafa' // Use 'transparent' for transparency
   }
 });
+
+// 2. Activate the custom theme to see your changes
+kakidash.setTheme('custom');
 ```
+
+### Supported Properties
+
+All values accept standard CSS strings.
+
+| Object | Property | Description | Example |
+| --- | --- | --- | --- |
+| `rootNode`, `childNode` | `border` | Node border | `'2px solid red'`, `'none'` |
+| | `background` | Node background | `'#ffffff'`, `'rgba(0,0,0,0.5)'`, `'transparent'` |
+| | `color` | Text color | `'#333'`, `'black'` |
+| `connection` | `color` | Connection line color | `'#ccc'`, `'orange'` |
+| `canvas` | `background` | Canvas background | `'#f0f0f0'`, `'transparent'` |
 
 ## API Reference
 
@@ -157,6 +170,7 @@ kakidash.updateGlobalStyles({
 - **`kakidash.addNode(parentId, topic)`**: Adds a new child node to the specified parent node.
 - **`kakidash.getData()`**: Retrieves current mindmap data as a JSON object.
 - **`kakidash.loadData(data)`**: Loads JSON data and renders the mindmap.
+- **`kakidash.updateGlobalStyles(styles)`**: Updates global styles (only active when theme is 'custom').
 - **`kakidash.updateLayout(mode)`**: Changes layout mode ('Standard', 'Left', 'Right').
 - **`kakidash.setReadOnly(boolean)`**: Toggles read-only mode.
 - **`kakidash.setMaxNodeWidth(width: number)`**: Sets main node width (-1 for unlimited).

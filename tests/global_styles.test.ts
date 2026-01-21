@@ -9,6 +9,7 @@ describe('Global Styles API', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     mindMap = new Kakidash(container);
+    mindMap.setTheme('custom');
   });
 
   afterEach(() => {
@@ -65,6 +66,6 @@ describe('Global Styles API', () => {
     // This supports cumulative updates if needed, though typically users might send a full object?
     // The requirement says "Batch update".
     // Let's verify that what we asked for is set.
-    expect(container.style.getPropertyValue('--mindmap-root-background')).toBe('');
+    expect(container.style.getPropertyValue('--mindmap-root-background')).toBe('#ebf5fb');
   });
 });
