@@ -20,20 +20,28 @@ export interface KakidashOptions {
   shortcuts?: ShortcutConfig;
 }
 
+/**
+ * Configuration for global mind map styles.
+ * All properties accept standard CSS value strings (e.g., "blue", "1px solid red", "#ff0000").
+ */
 export interface MindMapStyles {
+  /** Styles for the root node. */
   rootNode?: {
     border?: string;
     background?: string;
     color?: string;
   };
+  /** Styles for all child nodes (non-root). */
   childNode?: {
     border?: string;
     background?: string;
     color?: string;
   };
+  /** Styles for connection lines. */
   connection?: {
     color?: string;
   };
+  /** Styles for the canvas/background. */
   canvas?: {
     background?: string;
   };
@@ -342,6 +350,18 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   /**
    * Updates a node's topic or style.
    * This is a pure data operation.
+   *
+   * @param nodeId - The ID of the node to update.
+   * @param updates - Object containing the fields to update.
+   *
+   * @example
+   * **Rename and style a node:**
+   * ```typescript
+   * kakidash.updateNode('node-1', {
+   *   topic: 'Important Idea',
+   *   style: { background: '#ffff00', color: 'black' }
+   * });
+   * ```
    */
   updateNode(nodeId: string, updates: { topic?: string; style?: Partial<NodeStyle> }): void {
     let changed = false;
@@ -418,6 +438,23 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
      Node Accessors
      ========================================================================================== */
 
+  /**
+   * Updates the style of a specific node.
+   * This applies styles directly to the node instance, overriding global themes.
+   *
+   * @param nodeId - The ID of the node to update.
+   * @param style - Partial style object. Properties set to `undefined` or empty strings might reset to default depending on implementation.
+   *
+   * @example
+   * **Highlight a node:**
+   * ```typescript
+   * kakidash.updateNodeStyle('node-id-123', {
+   *   color: 'red',
+   *   fontWeight: 'bold',
+   *   fontSize: '20px'
+   * });
+   * ```
+   */
   public updateNodeStyle(nodeId: string, style: Partial<NodeStyle>): void {
     this.service.updateNodeStyle(nodeId, style);
   }
@@ -501,19 +538,39 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   /**
    * Updates global styles for the mind map using CSS variables.
    * This allows batch updating of visual appearance without deep re-renders.
-   * Styles are persisted in `savedCustomStyles` and applied immediately if current theme is 'custom'.
+   * Styles are persisted in `savedCustomStyles` and applied immediately if the current theme is 'custom'.
    *
    * @param styles - Object containing style definitions for various elements.
+   *
    * @example
+   * **Apply a dark theme style:**
    * ```typescript
    * kakidash.updateGlobalStyles({
    *   rootNode: {
-   *     border: '2px solid red',
-   *     color: 'white'
+   *     border: '2px solid #555',
+   *     background: '#333',
+   *     color: '#fff'
+   *   },
+   *   childNode: {
+   *     border: '1px solid #444',
+   *     background: '#222',
+   *     color: '#eee'
+   *   },
+   *   connection: {
+   *     color: '#666'
    *   },
    *   canvas: {
-   *     background: 'black'
+   *     background: '#1a1a1a'
    *   }
+   * });
+   * ```
+   *
+   * @example
+   * **Reset specific local styles (by passing empty string):**
+   * ```typescript
+   * // Reverts root node border to default
+   * kakidash.updateGlobalStyles({
+   *   rootNode: { border: '' }
    * });
    * ```
    */
