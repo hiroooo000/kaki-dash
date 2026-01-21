@@ -360,3 +360,13 @@ npm test
 ```bash
 npm run lint
 ```
+
+### Documentation
+
+Generate API documentation using TypeDoc:
+
+```bash
+npm run docs
+```
+
+The documentation will be generated in `docs/api/` directory.

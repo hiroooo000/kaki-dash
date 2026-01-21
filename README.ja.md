@@ -366,3 +366,13 @@ npm test
 ```bash
 npm run lint
 ```
+
+### Documentation
+
+TypeDocを使用してAPIドキュメントを生成します:
+
+```bash
+npm run docs
+```
+
+`docs/api/` ディレクトリにドキュメントが生成されます。
