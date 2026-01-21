@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kakidash Style API Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: sans-serif;
+        }
+
+        #controls {
+            padding: 10px;
+            background: #f0f0f0;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <button onclick="applyStyle('dark')">Dark Theme Override</button>
+        <button onclick="applyStyle('vibrant')">Vibrant Borders</button>
+        <button onclick="applyStyle('soft')">Soft & Rounded</button>
+        <button onclick="resetStyles()">Reset Global Styles</button>
+        <div style="flex-basis: 100%; height: 0;"></div> <!-- Break row -->
+        <button onclick="changeRootBorder()">Change Root Border</button>
+        <button onclick="changeChildBorder()">Change Child Border</button>
+        <button onclick="changeFontColor()">Change Font Color</button>
+        <button onclick="enableTransparentMode()">Transparent Mode (Custom)</button>
+        <button onclick="addRandomNode()">Add Node</button>
+    </div>
+    <div id="container"></div>
+
+    <script type="module">
+        import { Kakidash } from './src/index.ts';
+
+        // Initialize Kakidash
+        const container = document.getElementById('container');
+        const kakidash = new Kakidash(container);
+
+        // Add some sample nodes
+        const root = kakidash.getRoot();
+        kakidash.updateNode(root.id, { topic: 'Root Node' });
+
+        const child1 = kakidash.addNode(root.id, 'Child 1');
+        const child2 = kakidash.addNode(root.id, 'Child 2');
+        kakidash.addNode(child1.id, 'Grandchild A');
+        kakidash.addNode(child1.id, 'Grandchild B');
+
+        // Styles
+        const styles = {
+            dark: {
+                rootNode: { border: '2px solid #fff', background: '#333' },
+                childNode: { border: '1px solid #555', background: '#444' },
+                connection: { color: '#888' }
+            },
+            vibrant: {
+                rootNode: { border: '3px solid #e74c3c', background: '#fadbd8' },
+                childNode: { border: '2px dashed #3498db', background: '#d6eaf8' },
+                connection: { color: '#e67e22' }
+            },
+            soft: {
+                rootNode: { border: '2px solid #aeb6bf', background: '#ebf5fb' },
+                childNode: { border: '1px solid #d5d8dc', background: '#fdfefe' },
+                connection: { color: '#abb2b9' }
+            }
+        };
+
+        window.applyStyle = (key) => {
+            console.log('Applying style:', key);
+            kakidash.updateGlobalStyles(styles[key]);
+
+            // Also update container bg for full effect (manual, not part of API but good for demo)
+            if (key === 'dark') container.style.backgroundColor = '#222';
+            else container.style.backgroundColor = '#fafafa';
+        };
+
+        window.resetStyles = () => {
+            console.log('Resetting styles (Clearing saved custom styles)');
+            kakidash.updateGlobalStyles({
+                rootNode: { border: '', background: '', color: '' },
+                childNode: { border: '', background: '', color: '' },
+                connection: { color: '' },
+                canvas: { background: '' }
+            });
+            // If we are in custom mode, this clears the view.
+            // If we are not, it clears the saved config.
+        };
+
+        window.changeRootBorder = () => {
+            console.log('Changing Root Border');
+            kakidash.updateGlobalStyles({
+                rootNode: { border: '4px dashed gold' }
+            });
+        };
+
+        window.changeChildBorder = () => {
+            console.log('Changing Child Border');
+            kakidash.updateGlobalStyles({
+                childNode: { border: '2px dotted magenta' }
+            });
+        };
+
+        window.enableTransparentMode = () => {
+            console.log('Enabling Transparent Mode (Custom Theme)');
+            // Ensure theme is custom first? Or assume user clicked it.
+            // Best to force custom theme if not already, but we only have updateGlobalStyles here.
+            // User should be in Custom theme for this to work.
+
+            kakidash.updateGlobalStyles({
+                canvas: { background: 'transparent' },
+                rootNode: { background: 'rgba(255, 255, 255, 0.2)', border: '2px solid rgba(0,0,0,0.2)' },
+                childNode: { background: 'transparent', border: '1px dashed rgba(0,0,0,0.3)' },
+                connection: { color: 'rgba(0,0,0,0.3)' }
+            });
+
+            // Also transparentize the demo container to prove it
+            container.style.backgroundColor = 'transparent';
+            // And body background to something visible (check pattern?)
+            document.body.style.backgroundImage = 'linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee)';
+            document.body.style.backgroundSize = '20px 20px';
+            document.body.style.backgroundPosition = '0 0, 10px 10px';
+        };
+
+        window.changeFontColor = () => {
+            console.log('Changing Font Color');
+            kakidash.updateGlobalStyles({
+                rootNode: { color: 'red', border: '2px solid red' },
+                childNode: { color: 'blue', border: '1px solid blue' },
+                connection: { color: 'purple' }
+            });
+        };
+
+        window.addRandomNode = () => {
+            kakidash.addNode(root.id, 'New Node ' + Math.floor(Math.random() * 100));
+        }
+
+        console.log('Demo Loaded');
+    </script>
+</body>
+
+</html>

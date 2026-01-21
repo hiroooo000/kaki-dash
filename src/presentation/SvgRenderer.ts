@@ -192,8 +192,17 @@ export class SvgRenderer implements Renderer {
     // Initial styling to measure
     el.style.padding = '8px 12px';
     if (node.image) el.style.padding = '5px';
-    el.style.backgroundColor = 'var(--vscode-editor-background, white)';
-    el.style.color = 'var(--vscode-editor-foreground, black)';
+
+    // Setting color
+    if (mindMap?.theme === 'custom') {
+      if (node.isRoot) {
+        el.style.color = 'var(--mindmap-root-color, var(--vscode-editor-foreground, black))';
+      } else {
+        el.style.color = 'var(--mindmap-child-color, var(--vscode-editor-foreground, black))';
+      }
+    } else {
+      el.style.color = 'var(--vscode-editor-foreground, black)';
+    }
 
     // Theme-based Border
     const theme = mindMap?.theme || 'default';
@@ -201,7 +210,19 @@ export class SvgRenderer implements Renderer {
 
     if (theme === 'simple' && !node.isRoot) {
       el.style.border = 'none';
+      // Simple always none
+    } else if (theme === 'custom') {
+      // Custom theme uses variables
+      if (node.isRoot) {
+        const defaultRootBorder = '2px solid var(--vscode-editor-foreground, #333)';
+        el.style.border = `var(--mindmap-root-border, ${defaultRootBorder})`;
+      } else {
+        // Custom starting default? Or allow CSS var to define existence.
+        // If "Soft" is the default custom, it has borders.
+        el.style.border = `var(--mindmap-child-border, 1px solid #ccc)`;
+      }
     } else {
+      // Default & Colorful
       if (theme === 'colorful') {
         el.style.border = `2px solid ${themeColor}`;
       } else {
@@ -213,7 +234,9 @@ export class SvgRenderer implements Renderer {
     if (node.isRoot) {
       el.style.fontSize = '1.2em';
       el.style.fontWeight = 'bold';
-      el.style.border = '2px solid var(--vscode-editor-foreground, #333)';
+      if (theme !== 'custom') {
+        el.style.border = '2px solid var(--vscode-editor-foreground, #333)';
+      }
     }
 
     // Apply custom styles
@@ -221,7 +244,21 @@ export class SvgRenderer implements Renderer {
     if (node.style.fontSize) el.style.fontSize = node.style.fontSize;
     if (node.style.fontWeight) el.style.fontWeight = node.style.fontWeight;
     if (node.style.fontStyle) el.style.fontStyle = node.style.fontStyle;
-    if (node.style.background) el.style.backgroundColor = node.style.background;
+
+    // Background handling
+    if (node.style.background) {
+      el.style.backgroundColor = node.style.background;
+    } else if (theme === 'custom') {
+      // Custom theme uses variables
+      if (node.isRoot) {
+        el.style.backgroundColor = `var(--mindmap-root-background, var(--vscode-editor-background, white))`;
+      } else {
+        el.style.backgroundColor = `var(--mindmap-child-background, var(--vscode-editor-background, white))`;
+      }
+    } else {
+      // Standard themes default background
+      el.style.backgroundColor = 'var(--vscode-editor-background, white)';
+    }
 
     const { width: nodeWidth } = this.measureNode(node);
 
@@ -424,7 +461,7 @@ export class SvgRenderer implements Renderer {
       this.renderNode(child, childX, childY, selectedNodeId, layoutMode, false, direction, mindMap);
 
       const connectionColor = mindMap ? this.getThemeColor(child, mindMap) : '#ccc';
-      this.drawConnection(parentEdgeX, parentY, childX, childY, connectionColor);
+      this.drawConnection(parentEdgeX, parentY, childX, childY, connectionColor, mindMap?.theme);
 
       startY += childHeight;
     });
@@ -509,6 +546,7 @@ export class SvgRenderer implements Renderer {
     x2: number,
     y2: number,
     color: string = '#ccc',
+    theme: string = 'default',
   ): void {
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
@@ -519,7 +557,15 @@ export class SvgRenderer implements Renderer {
     const d = `M ${x1} ${y1} C ${c1x} ${y1}, ${c2x} ${y2}, ${x2} ${y2}`;
 
     path.setAttribute('d', d);
-    path.setAttribute('stroke', color);
+
+    if (theme === 'custom') {
+      // Use style.stroke to allow CSS variable override for Custom theme
+      path.style.stroke = `var(--mindmap-connection-color, ${color})`;
+    } else {
+      // Standard themes use direct color (or class if we had one, but color is calculated)
+      path.style.stroke = color;
+    }
+
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke-width', '2');
 

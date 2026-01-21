@@ -114,9 +114,59 @@ kakidash.addNode(kakidash.getRootId(), 'Hello World');
     const kakidash = new Kakidash(container);
     
     // 動作確認
+    // 動作確認
     console.log('Kakidash initialized:', kakidash);
 </script>
 ```
+
+## スタイルのカスタマイズ
+
+`updateGlobalStyles` を使用してカスタムスタイルを定義できます。設定は保存され、テーマが `'custom'` の場合に適用されます。
+
+```javascript
+// 1. カスタムスタイルを定義（いつでも実行可能）
+// 設定は内部に保存されます
+kakidash.updateGlobalStyles({
+  // ルートノード（中心）のスタイル
+  rootNode: { 
+    border: '4px solid gold',
+    background: '#ffeeee',
+    color: '#333' // フォント色
+  },
+  
+  // 子ノード（枝）のスタイル
+  childNode: { 
+    border: '2px dashed blue', 
+    background: 'white',
+    color: '#555' // フォント色
+  },
+  
+  // 接続線の色
+  connection: { 
+    color: 'orange' 
+  },
+  
+  // マインドマップ全体の背景
+  canvas: {
+    background: '#fafafa' // 透明にする場合は 'transparent'
+  }
+});
+
+// 2. カスタムテーマを有効化してスタイルを反映
+kakidash.setTheme('custom');
+```
+
+### 指定可能なプロパティ一覧
+
+すべての値は標準的なCSSの文字列として指定可能です。
+
+| オブジェクト | プロパティ | 説明 | 例 |
+| --- | --- | --- | --- |
+| `rootNode`, `childNode` | `border` | 枠線の指定 | `'2px solid red'`, `'none'` |
+| | `background` | 背景色 | `'#ffffff'`, `'rgba(0,0,0,0.5)'`, `'transparent'` |
+| | `color` | 文字色 | `'#333'`, `'black'` |
+| `connection` | `color` | 接続線の色 | `'#ccc'`, `'orange'` |
+| `canvas` | `background` | キャンバス全体の背景 | `'#f0f0f0'`, `'transparent'` |
 
 ## API Reference
 
@@ -126,6 +176,7 @@ kakidash.addNode(kakidash.getRootId(), 'Hello World');
 - **`kakidash.addNode(parentId, topic)`**: 指定した親ノードに新しい子ノードを追加します。
 - **`kakidash.getData()`**: 現在のマインドマップデータをJSONオブジェクトとして取得します。
 - **`kakidash.loadData(data)`**: JSONデータを読み込み、マインドマップを描画します。
+- **`kakidash.updateGlobalStyles(styles)`**: グローバルスタイルを更新します ('custom' テーマ選択時のみ有効)。
 - **`kakidash.updateLayout(mode)`**: レイアウトモードを変更します ('Standard', 'Left', 'Right')。
 - **`kakidash.setReadOnly(boolean)`**: 読み取り専用モードを切り替えます。
 - **`kakidash.setMaxNodeWidth(width: number)`**: テキストノードの最大幅を設定します（-1で無制限）。
