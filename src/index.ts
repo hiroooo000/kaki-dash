@@ -18,6 +18,15 @@ export type { ShortcutConfig } from './domain/interfaces/ShortcutConfig';
 
 export interface KakidashOptions {
   shortcuts?: ShortcutConfig;
+  /**
+   * Maximum width for mind map nodes in pixels.
+   * If not provided, defaults to unlimited (fitting content).
+   */
+  maxNodeWidth?: number;
+  /**
+   * Custom styles to apply to the mind map initially.
+   */
+  customStyles?: MindMapStyles;
 }
 
 /**
@@ -236,6 +245,14 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       },
       shortcuts: options.shortcuts,
     });
+
+    // Apply constructor options
+    if (options.maxNodeWidth !== undefined) {
+      this.setMaxNodeWidth(options.maxNodeWidth);
+    }
+    if (options.customStyles) {
+      this.updateGlobalStyles(options.customStyles);
+    }
 
     this.render();
   }
