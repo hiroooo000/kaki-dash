@@ -1,0 +1,12 @@
+{
+    "entryPoints": [
+        "./src/index.ts"
+    ],
+    "out": "docs",
+    "name": "Kakidash API Docs",
+    "includeVersion": true,
+    "plugin": [],
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "theme": "default"
+}

@@ -39,6 +39,10 @@ export interface MindMapStyles {
   };
 }
 
+/**
+ * The main class for the Kakidash mind map library.
+ * It manages the mind map data, interaction, and rendering.
+ */
 export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   private mindMap: MindMap;
   private service: MindMapService;
@@ -70,6 +74,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     connection: { color: '#abb2b9' },
   };
 
+  /**
+   * Creates a new Kakidash instance.
+   *
+   * @param container - The HTML element to mount the mind map into. Must have defined width and height.
+   * @param options - Optional configuration options.
+   */
   constructor(container: HTMLElement, options: KakidashOptions = {}) {
     super();
     const rootNode = new Node('root', 'Root Topic', null, true);
@@ -229,6 +239,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   /**
    * Adds a new child node to the specified parent.
    * This is a pure data operation and does not trigger UI actions like auto-focus or scroll.
+   *
+   * @param parentId - The ID of the parent node.
+   * @param topic - The content of the new node.
+   * @param layoutSide - For 'Both' layout mode, which side to place the node (root children only).
+   * @param options - Options for the operation.
+   * @returns The newly created Node object, or null if failed.
    */
   addNode(
     parentId: string,
@@ -327,10 +343,6 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
    * Updates a node's topic or style.
    * This is a pure data operation.
    */
-  /**
-   * Updates a node's topic or style.
-   * This is a pure data operation.
-   */
   updateNode(nodeId: string, updates: { topic?: string; style?: Partial<NodeStyle> }): void {
     let changed = false;
     if (this.interactionHandler.isReadOnly) return; // Prevent updates via public API if readonly?
@@ -410,6 +422,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.service.updateNodeStyle(nodeId, style);
   }
 
+  /**
+   * Sets the theme of the mind map.
+   *
+   * @param theme - The theme name ('default' | 'simple' | 'colorful' | 'custom').
+   * If 'custom' is selected, previously saved custom styles (via updateGlobalStyles) are applied.
+   */
   public setTheme(theme: Theme): void {
     this.service.setTheme(theme);
     this.layoutSwitcher.setTheme(theme);
@@ -481,9 +499,23 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
   }
 
   /**
-   * Update global styles for the mind map using CSS variables.
+   * Updates global styles for the mind map using CSS variables.
    * This allows batch updating of visual appearance without deep re-renders.
    * Styles are persisted in `savedCustomStyles` and applied immediately if current theme is 'custom'.
+   *
+   * @param styles - Object containing style definitions for various elements.
+   * @example
+   * ```typescript
+   * kakidash.updateGlobalStyles({
+   *   rootNode: {
+   *     border: '2px solid red',
+   *     color: 'white'
+   *   },
+   *   canvas: {
+   *     background: 'black'
+   *   }
+   * });
+   * ```
    */
   updateGlobalStyles(styles: MindMapStyles): void {
     // 1. Persist styles to savedCustomStyles (Deep merge logic simplified)
