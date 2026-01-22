@@ -506,7 +506,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
         '--mindmap-canvas-background',
       ];
       varsToReset.forEach((v) => container.style.removeProperty(v));
-      container.style.removeProperty('background-color');
+      container.style.backgroundColor = 'var(--vscode-editor-background, transparent)';
     }
 
     this.render();

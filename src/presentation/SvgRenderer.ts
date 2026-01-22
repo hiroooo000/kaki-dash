@@ -21,6 +21,7 @@ export class SvgRenderer implements Renderer {
     this.container.style.width = '100%';
     this.container.style.height = '100%';
     this.container.style.overflow = 'hidden';
+    this.container.style.backgroundColor = 'var(--vscode-editor-background, transparent)';
 
     // SVG Layer for lines
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -226,7 +227,7 @@ export class SvgRenderer implements Renderer {
       if (theme === 'colorful') {
         el.style.border = `2px solid ${themeColor}`;
       } else {
-        el.style.border = '1px solid var(--vscode-widget-border, #ccc)';
+        el.style.border = '1px solid var(--vscode-editorGroup-border, #ccc)';
       }
     }
 
@@ -257,7 +258,9 @@ export class SvgRenderer implements Renderer {
       }
     } else {
       // Standard themes default background
-      el.style.backgroundColor = 'var(--vscode-editor-background, white)';
+      // Use editorWidget.background for better contrast vs editor.background (canvas)
+      el.style.backgroundColor =
+        'var(--vscode-editorWidget-background, var(--vscode-editor-background, white))';
     }
 
     const { width: nodeWidth } = this.measureNode(node);
@@ -511,7 +514,7 @@ export class SvgRenderer implements Renderer {
       el.style.whiteSpace = 'pre';
     }
     el.style.padding = '8px 12px';
-    el.style.border = '1px solid var(--vscode-widget-border, #ccc)';
+    el.style.border = '1px solid var(--vscode-editorGroup-border, #ccc)';
 
     // Ensure it has a width constraint if we want wrapping behavior similar to render?
     // Actually, in renderNode we don't constrain width (it expands).
