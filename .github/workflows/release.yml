@@ -62,16 +62,14 @@ jobs:
           git tag -a "v${{ env.VERSION }}" -m "Release v${{ env.VERSION }}"
           git push origin "v${{ env.VERSION }}"
 
-      - name: Rename Artifact
-        if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
-        run: mv dist/kakidash.umd.js dist/kakidash.umd.${{ env.VERSION }}.js
+
 
       - name: Upload Build Artifact
         if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: kakidash-library-${{ env.VERSION }}
-          path: dist/kakidash.umd.${{ env.VERSION }}.js
+          path: dist/kakidash.umd.js
 
       - name: Publish to npm
         if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
