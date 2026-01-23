@@ -54,7 +54,7 @@ describe('Image Zoom Readonly Mode', () => {
     // 3. Spy on setReadOnly or check interactionHandler state
     // We can check interactionHandler.isReadOnly by casting to any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    const handler = (mindMap as any).interactionHandler;
+    const handler = (mindMap as any).controller.interactionHandler;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(handler.isReadOnly).toBe(false);
 
@@ -95,7 +95,7 @@ describe('Image Zoom Readonly Mode', () => {
 
     // 3. Verify Open
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    const handler = (mindMap as any).interactionHandler;
+    const handler = (mindMap as any).controller.interactionHandler;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(handler.isReadOnly).toBe(true);
     expect(document.body.lastElementChild).not.toBeNull();

@@ -21,17 +21,17 @@ describe('Paste Auto-Pan Logic', () => {
     board.selectNode(rootId);
 
     // Force initial pan to 0,0
-    (board as any).panX = 0;
-    (board as any).panY = 0;
-    (board as any).targetPanX = 0;
-    (board as any).targetPanY = 0;
+    (board as any).controller.panX = 0;
+    (board as any).controller.panY = 0;
+    (board as any).controller.targetPanX = 0;
+    (board as any).controller.targetPanY = 0;
 
     // Mock getBoundingClientRect
     const originalGBR = HTMLElement.prototype.getBoundingClientRect;
 
     HTMLElement.prototype.getBoundingClientRect = function () {
       // Container
-      if (this === (board as any).renderer.container) {
+      if (this === (board as any).controller.renderer.container) {
         return {
           left: 0,
           top: 0,
@@ -91,7 +91,7 @@ describe('Paste Auto-Pan Logic', () => {
       // Container Center X = 400
       // Expected dx = 400 - 1050 = -650
 
-      const targetPanX = (board as any).targetPanX;
+      const targetPanX = (board as any).controller.targetPanX;
       expect(targetPanX).toBe(-650);
     } finally {
       HTMLElement.prototype.getBoundingClientRect = originalGBR;
@@ -103,12 +103,12 @@ describe('Paste Auto-Pan Logic', () => {
     board.selectNode(rootId);
 
     // Force initial pan
-    (board as any).panX = 0;
-    (board as any).targetPanX = 0;
+    (board as any).controller.panX = 0;
+    (board as any).controller.targetPanX = 0;
 
     const originalGBR = HTMLElement.prototype.getBoundingClientRect;
     HTMLElement.prototype.getBoundingClientRect = function () {
-      if (this === (board as any).renderer.container) {
+      if (this === (board as any).controller.renderer.container) {
         return {
           left: 0,
           top: 0,
@@ -154,7 +154,7 @@ describe('Paste Auto-Pan Logic', () => {
       // Wait for setTimeout (if any)
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      const targetPanX = (board as any).targetPanX;
+      const targetPanX = (board as any).controller.targetPanX;
       expect(targetPanX).toBe(-650);
     } finally {
       HTMLElement.prototype.getBoundingClientRect = originalGBR;
