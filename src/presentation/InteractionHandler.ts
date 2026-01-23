@@ -690,10 +690,12 @@ export class InteractionHandler {
     }
   }
 
-  private startEditing(element: HTMLElement, nodeId: string): void {
-    const currentText = element.textContent || '';
+  /**
+   * textareaを作成し、基本設定を適用
+   */
+  private createEditTextarea(element: HTMLElement, initialValue: string): HTMLTextAreaElement {
     const input = document.createElement('textarea');
-    input.value = currentText;
+    input.value = initialValue;
     input.style.position = 'absolute';
     input.style.top = element.style.top;
     input.style.left = element.style.left;
@@ -708,107 +710,132 @@ export class InteractionHandler {
     input.style.resize = 'none';
     input.style.minHeight = '1em';
 
-    if (this.maxWidth !== -1) {
-      input.style.whiteSpace = 'pre-wrap';
-      // input.style.wordBreak = 'break-all';
-      input.style.wordWrap = 'break-word';
-      input.style.overflowWrap = 'anywhere';
-      input.style.maxWidth = `${this.maxWidth}px`;
-      input.style.width = 'max-content'; // Match node rendering behavior
+    return input;
+  }
+
+  /**
+   * textareaにスタイルを適用（フォント、パディング、ボーダーなど）
+   */
+  private applyTextareaStyles(
+    textarea: HTMLTextAreaElement,
+    element: HTMLElement,
+    maxWidth: number,
+  ): void {
+    if (maxWidth !== -1) {
+      textarea.style.whiteSpace = 'pre-wrap';
+      textarea.style.wordWrap = 'break-word';
+      textarea.style.overflowWrap = 'anywhere';
+      textarea.style.maxWidth = `${maxWidth}px`;
+      textarea.style.width = 'max-content';
     } else {
-      input.style.whiteSpace = 'pre';
+      textarea.style.whiteSpace = 'pre';
     }
 
     // Copy styles to match appearance
     const computed = window.getComputedStyle(element);
-    input.style.font = computed.font;
-    input.style.padding = computed.padding;
-    input.style.boxSizing = 'border-box'; // Ensure padding is included in width calculation if relevant
-    // Copy border to blend in? Or keep default input border?
-    // User screenshot shows white box.
-    input.style.backgroundColor = computed.backgroundColor;
+    textarea.style.font = computed.font;
+    textarea.style.padding = computed.padding;
+    textarea.style.boxSizing = 'border-box';
+    textarea.style.backgroundColor = computed.backgroundColor;
 
     // Reset defaults
-    input.style.border = 'none';
-    input.style.outline = 'none';
-    input.style.boxShadow = 'none';
+    textarea.style.border = 'none';
+    textarea.style.outline = 'none';
+    textarea.style.boxShadow = 'none';
 
-    // Copy individual border properties as shorthand 'border' might be empty if sides differ
-    input.style.borderTop = computed.borderTop;
-    input.style.borderRight = computed.borderRight;
-    input.style.borderBottom = computed.borderBottom;
-    input.style.borderLeft = computed.borderLeft;
-    input.style.borderRadius = computed.borderRadius;
-    // Keep outline none to avoid double focus indication if we want to mimic node exactly
+    // Copy individual border properties
+    textarea.style.borderTop = computed.borderTop;
+    textarea.style.borderRight = computed.borderRight;
+    textarea.style.borderBottom = computed.borderBottom;
+    textarea.style.borderLeft = computed.borderLeft;
+    textarea.style.borderRadius = computed.borderRadius;
 
-    input.style.zIndex = '100';
+    textarea.style.zIndex = '100';
+  }
 
-    // Store original outline/shadow to restore later
-    const originalOutline = element.style.outline;
-    const originalBoxShadow = element.style.boxShadow;
-    element.style.outline = 'none';
-    element.style.boxShadow = 'none';
+  /**
+   * textareaのサイズ自動調整関数を作成
+   */
+  private createSizeUpdater(
+    textarea: HTMLTextAreaElement,
+    element: HTMLElement,
+    maxWidth: number,
+  ): () => void {
+    const computed = window.getComputedStyle(element);
 
-    const updateSize = () => {
+    return () => {
       const span = document.createElement('span');
       span.style.font = computed.font;
       span.style.padding = computed.padding;
 
-      if (this.maxWidth !== -1) {
+      if (maxWidth !== -1) {
         span.style.whiteSpace = 'pre-wrap';
-        // span.style.wordBreak = 'break-all';
         span.style.wordWrap = 'break-word';
         span.style.overflowWrap = 'anywhere';
-        span.style.maxWidth = `${this.maxWidth}px`;
+        span.style.maxWidth = `${maxWidth}px`;
         span.style.width = 'max-content';
       } else {
         span.style.whiteSpace = 'pre';
       }
       span.style.visibility = 'hidden';
       span.style.position = 'absolute';
-      span.textContent = input.value || '';
+      span.textContent = textarea.value || '';
 
       // Add a zero-width space to ensure height even if empty or ending in newline
-      if (input.value.endsWith('\n') || input.value === '') {
+      if (textarea.value.endsWith('\n') || textarea.value === '') {
         span.textContent += '\u200b';
       }
 
       document.body.appendChild(span);
 
       // Add a little buffer for cursor and borders
-      const width = span.offsetWidth + 20; // Increased buffer
+      const width = span.offsetWidth + 20;
       const height = span.offsetHeight + 10;
 
-      input.style.width = Math.max(width, element.offsetWidth) + 'px';
-      input.style.height = Math.max(height, element.offsetHeight) + 'px';
+      textarea.style.width = Math.max(width, element.offsetWidth) + 'px';
+      textarea.style.height = Math.max(height, element.offsetHeight) + 'px';
 
       document.body.removeChild(span);
     };
+  }
 
-    // Initial sizing
-    updateSize();
-
-    // Update on type
-    input.addEventListener('input', updateSize);
-
-    let isFinishing = false;
-
-    const cleanup = () => {
-      if (input.parentNode && input.parentNode.contains(input)) {
-        input.parentNode.removeChild(input);
+  /**
+   * 編集終了時のcleanup関数を作成
+   */
+  private createCleanupFunction(
+    textarea: HTMLTextAreaElement,
+    element: HTMLElement,
+    originalOutline: string,
+    originalBoxShadow: string,
+  ): () => void {
+    return () => {
+      if (textarea.parentNode && textarea.parentNode.contains(textarea)) {
+        textarea.parentNode.removeChild(textarea);
       }
       // Restore outline/shadow
       element.style.outline = originalOutline;
       element.style.boxShadow = originalBoxShadow;
     };
+  }
+
+  /**
+   * 編集イベントハンドラーを設定（Enter、Escape、blur）
+   */
+  private setupEditEventHandlers(
+    textarea: HTMLTextAreaElement,
+    nodeId: string,
+    initialValue: string,
+    cleanup: () => void,
+  ): void {
+    let isFinishing = false;
 
     const finishEditing = () => {
       if (isFinishing) return;
       isFinishing = true;
 
-      const newTopic = input.value;
+      const newTopic = textarea.value;
       // Only update if changed
-      if (newTopic !== currentText) {
+      if (newTopic !== initialValue) {
         if (this.options.onUpdateNode) {
           this.options.onUpdateNode(nodeId, newTopic);
         }
@@ -821,17 +848,8 @@ export class InteractionHandler {
       }
     };
 
-    input.addEventListener('blur', () => {
-      // Delay blur handling slightly to allow Enter key to process first if needed
-      // But usually the flag handles it.
-      if (!isFinishing) {
-        finishEditing();
-      }
-    });
-
     const cancelEditing = () => {
       if (isFinishing) return;
-      isFinishing = true;
       isFinishing = true;
       cleanup();
 
@@ -840,11 +858,16 @@ export class InteractionHandler {
       }
     };
 
-    input.addEventListener('keydown', (e) => {
-      // Stop propagation
+    textarea.addEventListener('blur', () => {
+      if (!isFinishing) {
+        finishEditing();
+      }
+    });
+
+    textarea.addEventListener('keydown', (e) => {
       e.stopPropagation();
 
-      // IME support: Don't finish editing if composing (e.g. Japanese conversion)
+      // IME support: Don't finish editing if composing
       if (e.isComposing) {
         return;
       }
@@ -861,7 +884,39 @@ export class InteractionHandler {
         cancelEditing();
       }
     });
+  }
 
+  private startEditing(element: HTMLElement, nodeId: string): void {
+    const currentText = element.textContent || '';
+
+    // 1. Create textarea
+    const input = this.createEditTextarea(element, currentText);
+
+    // 2. Apply styles
+    this.applyTextareaStyles(input, element, this.maxWidth);
+
+    // 3. Store original styles
+    const originalOutline = element.style.outline;
+    const originalBoxShadow = element.style.boxShadow;
+    element.style.outline = 'none';
+    element.style.boxShadow = 'none';
+
+    // 4. Create size updater
+    const updateSize = this.createSizeUpdater(input, element, this.maxWidth);
+
+    // 5. Initial sizing
+    updateSize();
+
+    // 6. Update on type
+    input.addEventListener('input', updateSize);
+
+    // 7. Create cleanup function
+    const cleanup = this.createCleanupFunction(input, element, originalOutline, originalBoxShadow);
+
+    // 8. Setup event handlers
+    this.setupEditEventHandlers(input, nodeId, currentText, cleanup);
+
+    // 9. Append and focus
     if (element.parentElement) {
       element.parentElement.appendChild(input);
     } else {
