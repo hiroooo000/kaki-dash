@@ -2,7 +2,7 @@
     "entryPoints": [
         "./src/index.ts"
     ],
-    "out": "docs",
+    "out": "docs/api",
     "name": "Kakidash API Docs",
     "includeVersion": true,
     "plugin": [],
