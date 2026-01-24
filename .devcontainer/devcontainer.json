@@ -35,6 +35,5 @@
     },
     "remoteUser": "node",
     "privileged": true,
-    "postCreateCommand": "pnpm install && pip install requests python-dotenv",
-    "postStartCommand": "nohup sh -c 'while true; do sudo hwclock -s; sleep 3600; done' > /dev/null 2>&1 &"
+    "postCreateCommand": "pip install requests python-dotenv && if [ -f package.json ]; then pnpm install; fi"
 }
