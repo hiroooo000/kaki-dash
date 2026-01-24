@@ -38,6 +38,162 @@ export interface InteractionOptions {
   onEditEnd?: (nodeId: string) => void;
   onToggleFold?: (nodeId: string) => void;
   shortcuts?: ShortcutConfig;
+  allowReadOnly?: boolean;
+}
+
+// Helper class for Drag & Drop functionality
+class NodeDragger {
+  private container: HTMLElement;
+  private options: InteractionOptions;
+  public draggedNodeId: string | null = null;
+  private isReadOnly: boolean = false;
+
+  constructor(container: HTMLElement, options: InteractionOptions) {
+    this.container = container;
+    this.options = options;
+    this.injectDragStyles();
+  }
+
+  public setReadOnly(readOnly: boolean): void {
+    this.isReadOnly = readOnly;
+  }
+
+  private injectDragStyles(): void {
+    const style = document.createElement('style');
+    style.textContent = `
+            .mindmap-node.drag-over-top {
+                border-top: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-bottom {
+                border-bottom: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-left {
+                border-left: 4px solid #007bff !important;
+            }
+            .mindmap-node.drag-over-right {
+                border-right: 4px solid #007bff !important;
+            }
+        `;
+    document.head.appendChild(style);
+  }
+
+  public handleDragStart(e: Event): void {
+    const de = e as DragEvent;
+    if (this.isReadOnly) {
+      de.preventDefault();
+      return;
+    }
+    const target = de.target as HTMLElement;
+    const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+    if (nodeEl && nodeEl.dataset.id) {
+      this.draggedNodeId = nodeEl.dataset.id;
+      de.dataTransfer?.setData('text/plain', nodeEl.dataset.id);
+      if (de.dataTransfer) {
+        de.dataTransfer.effectAllowed = 'move';
+      }
+    }
+  }
+
+  public handleDragOver(e: Event): void {
+    const de = e as DragEvent;
+    if (this.isReadOnly) return;
+    de.preventDefault(); // Allow drop
+    const target = de.target as HTMLElement;
+    const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+
+    if (
+      nodeEl &&
+      nodeEl.dataset.id &&
+      this.draggedNodeId &&
+      nodeEl.dataset.id !== this.draggedNodeId
+    ) {
+      const position = this.getDropPosition(de, nodeEl);
+
+      // Clear all classes first
+      nodeEl.classList.remove(
+        'drag-over-top',
+        'drag-over-bottom',
+        'drag-over-left',
+        'drag-over-right',
+      );
+      nodeEl.classList.add(`drag-over-${position}`);
+
+      if (de.dataTransfer) {
+        de.dataTransfer.dropEffect = 'move';
+      }
+    }
+  }
+
+  public handleDragLeave(e: Event): void {
+    const target = e.target as HTMLElement;
+    const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+    if (nodeEl) {
+      nodeEl.classList.remove(
+        'drag-over-top',
+        'drag-over-bottom',
+        'drag-over-left',
+        'drag-over-right',
+      );
+    }
+  }
+
+  public handleDrop(e: Event): void {
+    const de = e as DragEvent;
+    de.preventDefault();
+    const target = de.target as HTMLElement;
+    const nodeEl = target.closest('.mindmap-node') as HTMLElement;
+
+    // Remove drag-over class from all nodes to be safe
+    this.container.querySelectorAll('.mindmap-node').forEach((el) => {
+      el.classList.remove(
+        'drag-over-top',
+        'drag-over-bottom',
+        'drag-over-left',
+        'drag-over-right',
+      );
+    });
+
+    if (this.isReadOnly) return;
+
+    if (nodeEl && nodeEl.dataset.id && this.draggedNodeId) {
+      const targetId = nodeEl.dataset.id;
+      if (this.draggedNodeId !== targetId) {
+        const position = this.getDropPosition(de, nodeEl);
+        this.options.onDropNode(this.draggedNodeId, targetId, position);
+      }
+    }
+    this.draggedNodeId = null;
+  }
+
+  public handleDragEnd(): void {
+    this.draggedNodeId = null;
+    this.container.querySelectorAll('.mindmap-node').forEach((el) => {
+      el.classList.remove(
+        'drag-over-top',
+        'drag-over-bottom',
+        'drag-over-left',
+        'drag-over-right',
+      );
+    });
+  }
+
+  private getDropPosition(
+    e: DragEvent,
+    element: HTMLElement,
+  ): 'top' | 'bottom' | 'left' | 'right' {
+    const rect = element.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const w = rect.width;
+    const h = rect.height;
+
+    if (y < h * 0.25) return 'top';
+    if (y > h * 0.75) return 'bottom';
+    if (x < w * 0.25) return 'left';
+    if (x > w * 0.75) return 'right';
+
+    return 'right';
+  }
 }
 
 export class InteractionHandler {
@@ -45,13 +201,14 @@ export class InteractionHandler {
   options: InteractionOptions;
   maxWidth: number = -1;
   selectedNodeId: string | null = null;
-  draggedNodeId: string | null = null;
+
   isPanning: boolean = false;
   lastMouseX: number = 0;
   lastMouseY: number = 0;
   isReadOnly: boolean = false;
   private shortcuts: ShortcutConfig;
   private nodeEditor: NodeEditor;
+  private nodeDragger: NodeDragger;
 
   private cleanupFns: Array<() => void> = [];
 
@@ -64,6 +221,12 @@ export class InteractionHandler {
     this.options = options;
     this.shortcuts = { ...DEFAULT_SHORTCUTS, ...options.shortcuts };
     this.nodeEditor = new NodeEditor(container, this.maxWidth, options);
+    this.nodeDragger = new NodeDragger(container, options);
+
+    // Initialize ReadOnly state
+    this.isReadOnly = !!options.allowReadOnly;
+    this.nodeDragger.setReadOnly(this.isReadOnly);
+
     this.attachEvents();
   }
 
@@ -73,10 +236,15 @@ export class InteractionHandler {
 
   setReadOnly(readOnly: boolean): void {
     this.isReadOnly = readOnly;
+    // Update NodeDragger state
+    if (this.nodeDragger) {
+      this.nodeDragger.setReadOnly(readOnly);
+    }
+
     // Maybe cancel any ongoing edit/drag?
     if (readOnly) {
-      if (this.draggedNodeId) {
-        this.draggedNodeId = null;
+      if (this.nodeDragger && this.nodeDragger.draggedNodeId) {
+        this.nodeDragger.draggedNodeId = null;
       }
       // If editing is happening... we can't easily cancel internal state of textarea,
       // but new edits are blocked.
@@ -130,10 +298,9 @@ export class InteractionHandler {
       });
     };
 
-    addListener(this.container, 'focus', () => {});
-    addListener(this.container, 'blur', () => {});
+    addListener(this.container, 'focus', () => { });
+    addListener(this.container, 'blur', () => { });
 
-    // Prevent accidental scrolling of the container (we use transform for pan)
     // Prevent accidental scrolling of the container (we use transform for pan)
     addListener(this.container, 'scroll', () => {
       if (this.container.scrollTop !== 0 || this.container.scrollLeft !== 0) {
@@ -142,7 +309,6 @@ export class InteractionHandler {
       }
     });
 
-    // Click handling
     // Click handling
     addListener(this.container, 'click', (e) => {
       const target = e.target as HTMLElement;
@@ -159,7 +325,6 @@ export class InteractionHandler {
       this.container.focus();
     });
 
-    // Pan handling
     // Pan handling
     addListener(this.container, 'mousedown', (e) => {
       const me = e as MouseEvent;
@@ -197,7 +362,6 @@ export class InteractionHandler {
     addListener(window, 'mouseup', stopPanning);
     addListener(window, 'mouseleave', stopPanning);
 
-    // Wheel handling (Pan)
     // Wheel handling (Pan)
     addListener(
       this.container,
@@ -295,9 +459,6 @@ export class InteractionHandler {
 
       // Actions
       if (this.matchesShortcut(ke, 'navUp')) {
-        if (this.isReadOnly) {
-          // Allowed
-        }
         ke.preventDefault();
         this.options.onNavigate?.(this.selectedNodeId, 'Up');
         return;
@@ -501,176 +662,17 @@ export class InteractionHandler {
     });
 
     // Drag & Drop handling
-    // Inject styles for drag feedback
-    const style = document.createElement('style');
-    style.textContent = `
-            .mindmap-node.drag-over-top {
-                border-top: 4px solid #007bff !important;
-            }
-            .mindmap-node.drag-over-bottom {
-                border-bottom: 4px solid #007bff !important;
-            }
-            .mindmap-node.drag-over-left {
-                border-left: 4px solid #007bff !important;
-            }
-            .mindmap-node.drag-over-right {
-                border-right: 4px solid #007bff !important;
-            }
-        `;
-    document.head.appendChild(style);
+    const addListenerHelper = (
+      target: EventTarget,
+      type: string,
+      listener: EventListenerOrEventListenerObject,
+    ) => addListener(target, type, listener);
 
-    this.container.addEventListener('dragstart', (e) => {
-      if (this.isReadOnly) {
-        e.preventDefault();
-        return;
-      }
-      const target = e.target as HTMLElement;
-      const nodeEl = target.closest('.mindmap-node') as HTMLElement;
-      if (nodeEl && nodeEl.dataset.id) {
-        this.draggedNodeId = nodeEl.dataset.id;
-        e.dataTransfer?.setData('text/plain', nodeEl.dataset.id);
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = 'move';
-        }
-      }
-    });
-    // Assuming dragstart is enough to block drag if preventDefault called?
-    // Just in case, we register cleanup if we attached it like others.
-    // The previous implementation used addEventListener but didn't track it.
-    // Let's attach our listener and push to cleanup.
-    this.cleanupFns.push(() => {
-      // remove is handled if we used addListener helper for container, but here we used `this.container.addEventListener`.
-      // Wait, I see I used `addListener` helper for earlier events but `dragstart` was legacy.
-      // Let's refactor this one to use `addListener` to capture it for destroy!
-    });
-    // Actually, to make `destroy()` fully effective, ALL specific listeners should use `addListener`.
-    // I will replace `this.container.addEventListener` with `addListener(this.container, ...)` pattern here too.
-
-    const getDropPosition = (
-      e: DragEvent,
-      element: HTMLElement,
-    ): 'top' | 'bottom' | 'left' | 'right' => {
-      const rect = element.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const w = rect.width;
-      const h = rect.height;
-
-      // Priority: Top/Bottom take 25% height each. Middle 50% checks Left/Right.
-      if (y < h * 0.25) return 'top';
-      if (y > h * 0.75) return 'bottom';
-
-      if (x < w * 0.25) return 'left';
-      if (x > w * 0.75) return 'right';
-
-      // Middle center fallback -> Right (or Left depending on layout could be better, but fixed usually OK)
-      return 'right';
-    };
-
-    // Drag Start
-    addListener(this.container, 'dragstart', (e) => {
-      const de = e as DragEvent;
-      if (this.isReadOnly) {
-        de.preventDefault();
-        return;
-      }
-      const target = de.target as HTMLElement;
-      const nodeEl = target.closest('.mindmap-node') as HTMLElement;
-      if (nodeEl && nodeEl.dataset.id) {
-        this.draggedNodeId = nodeEl.dataset.id;
-        de.dataTransfer?.setData('text/plain', nodeEl.dataset.id);
-        if (de.dataTransfer) {
-          de.dataTransfer.effectAllowed = 'move';
-        }
-      }
-    });
-
-    // Drag Over
-    addListener(this.container, 'dragover', (e) => {
-      const de = e as DragEvent;
-      if (this.isReadOnly) return; // Should not happen if dragstart prevented, but for external files?
-      de.preventDefault(); // Allow drop
-      const target = de.target as HTMLElement;
-      const nodeEl = target.closest('.mindmap-node') as HTMLElement;
-
-      if (
-        nodeEl &&
-        nodeEl.dataset.id &&
-        this.draggedNodeId &&
-        nodeEl.dataset.id !== this.draggedNodeId
-      ) {
-        const position = getDropPosition(de, nodeEl);
-
-        // Clear all classes first
-        nodeEl.classList.remove(
-          'drag-over-top',
-          'drag-over-bottom',
-          'drag-over-left',
-          'drag-over-right',
-        );
-        nodeEl.classList.add(`drag-over-${position}`);
-
-        if (de.dataTransfer) {
-          de.dataTransfer.dropEffect = 'move';
-        }
-      }
-    });
-
-    // Drag Leave
-    addListener(this.container, 'dragleave', (e) => {
-      const target = e.target as HTMLElement;
-      const nodeEl = target.closest('.mindmap-node') as HTMLElement;
-      if (nodeEl) {
-        nodeEl.classList.remove(
-          'drag-over-top',
-          'drag-over-bottom',
-          'drag-over-left',
-          'drag-over-right',
-        );
-      }
-    });
-
-    // Drop
-    addListener(this.container, 'drop', (e) => {
-      const de = e as DragEvent;
-      de.preventDefault();
-      const target = de.target as HTMLElement;
-      const nodeEl = target.closest('.mindmap-node') as HTMLElement;
-
-      // Remove drag-over class from all nodes to be safe
-      this.container.querySelectorAll('.mindmap-node').forEach((el) => {
-        el.classList.remove(
-          'drag-over-top',
-          'drag-over-bottom',
-          'drag-over-left',
-          'drag-over-right',
-        );
-      });
-
-      if (this.isReadOnly) return;
-
-      if (nodeEl && nodeEl.dataset.id && this.draggedNodeId) {
-        const targetId = nodeEl.dataset.id;
-        if (this.draggedNodeId !== targetId) {
-          const position = getDropPosition(de, nodeEl);
-          this.options.onDropNode(this.draggedNodeId, targetId, position);
-        }
-      }
-      this.draggedNodeId = null;
-    });
-
-    // Drag End (Cleanup if cancelled)
-    addListener(this.container, 'dragend', () => {
-      this.draggedNodeId = null;
-      this.container.querySelectorAll('.mindmap-node').forEach((el) => {
-        el.classList.remove(
-          'drag-over-top',
-          'drag-over-bottom',
-          'drag-over-left',
-          'drag-over-right',
-        );
-      });
-    });
+    addListenerHelper(this.container, 'dragstart', this.nodeDragger.handleDragStart.bind(this.nodeDragger));
+    addListenerHelper(this.container, 'dragover', this.nodeDragger.handleDragOver.bind(this.nodeDragger));
+    addListenerHelper(this.container, 'dragleave', this.nodeDragger.handleDragLeave.bind(this.nodeDragger));
+    addListenerHelper(this.container, 'drop', this.nodeDragger.handleDrop.bind(this.nodeDragger));
+    addListenerHelper(this.container, 'dragend', this.nodeDragger.handleDragEnd.bind(this.nodeDragger));
 
     // Double click to edit
     addListener(this.container, 'dblclick', (e) => {
@@ -691,6 +693,13 @@ export class InteractionHandler {
     if (nodeEl) {
       this.startEditing(nodeEl, nodeId);
     }
+  }
+
+  get draggedNodeId(): string | null {
+    return this.nodeDragger ? this.nodeDragger.draggedNodeId : null;
+  }
+  set draggedNodeId(value: string | null) {
+    if (this.nodeDragger) this.nodeDragger.draggedNodeId = value;
   }
 
   private startEditing(element: HTMLElement, nodeId: string): void {
