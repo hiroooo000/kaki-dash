@@ -432,9 +432,14 @@ export class MindMapController {
   }
 
   resetZoom(): void {
-    this.scale = 1;
-    this.panX = this.renderer.container.clientWidth / 2;
-    this.panY = 0;
+    const cx = this.renderer.container.clientWidth / 2;
+    const cy = this.renderer.container.clientHeight / 2;
+    const newScale = 1.0;
+
+    this.panX = cx - (cx - this.panX) * (newScale / this.scale);
+    this.panY = cy - (cy - this.panY) * (newScale / this.scale);
+
+    this.scale = newScale;
     this.targetPanX = this.panX;
     this.targetPanY = this.panY;
     this.render();
