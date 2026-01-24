@@ -7,13 +7,9 @@ import { NodeEditor } from './NodeEditor';
 import { NodeDragger } from './NodeDragger';
 import { ShortcutManager } from './ShortcutManager';
 
+import { StyleAction } from './StyleAction';
+
 export type Direction = 'Up' | 'Down' | 'Left' | 'Right';
-export type StyleAction =
-  | { type: 'bold' }
-  | { type: 'italic' }
-  | { type: 'increaseSize' }
-  | { type: 'decreaseSize' }
-  | { type: 'color'; index: number };
 
 export interface InteractionOptions {
   onNodeClick: (nodeId: string) => void;

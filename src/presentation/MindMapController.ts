@@ -9,6 +9,8 @@ import { LayoutSwitcher } from './LayoutSwitcher';
 import { MindMapData, Theme } from '../domain/interfaces/MindMapData';
 import { KakidashEventMap } from '../domain/interfaces/KakidashEvents';
 import { ShortcutAction, KeyBinding } from '../domain/interfaces/ShortcutConfig';
+import { MindMapStyles } from '../domain/interfaces/MindMapStyles';
+import { StyleAction } from './StyleAction';
 
 export interface IMindMapEventBus {
   emit<K extends keyof KakidashEventMap>(event: K, payload: KakidashEventMap[K]): void;
@@ -37,7 +39,7 @@ export class MindMapController {
 
   private pendingNodeCreation: boolean = false;
 
-  private savedCustomStyles: any = {
+  private savedCustomStyles: MindMapStyles = {
     rootNode: { border: '2px solid #aeb6bf', background: '#ebf5fb', color: '#2e4053' },
     childNode: { border: '1px solid #d5d8dc', background: '#fdfefe', color: '#2c3e50' },
     connection: { color: '#abb2b9' },
@@ -382,8 +384,7 @@ export class MindMapController {
     return this.maxWidth;
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
-  updateGlobalStyles(styles: any): void {
+  updateGlobalStyles(styles: MindMapStyles): void {
     if (styles.rootNode)
       this.savedCustomStyles.rootNode = { ...this.savedCustomStyles.rootNode, ...styles.rootNode };
     if (styles.childNode)
@@ -573,8 +574,7 @@ export class MindMapController {
     }
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-  onStyleAction(nodeId: string, action: any): void {
+  onStyleAction(nodeId: string, action: StyleAction): void {
     if (this.interactionHandler && this.interactionHandler.isReadOnly) return;
     const node = this.mindMap.findNode(nodeId);
     if (!node) return;
@@ -614,8 +614,7 @@ export class MindMapController {
     }
   }
 
-  /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
-  private applyCustomStylesToDOM(styles: any): void {
+  private applyCustomStylesToDOM(styles: MindMapStyles): void {
     const cssVars: Record<string, string> = {};
     if (styles.rootNode?.border) cssVars['--mindmap-root-border'] = styles.rootNode.border;
     if (styles.rootNode?.background)

@@ -12,6 +12,8 @@ import { TypedEventEmitter } from './infrastructure/EventEmitter';
 import { CryptoIdGenerator } from './infrastructure/CryptoIdGenerator';
 import { KakidashEventMap } from './domain/interfaces/KakidashEvents';
 import { ShortcutConfig } from './domain/interfaces/ShortcutConfig';
+import { MindMapStyles } from './domain/interfaces/MindMapStyles';
+// StyleAction import removed (unused)
 
 export type { MindMapData } from './domain/interfaces/MindMapData';
 export type { KakidashEventMap } from './domain/interfaces/KakidashEvents';
@@ -31,32 +33,7 @@ export interface KakidashOptions {
   customStyles?: MindMapStyles;
 }
 
-/**
- * Configuration for global mind map styles.
- * All properties accept standard CSS value strings (e.g., "blue", "1px solid red", "#ff0000").
- */
-export interface MindMapStyles {
-  /** Styles for the root node. */
-  rootNode?: {
-    border?: string;
-    background?: string;
-    color?: string;
-  };
-  /** Styles for all child nodes (non-root). */
-  childNode?: {
-    border?: string;
-    background?: string;
-    color?: string;
-  };
-  /** Styles for connection lines. */
-  connection?: {
-    color?: string;
-  };
-  /** Styles for the canvas/background. */
-  canvas?: {
-    background?: string;
-  };
-}
+// Custom styles definition removed (using imported MindMapStyles)
 
 /**
  * The main class for the Kakidash mind map library.
