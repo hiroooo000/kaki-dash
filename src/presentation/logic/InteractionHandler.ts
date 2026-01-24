@@ -107,7 +107,7 @@ export class InteractionHandler {
   }
 
   private attachEvents(): void {
-    let pasteTimeout: ReturnType<typeof setTimeout> | null = null;
+    // Paste logic is handled by 'paste' event listener solely
 
     // Helper to add listener and track cleanup
     const addListener = (
@@ -300,11 +300,7 @@ export class InteractionHandler {
     // Paste handling (Image & Node)
     addListener(document, 'paste', (e) => {
       const ce = e as ClipboardEvent;
-      // Cancel fallback timeout as event fired
-      if (pasteTimeout) {
-        clearTimeout(pasteTimeout);
-        pasteTimeout = null;
-      }
+      // Native paste event
 
       if (this.isReadOnly) return;
       if (!this.selectedNodeId) return;
@@ -459,14 +455,7 @@ export class InteractionHandler {
         ke.preventDefault();
         this.handleBeginEdit();
         break;
-      case 'paste':
-        // Paste logic (timeout fallback)
-        setTimeout(() => {
-          if (this.selectedNodeId) {
-            this.options.onPasteNode?.(this.selectedNodeId);
-          }
-        }, 50);
-        break;
+
       case 'scaleUp':
         ke.preventDefault();
         // Zoom In at center
