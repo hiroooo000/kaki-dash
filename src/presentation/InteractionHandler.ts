@@ -5,6 +5,7 @@ import {
 } from '../domain/interfaces/ShortcutConfig';
 import { NodeEditor } from './NodeEditor';
 import { NodeDragger } from './NodeDragger';
+import { ShortcutManager } from './ShortcutManager';
 
 export type Direction = 'Up' | 'Down' | 'Left' | 'Right';
 export type StyleAction =
@@ -55,6 +56,7 @@ export class InteractionHandler {
   private shortcuts: ShortcutConfig;
   private nodeEditor: NodeEditor;
   private nodeDragger: NodeDragger;
+  private shortcutManager: ShortcutManager;
 
   private cleanupFns: Array<() => void> = [];
 
@@ -68,6 +70,7 @@ export class InteractionHandler {
     this.shortcuts = { ...DEFAULT_SHORTCUTS, ...options.shortcuts };
     this.nodeEditor = new NodeEditor(container, this.maxWidth, options);
     this.nodeDragger = new NodeDragger(container, options);
+    this.shortcutManager = new ShortcutManager(this.shortcuts);
 
     // Initialize ReadOnly state
     this.isReadOnly = !!options.allowReadOnly;
@@ -104,26 +107,6 @@ export class InteractionHandler {
 
   updateSelection(nodeId: string | null) {
     this.selectedNodeId = nodeId;
-  }
-
-  private matchesShortcut(e: KeyboardEvent, action: ShortcutAction): boolean {
-    const bindings = this.shortcuts[action];
-    if (!bindings) return false;
-    return bindings.some((b) => {
-      // Default to false for modifiers if undefined
-      const ctrl = b.ctrlKey ?? false;
-      const meta = b.metaKey ?? false;
-      const alt = b.altKey ?? false;
-      const shift = b.shiftKey ?? false;
-
-      if (e.ctrlKey !== ctrl) return false;
-      if (e.metaKey !== meta) return false;
-      if (e.altKey !== alt) return false;
-      if (e.shiftKey !== shift) return false;
-
-      // Check key
-      return b.key.toLowerCase() === e.key.toLowerCase();
-    });
   }
 
   private attachEvents(): void {
@@ -261,10 +244,10 @@ export class InteractionHandler {
       // Handle No Selection (Initial Focus)
       if (!this.selectedNodeId) {
         if (
-          this.matchesShortcut(ke, 'navUp') ||
-          this.matchesShortcut(ke, 'navDown') ||
-          this.matchesShortcut(ke, 'navLeft') ||
-          this.matchesShortcut(ke, 'navRight')
+          this.shortcutManager.matches(ke, 'navUp') ||
+          this.shortcutManager.matches(ke, 'navDown') ||
+          this.shortcutManager.matches(ke, 'navLeft') ||
+          this.shortcutManager.matches(ke, 'navRight')
         ) {
           ke.preventDefault();
           // Find closest node to center
@@ -304,161 +287,9 @@ export class InteractionHandler {
       }
 
       // Actions
-      if (this.matchesShortcut(ke, 'navUp')) {
-        ke.preventDefault();
-        this.options.onNavigate?.(this.selectedNodeId, 'Up');
-        return;
-      }
-      if (this.matchesShortcut(ke, 'navDown')) {
-        ke.preventDefault();
-        this.options.onNavigate?.(this.selectedNodeId, 'Down');
-        return;
-      }
-      if (this.matchesShortcut(ke, 'navLeft')) {
-        ke.preventDefault();
-        this.options.onNavigate?.(this.selectedNodeId, 'Left');
-        return;
-      }
-      if (this.matchesShortcut(ke, 'navRight')) {
-        ke.preventDefault();
-        this.options.onNavigate?.(this.selectedNodeId, 'Right');
-        return;
-      }
-
-      if (this.matchesShortcut(ke, 'addChild')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onAddChild(this.selectedNodeId);
-        return;
-      }
-      if (this.matchesShortcut(ke, 'insertParent')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onInsertParent?.(this.selectedNodeId);
-        return;
-      }
-      if (this.matchesShortcut(ke, 'addSibling')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onAddSibling(this.selectedNodeId, 'after');
-        return;
-      }
-      if (this.matchesShortcut(ke, 'addSiblingBefore')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onAddSibling(this.selectedNodeId, 'before');
-        return;
-      }
-      if (this.matchesShortcut(ke, 'deleteNode')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onDeleteNode(this.selectedNodeId);
-        return;
-      }
-
-      if (this.matchesShortcut(ke, 'beginEdit')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        // Check for Zoom Image or Image Node first
-        const selectedNodeEl = this.container.querySelector(
-          `.mindmap-node[data-id="${this.selectedNodeId}"]`,
-        ) as HTMLElement;
-        if (selectedNodeEl) {
-          // Restore Zoom: Check if image node mechanism (has zoom button)
-          const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
-          if (zoomBtn) {
-            zoomBtn.click();
-            return;
-          }
-          // If it's an image node but no zoom button, or explicitly an image, do not start editing text.
-          if (selectedNodeEl.querySelector('img')) {
-            return;
-          }
-          this.startEditing(selectedNodeEl, this.selectedNodeId);
-        }
-        return;
-      }
-
-      if (this.matchesShortcut(ke, 'copy')) {
-        // Copy allowed in ReadOnly
-        ke.preventDefault();
-        this.options.onCopyNode?.(this.selectedNodeId);
-        return;
-      }
-      // Paste has its own event listener 'paste', but 'v' shortcut usually just relies on system paste?
-      // Actually code had explicit 'v' handler fallback.
-      if (this.matchesShortcut(ke, 'paste')) {
-        if (this.isReadOnly) return;
-        // The original code allowed default to fire 'paste' event, and set a fallback timeout.
-        // We should replicate that.
-        // But matching keys means we detected 'v'.
-        if (pasteTimeout) clearTimeout(pasteTimeout);
-        pasteTimeout = setTimeout(() => {
-          if (this.selectedNodeId) {
-            this.options.onPasteNode?.(this.selectedNodeId);
-          }
-        }, 50);
-        return;
-      }
-      if (this.matchesShortcut(ke, 'cut')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onCutNode?.(this.selectedNodeId);
-        return;
-      }
-      if (this.matchesShortcut(ke, 'undo')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onUndo?.();
-        return;
-      }
-      if (this.matchesShortcut(ke, 'redo')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onRedo?.();
-        return;
-      }
-
-      if (this.matchesShortcut(ke, 'bold')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
-        return;
-      }
-      if (this.matchesShortcut(ke, 'italic')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
-        return;
-      }
-      if (this.matchesShortcut(ke, 'zoomIn')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onStyleAction?.(this.selectedNodeId, { type: 'increaseSize' });
-        return;
-      }
-      if (this.matchesShortcut(ke, 'zoomOut')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onStyleAction?.(this.selectedNodeId, { type: 'decreaseSize' });
-        return;
-      }
-      if (this.matchesShortcut(ke, 'toggleFold')) {
-        if (this.isReadOnly) return;
-        ke.preventDefault();
-        this.options.onToggleFold?.(this.selectedNodeId);
-        return;
-      }
-
-      // Colors
-      for (let i = 1; i <= 7; i++) {
-        // @ts-expect-error - Event property exists on window but missing from TS defs in this context
-        if (this.matchesShortcut(ke, `selectColor${i}`)) {
-          if (this.isReadOnly) return;
-          ke.preventDefault();
-          this.options.onStyleAction?.(this.selectedNodeId, { type: 'color', index: i - 1 });
-          return;
-        }
+      const action = this.shortcutManager.getAction(ke);
+      if (action) {
+        this.handleAction(action, ke);
       }
     });
 
@@ -567,5 +398,132 @@ export class InteractionHandler {
   private startEditing(element: HTMLElement, nodeId: string): void {
     this.nodeEditor.setMaxWidth(this.maxWidth);
     this.nodeEditor.startEditing(element, nodeId);
+  }
+
+  private handleAction(action: ShortcutAction, ke: KeyboardEvent): void {
+    if (!this.selectedNodeId) return;
+
+    // Actions allowed in ReadOnly
+    switch (action) {
+      case 'copy':
+        ke.preventDefault();
+        this.options.onCopyNode?.(this.selectedNodeId);
+        return;
+      case 'navUp':
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Up');
+        return;
+      case 'navDown':
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Down');
+        return;
+      case 'navRight':
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Right');
+        return;
+      case 'navLeft':
+        ke.preventDefault();
+        this.options.onNavigate?.(this.selectedNodeId, 'Left');
+        return;
+    }
+
+    if (this.isReadOnly) return;
+
+    // Actions blocked in ReadOnly
+    switch (action) {
+      case 'addChild':
+        ke.preventDefault();
+        this.options.onAddChild(this.selectedNodeId);
+        break;
+      case 'insertParent':
+        ke.preventDefault();
+        this.options.onInsertParent?.(this.selectedNodeId);
+        break;
+      case 'addSibling':
+        ke.preventDefault();
+        this.options.onAddSibling(this.selectedNodeId, 'after');
+        break;
+      case 'addSiblingBefore':
+        ke.preventDefault();
+        this.options.onAddSibling(this.selectedNodeId, 'before');
+        break;
+      case 'deleteNode':
+        ke.preventDefault();
+        this.options.onDeleteNode(this.selectedNodeId);
+        break;
+      case 'beginEdit':
+        ke.preventDefault();
+        this.handleBeginEdit();
+        break;
+      case 'paste':
+        // Paste logic (timeout fallback)
+        setTimeout(() => {
+          if (this.selectedNodeId) {
+            this.options.onPasteNode?.(this.selectedNodeId);
+          }
+        }, 50);
+        break;
+      case 'cut':
+        ke.preventDefault();
+        this.options.onCutNode?.(this.selectedNodeId);
+        break;
+      case 'undo':
+        ke.preventDefault();
+        this.options.onUndo?.();
+        break;
+      case 'redo':
+        ke.preventDefault();
+        this.options.onRedo?.();
+        break;
+      case 'bold':
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'bold' });
+        break;
+      case 'italic':
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'italic' });
+        break;
+      case 'zoomIn':
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'increaseSize' });
+        break;
+      case 'zoomOut':
+        ke.preventDefault();
+        this.options.onStyleAction?.(this.selectedNodeId, { type: 'decreaseSize' });
+        break;
+      case 'toggleFold':
+        ke.preventDefault();
+        this.options.onToggleFold?.(this.selectedNodeId);
+        break;
+      default:
+        // Handle dynamic color actions
+        if (action.startsWith('selectColor')) {
+          const index = parseInt(action.replace('selectColor', ''), 10) - 1;
+          if (!isNaN(index)) {
+            ke.preventDefault();
+            this.options.onStyleAction?.(this.selectedNodeId, { type: 'color', index });
+          }
+        }
+        break;
+    }
+  }
+
+  private handleBeginEdit(): void {
+    if (!this.selectedNodeId) return;
+    const selectedNodeEl = this.container.querySelector(
+      `.mindmap-node[data-id="${this.selectedNodeId}"]`,
+    ) as HTMLElement;
+    if (selectedNodeEl) {
+      // Restore Zoom: Check if image node mechanism
+      const zoomBtn = selectedNodeEl.querySelector('[title="Zoom Image"]') as HTMLElement;
+      if (zoomBtn) {
+        zoomBtn.click();
+        return;
+      }
+      if (selectedNodeEl.querySelector('img')) {
+        return;
+      }
+      this.startEditing(selectedNodeEl, this.selectedNodeId);
+    }
   }
 }
