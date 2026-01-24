@@ -1,8 +1,8 @@
-import { MindMap } from '../domain/entities/MindMap';
-import { Node } from '../domain/entities/Node';
-import { MindMapData, MindMapNodeData } from '../domain/interfaces/MindMapData';
+import { MindMap } from '../../domain/entities/MindMap';
+import { Node } from '../../domain/entities/Node';
+import { MindMapData, MindMapNodeData } from '../../domain/interfaces/MindMapData';
 import { HistoryManager } from './HistoryManager';
-import { IdGenerator } from '../domain/interfaces/IdGenerator';
+import { IdGenerator } from '../../domain/interfaces/IdGenerator';
 
 export class MindMapService {
   mindMap: MindMap;
@@ -99,7 +99,7 @@ export class MindMapService {
 
   updateNodeStyle(
     id: string,
-    style: Partial<import('../domain/entities/Node').NodeStyle>,
+    style: Partial<import('../../domain/entities/Node').NodeStyle>,
   ): boolean {
     const node = this.mindMap.findNode(id);
     if (node) {
@@ -125,7 +125,7 @@ export class MindMapService {
     return false;
   }
 
-  setTheme(theme: import('../domain/interfaces/MindMapData').Theme): void {
+  setTheme(theme: import('../../domain/interfaces/MindMapData').Theme): void {
     if (this.mindMap.theme !== theme) {
       this.saveState();
       this.mindMap.theme = theme;

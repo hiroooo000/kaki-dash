@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { NodeDragger } from '../../src/presentation/NodeDragger';
-import { InteractionOptions } from '../../src/presentation/InteractionHandler';
+import { NodeDragger } from '../../src/presentation/logic/NodeDragger';
+import { InteractionOptions } from '../../src/presentation/logic/InteractionHandler';
 
 describe('NodeDragger', () => {
   let container: HTMLElement;

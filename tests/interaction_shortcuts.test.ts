@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { InteractionHandler } from '../src/presentation/InteractionHandler';
-import { InteractionOptions } from '../src/presentation/InteractionHandler';
+import { InteractionHandler } from '../src/presentation/logic/InteractionHandler';
+import { InteractionOptions } from '../src/presentation/logic/InteractionHandler';
 import { ShortcutConfig } from '../src/domain/interfaces/ShortcutConfig';
 
 describe('InteractionHandler Shortcuts', () => {

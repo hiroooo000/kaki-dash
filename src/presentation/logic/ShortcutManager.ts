@@ -1,4 +1,4 @@
-import { ShortcutAction, ShortcutConfig } from '../domain/interfaces/ShortcutConfig';
+import { ShortcutAction, ShortcutConfig } from '../../domain/interfaces/ShortcutConfig';
 
 export class ShortcutManager {
   private shortcuts: ShortcutConfig;

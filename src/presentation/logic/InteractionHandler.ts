@@ -2,8 +2,8 @@ import {
   ShortcutConfig,
   DEFAULT_SHORTCUTS,
   ShortcutAction,
-} from '../domain/interfaces/ShortcutConfig';
-import { NodeEditor } from './NodeEditor';
+} from '../../domain/interfaces/ShortcutConfig';
+import { NodeEditor } from '../components/NodeEditor';
 import { NodeDragger } from './NodeDragger';
 import { ShortcutManager } from './ShortcutManager';
 

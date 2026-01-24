@@ -5,20 +5,20 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MindMapController } from '../../src/presentation/MindMapController';
+import { MindMapController } from '../../src/presentation/logic/MindMapController';
 import { MindMap } from '../../src/domain/entities/MindMap';
 import { Node } from '../../src/domain/entities/Node';
-import { MindMapService } from '../../src/application/MindMapService';
-import { SvgRenderer } from '../../src/presentation/SvgRenderer';
-import { StyleEditor } from '../../src/presentation/StyleEditor';
-import { InteractionHandler } from '../../src/presentation/InteractionHandler';
-import { CryptoIdGenerator } from '../../src/infrastructure/CryptoIdGenerator';
+import { MindMapService } from '../../src/application/services/MindMapService';
+import { SvgRenderer } from '../../src/presentation/components/SvgRenderer';
+import { StyleEditor } from '../../src/presentation/components/StyleEditor';
+import { InteractionHandler } from '../../src/presentation/logic/InteractionHandler';
+import { CryptoIdGenerator } from '../../src/infrastructure/impl/CryptoIdGenerator';
 
 // Mock dependencies
-vi.mock('../../src/application/MindMapService');
-vi.mock('../../src/presentation/SvgRenderer');
-vi.mock('../../src/presentation/StyleEditor');
-vi.mock('../../src/presentation/InteractionHandler');
+vi.mock('../../src/application/services/MindMapService');
+vi.mock('../../src/presentation/components/SvgRenderer');
+vi.mock('../../src/presentation/components/StyleEditor');
+vi.mock('../../src/presentation/logic/InteractionHandler');
 
 describe('MindMapController', () => {
   let controller: MindMapController;

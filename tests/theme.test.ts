@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MindMap } from '../src/domain/entities/MindMap';
 import { Node } from '../src/domain/entities/Node';
-import { MindMapService } from '../src/application/MindMapService';
-import { CryptoIdGenerator } from '../src/infrastructure/CryptoIdGenerator';
+import { MindMapService } from '../src/application/services/MindMapService';
+import { CryptoIdGenerator } from '../src/infrastructure/impl/CryptoIdGenerator';
 import { Theme } from '../src/domain/interfaces/MindMapData';
 
 describe('Theme Functionality', () => {

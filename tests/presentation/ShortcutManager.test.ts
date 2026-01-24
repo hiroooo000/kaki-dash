@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ShortcutManager } from '../../src/presentation/ShortcutManager';
+import { ShortcutManager } from '../../src/presentation/logic/ShortcutManager';
 import { ShortcutConfig } from '../../src/domain/interfaces/ShortcutConfig';
 
 describe('ShortcutManager', () => {

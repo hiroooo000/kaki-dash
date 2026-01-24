@@ -1,15 +1,15 @@
-import { MindMap } from '../domain/entities/MindMap';
-import { Node, NodeStyle } from '../domain/entities/Node';
-import { MindMapService } from '../application/MindMapService';
-import { SvgRenderer } from './SvgRenderer';
-import { StyleEditor } from './StyleEditor';
+import { MindMap } from '../../domain/entities/MindMap';
+import { Node, NodeStyle } from '../../domain/entities/Node';
+import { MindMapService } from '../../application/services/MindMapService';
+import { SvgRenderer } from '../components/SvgRenderer';
+import { StyleEditor } from '../components/StyleEditor';
 import { InteractionHandler, Direction } from './InteractionHandler';
-import { LayoutMode } from '../domain/interfaces/LayoutMode';
+import { LayoutMode } from '../../domain/interfaces/LayoutMode';
 import { LayoutSwitcher } from './LayoutSwitcher';
-import { MindMapData, Theme } from '../domain/interfaces/MindMapData';
-import { KakidashEventMap } from '../domain/interfaces/KakidashEvents';
-import { ShortcutAction, KeyBinding } from '../domain/interfaces/ShortcutConfig';
-import { MindMapStyles } from '../domain/interfaces/MindMapStyles';
+import { MindMapData, Theme } from '../../domain/interfaces/MindMapData';
+import { KakidashEventMap } from '../../domain/interfaces/KakidashEvents';
+import { ShortcutAction, KeyBinding } from '../../domain/interfaces/ShortcutConfig';
+import { MindMapStyles } from '../../domain/interfaces/MindMapStyles';
 import { StyleAction } from './StyleAction';
 
 export interface IMindMapEventBus {

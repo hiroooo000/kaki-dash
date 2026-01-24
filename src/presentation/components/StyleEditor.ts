@@ -1,4 +1,4 @@
-import { NodeStyle } from '../domain/entities/Node';
+import { NodeStyle } from '../../domain/entities/Node';
 
 export class StyleEditor {
   container: HTMLElement;

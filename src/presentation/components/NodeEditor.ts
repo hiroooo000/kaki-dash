@@ -1,4 +1,4 @@
-import { InteractionOptions } from './InteractionHandler';
+import { InteractionOptions } from '../logic/InteractionHandler';
 
 /**
  * Class responsible for node editing functionality

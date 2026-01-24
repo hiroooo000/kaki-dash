@@ -1,5 +1,5 @@
-import { LayoutMode } from '../domain/interfaces/LayoutMode';
-import { Theme } from '../domain/interfaces/MindMapData';
+import { LayoutMode } from '../../domain/interfaces/LayoutMode';
+import { Theme } from '../../domain/interfaces/MindMapData';
 
 export interface LayoutSwitcherOptions {
   onLayoutChange: (mode: LayoutMode) => void;

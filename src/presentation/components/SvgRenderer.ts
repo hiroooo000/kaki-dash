@@ -1,7 +1,7 @@
 import { Renderer } from './Renderer';
-import { MindMap } from '../domain/entities/MindMap';
-import { Node } from '../domain/entities/Node';
-import { LayoutMode } from '../domain/interfaces/LayoutMode';
+import { MindMap } from '../../domain/entities/MindMap';
+import { Node } from '../../domain/entities/Node';
+import { LayoutMode } from '../../domain/interfaces/LayoutMode';
 
 export interface SvgRendererOptions {
   onImageZoom?: (active: boolean) => void;

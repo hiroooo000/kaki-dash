@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CryptoIdGenerator } from '../../src/infrastructure/CryptoIdGenerator';
+import { CryptoIdGenerator } from '../../src/infrastructure/impl/CryptoIdGenerator';
 
 describe('CryptoIdGenerator', () => {
   it('should generate unique IDs', () => {
