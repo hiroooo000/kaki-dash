@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Kakidash } from '../src/index';
 
@@ -28,19 +32,17 @@ describe('Display Shift Reproduction', () => {
     const root = mindMap.getRoot();
 
     // Mock the renderer container to report dimensions that force off-screen checking
+    // Use controller to access spy target
+    const controller = (mindMap as any).controller;
 
-    // We want to simulate adding a child that is "far away" or just ensure ensureNodeVisible is called.
-    // Since layout is automatic, we can't easily force it off-screen without adding MANY nodes
-    // or mocking getBoundingClientRect.
-
-    // Let's spy on ensureNodeVisible (private method, accessed via casting or prototype)
-    const promoteSpy = vi.spyOn(mindMap as any, 'ensureNodeVisible');
+    // Let's spy on ensureNodeVisible (private method on controller)
+    const promoteSpy = vi.spyOn(controller, 'ensureNodeVisible');
 
     // Add a child using interaction API
     mindMap.addChildNode(root.id);
 
     // Check if ensureNodeVisible was called
-    // addChildNode in index.ts calls ensureNodeVisible(node.id)
+    // addChildNode in MindMapController calls ensureNodeVisible(node.id)
     expect(promoteSpy).toHaveBeenCalled();
   });
 
@@ -49,14 +51,13 @@ describe('Display Shift Reproduction', () => {
     // Currently ensureNodeVisible only takes nodeId and centerIfOffscreen boolean.
     // We will add a 3rd argument 'immediate'.
 
-    const promoteSpy = vi.spyOn(mindMap as any, 'ensureNodeVisible');
+    const controller = (mindMap as any).controller;
+    const promoteSpy = vi.spyOn(controller, 'ensureNodeVisible');
 
     mindMap.addChildNode(mindMap.getRoot().id);
 
     // Currently it is called with (id) => default false
     // With our fix, it should be called with (id, false, true)
     expect(promoteSpy).toHaveBeenCalledWith(expect.anything(), false, true);
-
-    // We will wait for implementation to verify the new argument usage.
   });
 });

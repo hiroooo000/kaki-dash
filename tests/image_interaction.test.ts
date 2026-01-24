@@ -100,7 +100,7 @@ describe('Image Node Interactions', () => {
 
     // Also verify side effect: ReadOnly mode
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-    const handler = (mindMap as any).interactionHandler;
+    const handler = (mindMap as any).controller.interactionHandler;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(handler.isReadOnly).toBe(true);
 

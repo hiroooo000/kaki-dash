@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Kakidash } from '../../src/index';
 
 // Mock UI components
-vi.mock('../../src/presentation/StyleEditor', () => ({
+vi.mock('../../src/presentation/components/StyleEditor', () => ({
   StyleEditor: vi.fn().mockImplementation(function () {
     return {
       show: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../../src/presentation/StyleEditor', () => ({
   }),
 }));
 
-vi.mock('../../src/presentation/LayoutSwitcher', () => ({
+vi.mock('../../src/presentation/logic/LayoutSwitcher', () => ({
   LayoutSwitcher: vi.fn().mockImplementation(function () {
     return {
       setMode: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('../../src/presentation/LayoutSwitcher', () => ({
   }),
 }));
 
-vi.mock('../../src/presentation/SvgRenderer', () => ({
+vi.mock('../../src/presentation/components/SvgRenderer', () => ({
   SvgRenderer: vi.fn().mockImplementation(function () {
     return {
       render: vi.fn(),

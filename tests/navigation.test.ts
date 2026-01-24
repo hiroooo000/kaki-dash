@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /* eslint-disable @typescript-eslint/unbound-method */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Kakidash } from '../src/index';
@@ -21,7 +21,8 @@ describe('Navigation Logic', () => {
     const rootId = board.getRootId();
     // Add multiple children
     board.addChildNode(rootId); // Child 1 (Index 0)
-    const child1Id = (board as any).selectedNodeId;
+    // selectedNodeId access via public getter if available or cast
+    const child1Id = board.getSelectedNodeId();
 
     board.selectNode(rootId);
     board.addChildNode(rootId); // Child 2
@@ -33,58 +34,58 @@ describe('Navigation Logic', () => {
     board.navigateNode(rootId, 'Right');
 
     // Verify child 1 is selected
-    expect((board as any).selectedNodeId).toBe(child1Id);
+    expect(board.getSelectedNodeId()).toBe(child1Id);
 
     // Verify it is NOT child 2 (just to be sure)
-    const child2Id = (board as any).mindMap.root.children[1].id;
-    expect((board as any).selectedNodeId).not.toBe(child2Id);
+    const child2Id = (board.getMindMap().root.children[1] as any).id;
+    expect(board.getSelectedNodeId()).not.toBe(child2Id);
   });
 
   it('should navigate between siblings', () => {
     const rootId = board.getRootId();
     board.addChildNode(rootId); // Child 1
-    const child1Id = (board as any).selectedNodeId;
+    const child1Id = board.getSelectedNodeId()!;
 
     board.selectNode(rootId);
     board.addChildNode(rootId); // Child 2
-    const child2Id = (board as any).selectedNodeId;
+    const child2Id = board.getSelectedNodeId();
 
     // Structure: Root -> [Child1, Child2]
     // (Note: `addChild` usually pushes to end)
 
     board.selectNode(child1Id);
     board.navigateNode(child1Id, 'Down');
-    expect((board as any).selectedNodeId).toBe(child2Id);
+    expect(board.getSelectedNodeId()).toBe(child2Id);
 
-    board.navigateNode(child2Id, 'Up');
-    expect((board as any).selectedNodeId).toBe(child1Id);
+    board.navigateNode(child2Id!, 'Up');
+    expect(board.getSelectedNodeId()).toBe(child1Id);
   });
 
   it('should navigate from child to parent', () => {
     const rootId = board.getRootId();
     board.addChildNode(rootId);
-    const childId = (board as any).selectedNodeId;
+    const childId = board.getSelectedNodeId()!;
 
     board.navigateNode(childId, 'Left');
-    expect((board as any).selectedNodeId).toBe(rootId);
+    expect(board.getSelectedNodeId()).toBe(rootId);
   });
   it('should auto-pan when navigating to off-screen node', async () => {
     const rootId = board.getRootId();
     board.addChildNode(rootId);
-    const childId = (board as any).selectedNodeId;
+    const childId = board.getSelectedNodeId();
 
     // Force initial pan to 0,0
-    (board as any).panX = 0;
-    (board as any).panY = 0;
-    (board as any).targetPanX = 0;
-    (board as any).targetPanY = 0;
+    (board as any).controller.panX = 0;
+    (board as any).controller.panY = 0;
+    (board as any).controller.targetPanX = 0;
+    (board as any).controller.targetPanY = 0;
 
     // Mock getBoundingClientRect globally for this test
     const originalGBR = HTMLElement.prototype.getBoundingClientRect;
 
     HTMLElement.prototype.getBoundingClientRect = function () {
       // Container
-      if (this === (board as any).renderer.container) {
+      if (this === (board as any).controller.renderer.container) {
         return {
           left: 0,
           top: 0,
@@ -148,7 +149,7 @@ describe('Navigation Logic', () => {
       // targetPanX should be -650
 
       // Note: If panX starts at 0, targetPanX becomes -650.
-      const targetPanX = (board as any).targetPanX;
+      const targetPanX = (board as any).controller.targetPanX;
       expect(targetPanX).toBe(-650);
     } finally {
       // Restore

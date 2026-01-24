@@ -4,7 +4,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Node } from '../../src/domain/entities/Node';
 import { MindMap } from '../../src/domain/entities/MindMap';
-import { MindMapService } from '../../src/application/MindMapService';
+import { MindMapService } from '../../src/application/services/MindMapService';
+import { CryptoIdGenerator } from '../../src/infrastructure/impl/CryptoIdGenerator';
 
 describe('MindMapService', () => {
   let mindMap: MindMap;
@@ -14,7 +15,8 @@ describe('MindMapService', () => {
   beforeEach(() => {
     root = new Node('root', 'Root Topic');
     mindMap = new MindMap(root);
-    service = new MindMapService(mindMap);
+    const idGenerator = new CryptoIdGenerator();
+    service = new MindMapService(mindMap, idGenerator);
   });
 
   it('should add a node', () => {
