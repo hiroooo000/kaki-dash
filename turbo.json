@@ -1,0 +1,62 @@
+{
+    "$schema": "https://turbo.build/schema.json",
+    "tasks": {
+        "build": {
+            "inputs": [
+                "src/**",
+                "index.html",
+                "package.json",
+                "tsconfig.json",
+                "vite.config.ts"
+            ],
+            "outputs": [
+                "dist/**"
+            ]
+        },
+        "typecheck": {
+            "inputs": [
+                "src/**",
+                "tests/**",
+                "package.json",
+                "tsconfig.json"
+            ]
+        },
+        "test": {
+            "inputs": [
+                "src/**",
+                "tests/**",
+                "package.json",
+                "tsconfig.json",
+                "vite.config.ts"
+            ]
+        },
+        "lint": {
+            "inputs": [
+                "src/**",
+                "tests/**",
+                "package.json",
+                "eslint.config.js",
+                "tsconfig.json"
+            ]
+        },
+        "docs": {
+            "inputs": [
+                "src/**",
+                "package.json",
+                "typedoc.json",
+                "tsconfig.json"
+            ],
+            "outputs": [
+                "docs/**"
+            ]
+        },
+        "format": {
+            "inputs": [
+                "src/**",
+                "tests/**",
+                "package.json",
+                ".prettierrc"
+            ]
+        }
+    }
+}

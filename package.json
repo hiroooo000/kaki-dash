@@ -25,11 +25,14 @@
     ],
     "scripts": {
         "dev": "vite --host",
-        "build": "tsc && vite build",
+        "typecheck": "tsc --noEmit",
+        "build": "vite build",
         "test": "vitest run",
         "lint": "eslint src tests",
         "docs": "typedoc",
-        "format": "prettier --write \"src/**/*.{ts,json}\""
+        "format": "prettier --write \"src/**/*.{ts,json}\"",
+        "turbo": "turbo",
+        "turbo:ci": "turbo run typecheck build test lint docs"
     },
     "keywords": [
         "mindmap",
@@ -55,11 +58,13 @@
         "globals": "^17.0.0",
         "happy-dom": "^20.0.11",
         "prettier": "^3.2.5",
+        "turbo": "^2.7.5",
         "typedoc": "^0.28.16",
         "typescript": "^5.4.0",
         "typescript-eslint": "^8.52.0",
         "vite": "^7.3.1",
         "vite-plugin-dts": "^4.5.4",
         "vitest": "^4.0.17"
-    }
+    },
+    "packageManager": "pnpm@10.26.0"
 }
