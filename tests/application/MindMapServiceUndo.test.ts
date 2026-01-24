@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { MindMapService } from '../../src/application/MindMapService';
 import { MindMap } from '../../src/domain/entities/MindMap';
 import { Node } from '../../src/domain/entities/Node';
+import { CryptoIdGenerator } from '../../src/infrastructure/CryptoIdGenerator';
 
 describe('MindMapService Undo', () => {
   let service: MindMapService;
@@ -11,7 +12,8 @@ describe('MindMapService Undo', () => {
   beforeEach(() => {
     rootNode = new Node('root', 'Root Topic', null, true);
     mindMap = new MindMap(rootNode);
-    service = new MindMapService(mindMap);
+    const idGenerator = new CryptoIdGenerator();
+    service = new MindMapService(mindMap, idGenerator);
   });
 
   it('should undo adding a node', () => {

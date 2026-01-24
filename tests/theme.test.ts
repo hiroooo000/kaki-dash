@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { MindMap } from '../src/domain/entities/MindMap';
 import { Node } from '../src/domain/entities/Node';
 import { MindMapService } from '../src/application/MindMapService';
+import { CryptoIdGenerator } from '../src/infrastructure/CryptoIdGenerator';
 import { Theme } from '../src/domain/interfaces/MindMapData';
 
 describe('Theme Functionality', () => {
@@ -11,7 +12,8 @@ describe('Theme Functionality', () => {
   beforeEach(() => {
     rootNode = new Node('root', 'Root');
     const mindMap = new MindMap(rootNode);
-    service = new MindMapService(mindMap);
+    const idGenerator = new CryptoIdGenerator();
+    service = new MindMapService(mindMap, idGenerator);
   });
 
   it('should set default theme initially', () => {

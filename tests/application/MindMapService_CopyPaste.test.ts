@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { Node } from '../../src/domain/entities/Node';
 import { MindMap } from '../../src/domain/entities/MindMap';
 import { MindMapService } from '../../src/application/MindMapService';
+import { CryptoIdGenerator } from '../../src/infrastructure/CryptoIdGenerator';
 
 describe('MindMapService Copy/Paste', () => {
   let mindMap: MindMap;
@@ -11,7 +12,8 @@ describe('MindMapService Copy/Paste', () => {
   beforeEach(() => {
     root = new Node('root', 'Root Topic');
     mindMap = new MindMap(root);
-    service = new MindMapService(mindMap);
+    const idGenerator = new CryptoIdGenerator();
+    service = new MindMapService(mindMap, idGenerator);
   });
 
   it('should copy and paste a single node', () => {

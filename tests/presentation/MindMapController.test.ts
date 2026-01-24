@@ -12,6 +12,7 @@ import { MindMapService } from '../../src/application/MindMapService';
 import { SvgRenderer } from '../../src/presentation/SvgRenderer';
 import { StyleEditor } from '../../src/presentation/StyleEditor';
 import { InteractionHandler } from '../../src/presentation/InteractionHandler';
+import { CryptoIdGenerator } from '../../src/infrastructure/CryptoIdGenerator';
 
 // Mock dependencies
 vi.mock('../../src/application/MindMapService');
@@ -34,7 +35,8 @@ describe('MindMapController', () => {
     mindMap = new MindMap(rootNode);
 
     // Instantiate mocks
-    service = new MindMapService(mindMap);
+    const idGenerator = new CryptoIdGenerator();
+    service = new MindMapService(mindMap, idGenerator);
     renderer = new SvgRenderer(document.createElement('div'));
     styleEditor = new StyleEditor(document.createElement('div'));
     interactionHandler = new InteractionHandler(document.createElement('div'), {} as any);

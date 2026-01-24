@@ -9,6 +9,7 @@ import { MindMapController } from './presentation/MindMapController';
 import { LayoutMode } from './domain/interfaces/LayoutMode';
 import { MindMapData, Theme } from './domain/interfaces/MindMapData';
 import { TypedEventEmitter } from './infrastructure/EventEmitter';
+import { CryptoIdGenerator } from './infrastructure/CryptoIdGenerator';
 import { KakidashEventMap } from './domain/interfaces/KakidashEvents';
 import { ShortcutConfig } from './domain/interfaces/ShortcutConfig';
 
@@ -70,7 +71,8 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     const rootNode = new Node('root', 'Root Topic', null, true);
     this.mindMap = new MindMap(rootNode);
 
-    const service = new MindMapService(this.mindMap);
+    const idGenerator = new CryptoIdGenerator();
+    const service = new MindMapService(this.mindMap, idGenerator);
 
     // dedicated UI layer to ensure z-index separation and stability
     const uiLayer = document.createElement('div');

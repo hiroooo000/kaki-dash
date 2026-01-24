@@ -2,14 +2,17 @@ import { MindMap } from '../domain/entities/MindMap';
 import { Node } from '../domain/entities/Node';
 import { MindMapData, MindMapNodeData } from '../domain/interfaces/MindMapData';
 import { HistoryManager } from './HistoryManager';
+import { IdGenerator } from '../domain/interfaces/IdGenerator';
 
 export class MindMapService {
   mindMap: MindMap;
   private historyManager: HistoryManager<MindMapData>;
+  private idGenerator: IdGenerator;
 
-  constructor(mindMap: MindMap) {
+  constructor(mindMap: MindMap, idGenerator: IdGenerator) {
     this.mindMap = mindMap;
     this.historyManager = new HistoryManager<MindMapData>(10);
+    this.idGenerator = idGenerator;
   }
 
   private saveState(): void {
@@ -52,10 +55,7 @@ export class MindMapService {
 
     this.saveState();
 
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const id = this.idGenerator.generate();
     const newNode = new Node(id, topic, null, false, undefined, layoutSide, false);
     parent.addChild(newNode);
     return newNode;
@@ -67,10 +67,7 @@ export class MindMapService {
 
     this.saveState();
 
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const id = this.idGenerator.generate();
     // Image nodes have empty topic
     const newNode = new Node(id, '', parentId, false, imageData, undefined, false);
     parent.addChild(newNode);
@@ -183,10 +180,7 @@ export class MindMapService {
 
     this.saveState();
 
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const id = this.idGenerator.generate();
     const newNode = new Node(id, topic);
 
     if (this.mindMap.addSibling(referenceId, newNode, position)) {
@@ -308,10 +302,7 @@ export class MindMapService {
 
     this.saveState();
 
-    const id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const id = this.idGenerator.generate();
     const newParentNode = new Node(id, topic);
 
     if (this.mindMap.insertParent(targetId, newParentNode)) {
@@ -383,10 +374,7 @@ export class MindMapService {
   }
 
   private regenerateIds(node: Node): void {
-    node.id =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Date.now().toString(36) + Math.random().toString(36).substr(2);
+    node.id = this.idGenerator.generate();
     node.children.forEach((child) => {
       child.parentId = node.id;
       this.regenerateIds(child);
