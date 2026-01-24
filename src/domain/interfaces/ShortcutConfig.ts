@@ -26,6 +26,9 @@ export type ShortcutAction =
   | 'italic'
   | 'zoomIn'
   | 'zoomOut'
+  | 'scaleUp'
+  | 'scaleDown'
+  | 'resetZoom'
   | 'toggleFold'
   | 'centerMap'
   | 'selectColor1'
@@ -43,8 +46,11 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   navDown: [{ key: 'ArrowDown' }, { key: 'j', ctrlKey: false, metaKey: false, altKey: false }],
   navLeft: [{ key: 'ArrowLeft' }, { key: 'h', ctrlKey: false, metaKey: false, altKey: false }],
   navRight: [{ key: 'ArrowRight' }, { key: 'l', ctrlKey: false, metaKey: false, altKey: false }],
-  addChild: [{ key: 'Tab' }],
-  insertParent: [{ key: 'Tab', shiftKey: true }],
+  addChild: [{ key: 'Tab' }, { key: 'a' }],
+  insertParent: [
+    { key: 'Tab', shiftKey: true },
+    { key: 'a', shiftKey: true },
+  ],
   addSibling: [{ key: 'Enter' }],
   addSiblingBefore: [{ key: 'Enter', shiftKey: true }],
   deleteNode: [{ key: 'Delete' }, { key: 'Backspace' }],
@@ -73,8 +79,11 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   ],
   bold: [{ key: 'b' }], // Changed to just 'b' in previous task, keeping it? Or should it be Ctrl+b? Previous code was just 'b'
   italic: [{ key: 'i' }], // Previous code was just 'i'
-  zoomIn: [{ key: '+' }, { key: '=' }], // Logic was complicated, check code
-  zoomOut: [{ key: '-' }],
+  zoomIn: [{ key: '>', shiftKey: true }, { key: '.' }], // > is Shift+.
+  zoomOut: [{ key: '<', shiftKey: true }, { key: ',' }], // < is Shift+,
+  scaleUp: [{ key: '[' }], // Canvas Zoom In
+  scaleDown: [{ key: ']' }], // Canvas Zoom Out
+  resetZoom: [{ key: ':' }],
   toggleFold: [{ key: 'f', ctrlKey: false, metaKey: false, altKey: false }],
   selectColor1: [{ key: '1' }],
   selectColor2: [{ key: '2' }],

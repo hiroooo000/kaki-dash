@@ -34,6 +34,7 @@ export interface InteractionOptions {
   onCutNode?: (nodeId: string) => void;
   onPasteImage?: (parentId: string, imageData: string) => void;
   onZoom?: (delta: number, x: number, y: number) => void;
+  onZoomReset?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
@@ -240,6 +241,13 @@ export class InteractionHandler {
         return;
       }
       // END CHANGE
+
+      // Handle resetZoom (works without selection)
+      if (this.shortcutManager.matches(ke, 'resetZoom')) {
+        ke.preventDefault();
+        this.options.onZoomReset?.();
+        return;
+      }
 
       // Handle No Selection (Initial Focus)
       if (!this.selectedNodeId) {
@@ -462,6 +470,24 @@ export class InteractionHandler {
             this.options.onPasteNode?.(this.selectedNodeId);
           }
         }, 50);
+        break;
+      case 'scaleUp':
+        ke.preventDefault();
+        // Zoom In at center
+        if (this.options.onZoom) {
+          const rect = this.container.getBoundingClientRect();
+          // MindMapController.zoomBoard expects clientX/clientY
+          this.options.onZoom(-100, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+        break;
+      case 'scaleDown':
+        ke.preventDefault();
+        // Zoom Out at center
+        if (this.options.onZoom) {
+          const rect = this.container.getBoundingClientRect();
+          // MindMapController.zoomBoard expects clientX/clientY
+          this.options.onZoom(100, rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
         break;
       case 'cut':
         ke.preventDefault();

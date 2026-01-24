@@ -119,6 +119,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       onCutNode: (nodeId) => this.controller.cutNode(nodeId),
       onPasteImage: (parentId, imageData) => this.controller.pasteImage(parentId, imageData),
       onZoom: (delta, x, y) => this.controller.zoomBoard(delta, x, y),
+      onZoomReset: () => this.controller.resetZoom(),
       onUndo: () => this.controller.undo(),
       onRedo: () => this.controller.redo(),
       onStyleAction: (nodeId, action) => this.controller.onStyleAction(nodeId, action),

@@ -8,6 +8,10 @@ describe('ShortcutManager', () => {
     navDown: [{ key: 'ArrowDown', ctrlKey: true }],
     deleteNode: [{ key: 'Delete' }, { key: 'Backspace', metaKey: true }],
     bold: [{ key: 'b', ctrlKey: true }],
+    zoomIn: [{ key: '>', shiftKey: true }, { key: '.' }],
+    scaleUp: [{ key: '[' }],
+    resetZoom: [{ key: ':' }],
+    addChild: [{ key: 'Tab' }, { key: 'a' }],
   };
 
   const manager = new ShortcutManager(mockShortcuts);
@@ -63,6 +67,26 @@ describe('ShortcutManager', () => {
     it('should match case insensitive for keys', () => {
       const event = createEvent('B', { ctrl: true });
       expect(manager.matches(event, 'bold')).toBe(true);
+    });
+
+    it('should match shifted keys', () => {
+      const event = createEvent('>', { shift: true });
+      expect(manager.matches(event, 'zoomIn')).toBe(true);
+    });
+
+    it('should match new scale shortcuts', () => {
+      const event = createEvent('[');
+      expect(manager.matches(event, 'scaleUp')).toBe(true);
+    });
+
+    it('should match alternative addChild shortcut', () => {
+      const event = createEvent('a');
+      expect(manager.matches(event, 'addChild')).toBe(true);
+    });
+
+    it('should match resetZoom shortcut', () => {
+      const event = createEvent(':');
+      expect(manager.matches(event, 'resetZoom')).toBe(true);
     });
   });
 
