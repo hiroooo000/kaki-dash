@@ -4,4 +4,5 @@ dist
 .DS_Store
 coverage
 vite.config.ts.timestamp*
-
+.pnpm-store
+.turbo

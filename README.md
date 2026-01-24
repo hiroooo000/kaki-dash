@@ -34,7 +34,7 @@ Master the shortcuts and expand your mind map at the speed of thought.
 ## Installation
 
 ```bash
-npm install kakidash
+pnpm add kakidash
 ```
 
 ## Usage
@@ -74,7 +74,7 @@ Prepare a container element (e.g., `div`) to display `kakidash`.
 #### A. NPM Project (Vite / Webpack etc.)
 
 ```bash
-npm install kakidash
+pnpm add kakidash
 ```
 
 ```typescript
@@ -343,31 +343,45 @@ Here is the complete default configuration. You can partially override these key
 ### Setup
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Dev Server
 
 ```bash
-npm run dev
+pnpm dev
+```
+
+### Type Check
+
+```bash
+pnpm typecheck
+# or with turbo
+pnpm turbo typecheck
 ```
 
 ### Build
 
 ```bash
-npm run build
+pnpm build
+# or with turbo
+pnpm turbo build
 ```
 
 ### Test
 
 ```bash
-npm test
+pnpm test
+# or with turbo
+pnpm turbo test
 ```
 
 ### Lint
 
 ```bash
-npm run lint
+pnpm lint
+# or with turbo
+pnpm turbo lint
 ```
 
 ### Documentation
@@ -375,7 +389,15 @@ npm run lint
 Generate API documentation using TypeDoc:
 
 ```bash
-npm run docs
+pnpm docs
 ```
 
 The documentation will be generated in `docs/` directory.
+
+### Run All Checks
+
+Run type checking, build, tests, linting, and documentation generation in parallel:
+
+```bash
+pnpm turbo:ci
+```

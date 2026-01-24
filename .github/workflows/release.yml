@@ -21,21 +21,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Use Node.js 24.x
         uses: actions/setup-node@v5
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      - name: Run Check
-        run: |
-          npm run lint
-          npm run build
-          npm run test
+      - name: Run All Checks (Turbo)
+        run: pnpm turbo:ci
 
       - name: Get version from package.json
         id: version
@@ -73,4 +73,6 @@ jobs:
 
       - name: Publish to npm
         if: steps.check_tag.outputs.exists == 'false' || github.event_name == 'workflow_dispatch'
-        run: npm publish --provenance --access public
+        run: pnpm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

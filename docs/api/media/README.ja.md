@@ -36,7 +36,7 @@ Kakidashのミッションは、**アウトプット速度の最大化**です�
 ## Installation
 
 ```bash
-npm install kakidash
+pnpm add kakidash
 ```
 
 ## Usage
@@ -77,7 +77,7 @@ npm install kakidash
 #### A. NPM プロジェクト (Vite / Webpack など)
 
 ```bash
-npm install kakidash
+pnpm add kakidash
 ```
 
 ```typescript
@@ -349,31 +349,37 @@ const kakidash = new Kakidash(container, {
 ### Setup
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Dev Server
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ### Build
 
 ```bash
-npm run build
+pnpm build
+# or with turbo
+pnpm turbo build
 ```
 
 ### Test
 
 ```bash
-npm test
+pnpm test
+# or with turbo
+pnpm turbo test
 ```
 
 ### Lint
 
 ```bash
-npm run lint
+pnpm lint
+# or with turbo
+pnpm turbo lint
 ```
 
 ### Documentation
@@ -381,7 +387,7 @@ npm run lint
 TypeDocを使用してAPIドキュメントを生成します:
 
 ```bash
-npm run docs
+pnpm docs
 ```
 
 `docs/` ディレクトリにドキュメントが生成されます。
