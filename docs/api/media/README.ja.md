@@ -344,6 +344,11 @@ const kakidash = new Kakidash(container, {
 | `-` | フォントサイズ縮小 |
 | `1` - `7` | ノードの色を変更 (パレット順) |
 
+## アーキテクチャ
+
+ソフトウェアアーキテクチャの詳細や内部モジュールの依存関係については、以下を参照してください：
+- [ソフトウェアアーキテクチャ設計書](./docs/SOFTWARE_ARCHITECTURE_ja.md)
+
 ## Development
 
 ### Setup
@@ -356,6 +361,14 @@ pnpm install
 
 ```bash
 pnpm dev
+```
+
+### Type Check
+
+```bash
+pnpm typecheck
+# or with turbo
+pnpm turbo typecheck
 ```
 
 ### Build
@@ -391,3 +404,11 @@ pnpm docs
 ```
 
 `docs/` ディレクトリにドキュメントが生成されます。
+
+### すべてのチェックを実行
+
+型チェック、ビルド、テスト、Lint、ドキュメント生成を並列実行します:
+
+```bash
+pnpm turbo:ci
+```
