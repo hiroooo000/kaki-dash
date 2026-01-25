@@ -344,6 +344,11 @@ const kakidash = new Kakidash(container, {
 | `-` | フォントサイズ縮小 |
 | `1` - `7` | ノードの色を変更 (パレット順) |
 
+## アーキテクチャ
+
+ソフトウェアアーキテクチャの詳細や内部モジュールの依存関係については、以下を参照してください：
+- [ソフトウェアアーキテクチャ設計書](./docs/SOFTWARE_ARCHITECTURE_ja.md)
+
 ## Development
 
 ### Setup

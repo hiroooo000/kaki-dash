@@ -5,7 +5,7 @@
 Kakidash is designed based on **Clean Architecture** principles to enhance maintainability, testability, and extensibility.
 Following the dependency rule, outer layers (Presentation, Infrastructure) depend on inner layers (Domain, Application).
 
-### 1.1 Dependency Graph
+### 1.1 Dependency Graph (Layers)
 
 ```mermaid
 graph TD
@@ -41,6 +41,103 @@ graph TD
     Service --> Entities
     IdGenImpl -.->|implements| Interfaces
 ```
+
+### 1.2 Module/Class Dependency Diagram
+
+This diagram shows concrete relations between major classes.
+
+```mermaid
+classDiagram
+    direction TB
+    
+    class Kakidash {
+        -mindMap: MindMap
+        -controller: MindMapController
+        +addNode()
+        +deleteNode()
+        +undo()
+        +redo()
+    }
+
+    class MindMapController {
+        -mindMap: MindMap
+        -service: MindMapService
+        -renderer: SvgRenderer
+        -styleEditor: StyleEditor
+        -interactionHandler: InteractionHandler
+        -layoutSwitcher: LayoutSwitcher
+        +init()
+        +render()
+        +selectNode()
+    }
+
+    class MindMapService {
+        -mindMap: MindMap
+        -historyManager: HistoryManager
+        -idGenerator: IdGenerator
+        +addNode()
+        +removeNode()
+        +undo()
+        +redo()
+        +exportData()
+    }
+
+    class MindMap {
+        +root: Node
+        +theme: Theme
+        +findNode(id)
+        +moveNode()
+    }
+
+    class Node {
+        +id: string
+        +topic: string
+        +children: Node[]
+        +style: NodeStyle
+        +addChild()
+        +removeChild()
+    }
+
+    class SvgRenderer {
+        +container: HTMLElement
+        +render(mindMap)
+        +updateTransform()
+    }
+
+    class InteractionHandler {
+        -nodeEditor: NodeEditor
+        -nodeDragger: NodeDragger
+        -shortcutManager: ShortcutManager
+        +setReadOnly()
+    }
+
+    class CryptoIdGenerator {
+        +generate()
+    }
+
+    %% Relationships
+    Kakidash *-- MindMapController : manages
+    Kakidash *-- MindMap : holds state
+    
+    MindMapController o-- MindMap : updates
+    MindMapController o-- MindMapService : delegates logic
+    MindMapController o-- SvgRenderer : triggers draw
+    MindMapController o-- InteractionHandler : manages input
+    
+    MindMapService o-- MindMap : operates on
+    MindMapService *-- HistoryManager : manages history
+    MindMapService o-- IdGenerator : uses
+
+    MindMap *-- Node : root node
+    Node "1" *-- "many" Node : children
+    
+    InteractionHandler *-- NodeEditor
+    InteractionHandler *-- NodeDragger
+    InteractionHandler *-- ShortcutManager
+    
+    CryptoIdGenerator ..|> IdGenerator : implements
+```
+
 
 ## 2. Directory Structure
 

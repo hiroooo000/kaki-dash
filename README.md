@@ -338,6 +338,11 @@ Here is the complete default configuration. You can partially override these key
 | `-` | Decrease font size |
 | `1` - `7` | Change node color (Palette order) |
 
+## Architecture
+
+For details on the software architecture and internal module dependencies, please refer to:
+- [Software Architecture Design](./docs/SOFTWARE_ARCHITECTURE.md)
+
 ## Development
 
 ### Setup
