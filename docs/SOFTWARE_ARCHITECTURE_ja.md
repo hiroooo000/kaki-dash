@@ -5,7 +5,7 @@
 Kakidashは、メンテナンス性、テスト容易性、拡張性を高めるために **Clean Architecture（クリーンアーキテクチャ）** の原則に基づいて設計されています。
 依存関係のルールに従い、外側のレイヤー（Presentation, Infrastructure）が内側のレイヤー（Domain, Application）に依存する形をとっています。
 
-### 1.1 依存関係図
+### 1.1 依存関係図 (レイヤー)
 
 ```mermaid
 graph TD
@@ -41,6 +41,103 @@ graph TD
     Service --> Entities
     IdGenImpl -.->|implements| Interfaces
 ```
+
+### 1.2 モジュール/クラス依存関係図
+
+主要なクラス間の具体的な関係を示す図です。
+
+```mermaid
+classDiagram
+    direction TB
+    
+    class Kakidash {
+        -mindMap: MindMap
+        -controller: MindMapController
+        +addNode()
+        +deleteNode()
+        +undo()
+        +redo()
+    }
+
+    class MindMapController {
+        -mindMap: MindMap
+        -service: MindMapService
+        -renderer: SvgRenderer
+        -styleEditor: StyleEditor
+        -interactionHandler: InteractionHandler
+        -layoutSwitcher: LayoutSwitcher
+        +init()
+        +render()
+        +selectNode()
+    }
+
+    class MindMapService {
+        -mindMap: MindMap
+        -historyManager: HistoryManager
+        -idGenerator: IdGenerator
+        +addNode()
+        +removeNode()
+        +undo()
+        +redo()
+        +exportData()
+    }
+
+    class MindMap {
+        +root: Node
+        +theme: Theme
+        +findNode(id)
+        +moveNode()
+    }
+
+    class Node {
+        +id: string
+        +topic: string
+        +children: Node[]
+        +style: NodeStyle
+        +addChild()
+        +removeChild()
+    }
+
+    class SvgRenderer {
+        +container: HTMLElement
+        +render(mindMap)
+        +updateTransform()
+    }
+
+    class InteractionHandler {
+        -nodeEditor: NodeEditor
+        -nodeDragger: NodeDragger
+        -shortcutManager: ShortcutManager
+        +setReadOnly()
+    }
+
+    class CryptoIdGenerator {
+        +generate()
+    }
+
+    %% Relationships
+    Kakidash *-- MindMapController : manages
+    Kakidash *-- MindMap : holds state
+    
+    MindMapController o-- MindMap : updates
+    MindMapController o-- MindMapService : delegates logic
+    MindMapController o-- SvgRenderer : triggers draw
+    MindMapController o-- InteractionHandler : manages input
+    
+    MindMapService o-- MindMap : operates on
+    MindMapService *-- HistoryManager : manages history
+    MindMapService o-- IdGenerator : uses
+
+    MindMap *-- Node : root node
+    Node "1" *-- "many" Node : children
+    
+    InteractionHandler *-- NodeEditor
+    InteractionHandler *-- NodeDragger
+    InteractionHandler *-- ShortcutManager
+    
+    CryptoIdGenerator ..|> IdGenerator : implements
+```
+
 
 ## 2. ディレクトリ構造
 
