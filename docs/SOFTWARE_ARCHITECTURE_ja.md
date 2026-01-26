@@ -206,7 +206,116 @@ src/
 - **EventEmitter**:
   - イベントバスの実装。
 
-## 4. エントリーポイントとDI (`src/index.ts`)
+## 4. 主要な処理シーケンス
+
+### 4.1 ノード追加フロー
+
+ユーザーがノードを追加する際の、各レイヤー間の相互作用を示します。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Service as MindMapService
+    participant IdGen as IdGenerator
+    participant Entity as MindMap/Node
+    participant Renderer as SvgRenderer
+
+    User->>Controller: addChildNode(parentId)
+    activate Controller
+    
+    Controller->>Service: addNode(parentId, "New Topic")
+    activate Service
+    
+    Service->>IdGen: generate()
+    IdGen-->>Service: uuid
+    
+    Service->>Entity: new Node(uuid, ...)
+    Service->>Entity: parent.addChild(newNode)
+    
+    Service-->>Controller: newNode
+    deactivate Service
+    
+    Controller->>Renderer: render(mindMap)
+    Controller-->>User: Update View
+    deactivate Controller
+```
+
+### 4.2 Undo/Redo フロー
+
+Mementoパターンを使用した履歴管理と状態復元の流れを示します。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Service as MindMapService
+    participant History as HistoryManager
+    participant Entity as MindMap
+
+    User->>Controller: undo()
+    activate Controller
+    
+    Controller->>Service: undo()
+    activate Service
+    
+    Service->>History: undo(currentState)
+    History-->>Service: previousState
+    
+    alt previousState exists
+        Service->>Service: importData(previousState)
+        Service-->>Controller: true
+    else
+        Service-->>Controller: false
+    end
+    deactivate Service
+    
+    opt if true
+        Controller->>Controller: render()
+        Controller-->>User: Update View
+    end
+    deactivate Controller
+```
+
+### 4.3 ノード移動フロー (Drag & Drop)
+
+ノード移動時の検証と実行フローを示します。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Service as MindMapService
+    participant Entity as MindMap
+
+    User->>Controller: moveNode(nodeId, targetId, side)
+    activate Controller
+    
+    Controller->>Service: moveNode(nodeId, targetId, side)
+    activate Service
+    
+    Service->>Entity: findNode(nodeId), findNode(targetId)
+    
+    alt Validation Failed (Cycle / Root Move)
+        Entity-->>Service: false (from moveNode checks)
+        Service-->>Controller: false
+    else Validation Passed
+        Service->>Service: saveState()
+        Service->>Entity: moveNode(nodeId, targetId)
+        Entity->>Entity: remove from old parent
+        Entity->>Entity: add to new parent
+        Service-->>Controller: true
+    end
+    deactivate Service
+    
+    opt if true
+        Controller->>Controller: render()
+        Controller-->>User: Update View
+    end
+    deactivate Controller
+```
+
+## 5. エントリーポイントとDI (`src/index.ts`)
 アプリケーションの起動時に各コンポーネントのインスタンス化と依存性の注入（Dependency Injection）を行います。
 
 ```typescript
@@ -217,7 +326,7 @@ const service = new MindMapService(mindMap, idGenerator); // Application <- Doma
 const controller = new MindMapController(mindMap, service, renderer, ...); // Presentation <- Application
 ```
 
-## 5. 主要な設計原則
+## 6. 主要な設計原則
 
 - **依存性逆転の原則 (DIP)**:
   - 上位モジュール（Service）は下位モジュール（Infrastructure）に依存せず、抽象（Interface）に依存しています（例: `IdGenerator`）。
