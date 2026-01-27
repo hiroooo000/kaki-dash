@@ -268,4 +268,37 @@ describe('MindMapService', () => {
       }
     });
   });
+
+  describe('Search', () => {
+    it('should find nodes matching query', () => {
+      service.addNode('root', 'Alpha');
+      const beta = service.addNode('root', 'Beta');
+      service.addNode(beta!.id, 'Charlie');
+
+      // "Alpha" (contains 'a'), "Charlie" (contains 'a'), "Beta" (contains 'a') -> All match?
+      // "Alpha" -> a, "Beta" -> a, "Charlie" -> a.
+
+      const alResults = service.searchNodes('al');
+      expect(alResults.length).toBe(1);
+      expect(alResults[0].topic).toBe('Alpha');
+    });
+
+    it('should be case insensitive', () => {
+      service.addNode('root', 'Alpha');
+      const results = service.searchNodes('ALPHA');
+      expect(results.length).toBe(1);
+      expect(results[0].topic).toBe('Alpha');
+    });
+
+    it('should return empty array for empty query', () => {
+      const results = service.searchNodes('');
+      expect(results).toEqual([]);
+    });
+
+    it('should return empty array for no matches', () => {
+      service.addNode('root', 'Alpha');
+      const results = service.searchNodes('Omega');
+      expect(results).toEqual([]);
+    });
+  });
 });

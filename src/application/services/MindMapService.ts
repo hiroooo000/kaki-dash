@@ -402,6 +402,22 @@ export class MindMapService {
     };
   }
 
+  searchNodes(query: string): Node[] {
+    if (!query) return [];
+    const results: Node[] = [];
+    const lowerQuery = query.toLowerCase();
+
+    const traverse = (node: Node) => {
+      if (node.topic.toLowerCase().includes(lowerQuery)) {
+        results.push(node);
+      }
+      node.children.forEach(traverse);
+    };
+
+    traverse(this.mindMap.root);
+    return results;
+  }
+
   importData(data: MindMapData): void {
     const buildNodeFromData = (data: MindMapNodeData, parentId: string | null = null): Node => {
       const isRoot = !!data.root;

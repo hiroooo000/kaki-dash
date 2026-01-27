@@ -12,6 +12,7 @@ graph TD
     subgraph Presentation ["Presentation Layer"]
         Controller[MindMapController]
         View[SvgRenderer / StyleEditor]
+        Command[CommandPalette]
         Interaction[InteractionHandler]
     end
 
@@ -64,11 +65,13 @@ classDiagram
         -service: MindMapService
         -renderer: SvgRenderer
         -styleEditor: StyleEditor
+        -commandPalette: CommandPalette
         -interactionHandler: InteractionHandler
         -layoutSwitcher: LayoutSwitcher
         +init()
         +render()
         +selectNode()
+        +toggleCommandPalette()
     }
 
     class MindMapService {
@@ -78,8 +81,10 @@ classDiagram
         +addNode()
         +removeNode()
         +undo()
+        +undo()
         +redo()
         +exportData()
+        +searchNodes()
     }
 
     class MindMap {
@@ -111,6 +116,12 @@ classDiagram
         +setReadOnly()
     }
 
+    class CommandPalette {
+        +container: HTMLElement
+        +toggle()
+        +setResults()
+    }
+
     class CryptoIdGenerator {
         +generate()
     }
@@ -122,6 +133,7 @@ classDiagram
     MindMapController o-- MindMap : updates
     MindMapController o-- MindMapService : delegates logic
     MindMapController o-- SvgRenderer : triggers draw
+    MindMapController o-- CommandPalette : controls
     MindMapController o-- InteractionHandler : manages input
     
     MindMapService o-- MindMap : operates on
@@ -196,6 +208,9 @@ src/
   - マインドマップのSVG描画を担当。
 - **NodeEditor / StyleEditor**:
   - ノード編集やスタイル編集などの複雑なUIロジックの分離。
+- **CommandPalette**:
+  - `m`キーなどで呼び出し可能なコマンド兼検索パレット。
+  - ノード検索結果の表示とナビゲーションを提供。
 
 ### 3.4 Infrastructure Layer (`src/infrastructure`)
 ドメインやアプリケーション層で定義されたインターフェースの具体的な実装を提供します。
@@ -312,6 +327,48 @@ sequenceDiagram
         Controller->>Controller: render()
         Controller-->>User: Update View
     end
+    deactivate Controller
+```
+
+### 4.4 検索とコマンドパレットフロー
+
+ユーザーが検索を行う際のフローです。
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Palette as CommandPalette
+    participant Service as MindMapService
+
+    User->>Controller: toggleCommandPalette (m key)
+    activate Controller
+    Controller->>Palette: toggle()
+    deactivate Controller
+
+    User->>Palette: Input "query"
+    activate Palette
+    Palette-->>Controller: onInput("query")
+    activate Controller
+    
+    Controller->>Service: searchNodes("query")
+    activate Service
+    Service-->>Controller: Node[] results
+    deactivate Service
+    
+    Controller->>Palette: setResults(results)
+    deactivate Controller
+    deactivate Palette
+    
+    User->>Palette: Select Result
+    activate Palette
+    Palette-->>Controller: onSelect(nodeId)
+    deactivate Palette
+    activate Controller
+    
+    Controller->>Controller: selectNode(nodeId)
+    Controller->>Controller: ensureNodeVisible(nodeId)
+    Controller-->>User: Focus Node
     deactivate Controller
 ```
 

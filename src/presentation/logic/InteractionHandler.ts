@@ -36,6 +36,7 @@ export interface InteractionOptions {
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
   onEditEnd?: (nodeId: string) => void;
   onToggleFold?: (nodeId: string) => void;
+  onToggleCommandPalette?: () => void;
   shortcuts?: ShortcutConfig;
   allowReadOnly?: boolean;
 }
@@ -505,6 +506,10 @@ export class InteractionHandler {
       case 'toggleFold':
         ke.preventDefault();
         this.options.onToggleFold?.(this.selectedNodeId);
+        break;
+      case 'openCommandPalette':
+        ke.preventDefault();
+        this.options.onToggleCommandPalette?.();
         break;
       default:
         // Handle dynamic color actions
