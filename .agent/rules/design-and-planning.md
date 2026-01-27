@@ -19,6 +19,8 @@ description: Design and planning rules for the Kakidash project, covering archit
     - **Presentation**: UI rendering (SVG), user input handling, and controllers.
     - **Infrastructure**: Concrete implementations of domain/application interfaces (e.g., Disk I/O, Browser APIs).
 - **Dependency Inversion**: Always depend on interfaces/abstractions rather than concrete implementations for cross-layer communication.
+- **Architecture Compliance**: Design must strictly follow `docs/SOFTWARE_ARCHITECTURE.md` as the primary principle.
+- **Architectural Breach Protocol**: If a requested feature necessitates breaking the established architecture, you MUST explicitly ask the user: "This change violates the architecture. Do you wish to proceed?" and obtain confirmation before implementation.
 
 ## 2. Component Design
 - **Single Responsibility Principle (SRP)**: Each class or module should have one, and only one, reason to change.
