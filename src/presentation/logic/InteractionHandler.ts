@@ -246,6 +246,14 @@ export class InteractionHandler {
         return;
       }
 
+      // Actions allowed without selection
+      const actionForNoSelection = this.shortcutManager.getAction(ke);
+      if (actionForNoSelection === 'openCommandPalette') {
+        ke.preventDefault();
+        this.options.onToggleCommandPalette?.();
+        return;
+      }
+
       // Handle No Selection (Initial Focus)
       if (!this.selectedNodeId) {
         if (

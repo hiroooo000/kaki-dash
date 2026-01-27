@@ -12,8 +12,15 @@ export class CommandPalette {
   private resultListEl: HTMLElement;
   private options: CommandPaletteOptions;
 
-  private results: Array<{ id: string; topic: string }> = [];
+  private results: Array<{ id: string; topic: string; type?: 'command' | 'node' }> = [];
   private selectedIndex: number = -1;
+  private mode: 'menu' | 'search' = 'menu';
+
+  private readonly MENU_COMMANDS: Array<{
+    id: string;
+    topic: string;
+    type: 'command' | 'node';
+  }> = [{ id: 'search-nodes', topic: '> Search Nodes', type: 'command' }];
 
   constructor(container: HTMLElement, options: CommandPaletteOptions) {
     this.container = container;
@@ -49,8 +56,9 @@ export class CommandPalette {
   private createPalette(): HTMLElement {
     const el = document.createElement('div');
     el.className = 'command-palette';
+    el.className = 'command-palette';
     el.style.position = 'fixed';
-    el.style.top = '20px'; // Consistent with StyleEditor
+    el.style.top = '15%'; // Vertically positioned at 15% to be central but not covering center content too much
     el.style.left = '50%';
     el.style.transform = 'translateX(-50%)';
     el.style.width = '400px';
@@ -68,7 +76,7 @@ export class CommandPalette {
 
     const input = document.createElement('input');
     input.type = 'text';
-    input.placeholder = 'Search nodes...';
+    input.placeholder = 'Type > to search commands...';
     input.style.width = '100%';
     input.style.boxSizing = 'border-box';
     input.style.padding = '4px 8px'; // Consistent with StyleEditor
@@ -81,7 +89,14 @@ export class CommandPalette {
 
     input.addEventListener('input', (e) => {
       const val = (e.target as HTMLInputElement).value;
-      this.options.onInput(val);
+      if (this.mode === 'menu') {
+        const filtered = this.MENU_COMMANDS.filter((c) =>
+          c.topic.toLowerCase().includes(val.toLowerCase()),
+        );
+        this.renderList(filtered);
+      } else {
+        this.options.onInput(val);
+      }
     });
 
     input.addEventListener('keydown', (e) => {
@@ -97,6 +112,8 @@ export class CommandPalette {
       } else if (e.key === 'Escape') {
         e.preventDefault();
         this.close();
+      } else if (e.key === 'Backspace' && this.inputEl.value === '' && this.mode === 'search') {
+        // Back to menu? maybe complex
       }
     });
 
@@ -116,17 +133,22 @@ export class CommandPalette {
   }
 
   public show() {
+    this.mode = 'menu';
     this.overlay.style.display = 'block';
     this.paletteEl.style.display = 'flex';
     this.inputEl.value = '';
+    this.inputEl.placeholder = 'Type to filter commands...';
     this.inputEl.focus();
-    this.setResults([]); // Clear previous results
+
+    // Show menu commands initially
+    this.renderList(this.MENU_COMMANDS);
   }
 
   public close() {
     this.overlay.style.display = 'none';
     this.paletteEl.style.display = 'none';
     this.options.onClose();
+    this.mode = 'menu';
   }
 
   public toggle() {
@@ -138,13 +160,18 @@ export class CommandPalette {
   }
 
   public setResults(results: Array<{ id: string; topic: string }>) {
-    this.results = results;
+    if (this.mode === 'search') {
+      this.renderList(results.map((r) => ({ ...r, type: 'node' })));
+    }
+  }
+
+  private renderList(items: Array<{ id: string; topic: string; type?: 'command' | 'node' }>) {
+    this.results = items;
     this.resultListEl.innerHTML = '';
     this.selectedIndex = -1;
 
-    if (results.length === 0) {
-      if (this.inputEl.value.trim() !== '') {
-        // Show "No results" if input is not empty
+    if (items.length === 0) {
+      if (this.inputEl.value.trim() !== '' && this.mode === 'search') {
         const li = document.createElement('li');
         li.textContent = 'No results found';
         li.style.padding = '8px';
@@ -153,6 +180,9 @@ export class CommandPalette {
         li.style.textAlign = 'center';
         this.resultListEl.appendChild(li);
         this.resultListEl.style.display = 'block';
+      } else if (this.mode === 'menu' && items.length === 0) {
+        // No command matches
+        this.resultListEl.style.display = 'none';
       } else {
         this.resultListEl.style.display = 'none';
       }
@@ -160,30 +190,54 @@ export class CommandPalette {
     }
 
     this.resultListEl.style.display = 'block';
-    results.forEach((node, index) => {
+    items.forEach((item, index) => {
       const li = document.createElement('li');
-      li.textContent = node.topic;
+      li.textContent = item.topic;
       li.style.padding = '8px 12px';
       li.style.cursor = 'pointer';
       li.style.fontSize = '14px';
       li.style.borderBottom = '1px solid #f9f9f9';
+      if (item.type === 'command') {
+        li.style.fontWeight = 'bold';
+        li.style.color = '#333';
+      }
 
       li.addEventListener('mouseenter', () => {
         this.setSelectedIndex(index);
       });
 
       li.addEventListener('click', () => {
-        this.options.onSelect(node.id);
-        this.close();
+        this.selectItem(item);
       });
 
       this.resultListEl.appendChild(li);
     });
 
-    // Select first item by default if exists? No, VSCode doesn't auto-select unless you type
-    if (results.length > 0) {
+    if (items.length > 0) {
       this.setSelectedIndex(0);
     }
+  }
+
+  private selectItem(item: { id: string; topic: string; type?: 'command' | 'node' }) {
+    if (item.type === 'command') {
+      if (item.id === 'search-nodes') {
+        this.switchToSearchMode();
+      }
+    } else {
+      this.options.onSelect(item.id);
+      this.close();
+    }
+  }
+
+  private switchToSearchMode() {
+    this.mode = 'search';
+    this.inputEl.value = '';
+    this.inputEl.placeholder = 'Search nodes...';
+    this.renderList([]); // Clear list, wait for input or show recent?
+    // Trigger empty search or wait? Standard: user types.
+    // Ensure list is hidden until typing
+    this.resultListEl.style.display = 'none';
+    this.inputEl.focus();
   }
 
   private moveSelection(step: number) {
@@ -217,8 +271,7 @@ export class CommandPalette {
 
   private confirmSelection() {
     if (this.selectedIndex >= 0 && this.selectedIndex < this.results.length) {
-      this.options.onSelect(this.results[this.selectedIndex].id);
-      this.close();
+      this.selectItem(this.results[this.selectedIndex]);
     }
   }
 }
