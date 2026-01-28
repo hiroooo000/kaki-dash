@@ -209,6 +209,16 @@ describe('Kakidash External API', () => {
       expect(listener).toHaveBeenCalledWith({ id: rootId, topic: 'Updated Topic' });
     });
 
+    it('should update node icon via updateNode', () => {
+      const rootId = board.getRootId();
+      const child = board.addNode(rootId, 'Icon Target');
+
+      board.updateNode(child!.id, { icon: 'check' });
+
+      const updatedNode = board.getNode(child!.id);
+      expect(updatedNode!.icon).toBe('check');
+    });
+
     it('should emit node:remove event when removing a node', () => {
       const rootId = board.getRootId();
       const child = board.addNode(rootId, 'Child');

@@ -56,6 +56,7 @@ classDiagram
         -controller: MindMapController
         +addNode()
         +deleteNode()
+        +updateNode()
         +undo()
         +redo()
     }
@@ -71,6 +72,7 @@ classDiagram
         +init()
         +render()
         +selectNode()
+        +updateNode()
         +toggleCommandPalette()
     }
 
@@ -80,7 +82,9 @@ classDiagram
         -idGenerator: IdGenerator
         +addNode()
         +removeNode()
-        +undo()
+        +updateNodeTopic()
+        +updateNodeStyle()
+        +updateNodeIcon()
         +undo()
         +redo()
         +exportData()
@@ -99,6 +103,7 @@ classDiagram
         +topic: string
         +children: Node[]
         +style: NodeStyle
+        +icon: string
         +addChild()
         +removeChild()
     }
@@ -164,7 +169,8 @@ src/
 │   └── services/     # アプリケーション固有のビジネスルール
 ├── presentation/     # プレゼンテーション層 (UI, Controller)
 │   ├── components/   # UIコンポーネント (Renderer, Editor)
-│   └── logic/        # ユーザー操作ハンドリング
+│   ├── logic/        # ユーザー操作ハンドリング
+│   └── resources/    # 静的リソース (Iconsなど)
 ├── infrastructure/   # インフラストラクチャ層 (External Interfaces)
 │   └── impl/         # 外部ライブラリやブラウザAPIの実装
 └── index.ts          # エントリーポイント (Dependency Injection)
@@ -177,7 +183,7 @@ src/
 
 - **Entities**: 
   - `MindMap`: マインドマップ全体を管理するルートエンティティ。
-  - `Node`: 各ノードのデータ構造と振る舞い（親子関係の管理など）。
+  - `Node`: 各ノードのデータ構造と振る舞い（親子関係、スタイル、アイコンの管理など）。
 - **Interfaces**:
   - `IdGenerator`: ID生成の抽象化インターフェース。
   - `MindMapData`: データエクスポート/インポート用の型定義。
@@ -188,7 +194,7 @@ src/
 
 #### Services (`src/application/services`)
 - **MindMapService**:
-  - ノードの追加、削除、移動、編集などの主要なユースケースを実装。
+  - ノードの追加、削除、移動、編集、アイコン設定などの主要なユースケースを実装。
   - アクションの履歴管理（Undo/Redo）との連携。
 - **HistoryManager**:
   - Mementoパターンを用いた操作履歴の管理。

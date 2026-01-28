@@ -62,6 +62,7 @@ export class MindMapController {
     this.commandPalette = new CommandPalette(this.renderer.container, {
       onInput: (query) => this.handleSearchInput(query),
       onSelect: (nodeId) => this.handleSearchResultSelect(nodeId),
+      onIconSelect: (icon) => this.handleIconSelect(icon),
       onClose: () => {
         if (this.interactionHandler) this.interactionHandler.container.focus();
       },
@@ -205,7 +206,10 @@ export class MindMapController {
     }
   }
 
-  updateNode(nodeId: string, updates: { topic?: string; style?: Partial<NodeStyle> }): void {
+  updateNode(
+    nodeId: string,
+    updates: { topic?: string; style?: Partial<NodeStyle>; icon?: string },
+  ): void {
     let changed = false;
     if (this.interactionHandler && this.interactionHandler.isReadOnly) return;
 
@@ -214,6 +218,9 @@ export class MindMapController {
     }
     if (updates.style !== undefined) {
       if (this.service.updateNodeStyle(nodeId, updates.style)) changed = true;
+    }
+    if (updates.icon !== undefined) {
+      if (this.service.updateNodeIcon(nodeId, updates.icon)) changed = true;
     }
 
     if (changed) {
@@ -647,6 +654,15 @@ export class MindMapController {
     setTimeout(() => this.ensureNodeVisible(nodeId, true, true), 0);
   }
 
+  private handleIconSelect(icon: string): void {
+    if (this.selectedNodeId) {
+      this.service.updateNodeIcon(this.selectedNodeId, icon);
+      this.render();
+      this.eventBus.emit('model:change', undefined);
+      setTimeout(() => this.ensureNodeVisible(this.selectedNodeId!, true, true), 0);
+    }
+  }
+
   private applyCustomStylesToDOM(styles: MindMapStyles): void {
     const cssVars: Record<string, string> = {};
     if (styles.rootNode?.border) cssVars['--mindmap-root-border'] = styles.rootNode.border;
@@ -890,6 +906,11 @@ export class MindMapController {
       {
         title: 'General',
         actions: [
+          {
+            action: 'openCommandPalette',
+            desc: 'Open Command Palette',
+            descJa: 'コマンドパレットを開く',
+          },
           { action: 'navUp', desc: 'Move Selection Up', descJa: 'ノード間の移動 (上)' },
           { action: 'navDown', desc: 'Move Selection Down', descJa: 'ノード間の移動 (下)' },
           { action: 'navLeft', desc: 'Move Selection Left', descJa: 'ノード間の移動 (左)' },

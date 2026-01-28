@@ -22,6 +22,7 @@ Kakidashのミッションは、**アウトプット速度の最大化**です�
   - フォントサイズ変更
   - 太字 (Bold)、斜体 (Italic)
   - カラーパレットによる色変更 (Style Editor)
+  - **アイコン設定**: コマンドパレットからのフラットアイコン追加・削除 (`m` key)
 - **インタラクション**:
   - ドラッグ＆ドロップによるノード移動・並び替え
   - キーボードショートカットによる高速操作
@@ -194,6 +195,7 @@ kakidash.setTheme('custom');
 - **`kakidash.redo()`**: 元に戻した変更をやり直します。
 - **`kakidash.toggleFold(nodeId)`**: ノードの折り畳み/展開を切り替えます。
 - **`kakidash.getSelectedNodeId()`**: 現在選択されているノードのIDを取得します。
+- **`kakidash.updateNode(nodeId, { topic?, style?, icon? })`**: ノードを更新します。`icon` にはアイコンID ('check', 'star' など) を指定します。
 - **`kakidash.on(event, listener)`**: イベントリスナーを登録します。
 - **`kakidash.off(event, listener)`**: イベントリスナーを削除します。
 
@@ -204,7 +206,7 @@ kakidash.setTheme('custom');
 | `node:select` | `string \| null` | ノードが選択されたときに発火します。 |
 | `node:add` | `{ id: string; topic: string }` | 新しいノードが追加されたときに発火します。 |
 | `node:remove` | `string` | ノードが削除されたときに発火します。 |
-| `node:update` | `{ id: string; topic: string }` | ノードが更新されたときに発火します。 |
+| `node:update` | `{ id: string; topic?: string; icon?: string }` | ノードが更新されたときに発火します。 |
 | `node:move` | `{ nodeId: string; newParentId: string; position?: string }` | ノードが移動されたときに発火します。 |
 | `model:load` | `MindMapData` | データがロードされたときに発火します。 |
 | `model:change` | `void` | データモデルが変更されたときに発火します。 |
@@ -309,6 +311,7 @@ const kakidash = new Kakidash(container, {
 ### General
 | Key | Description |
 | --- | --- |
+| `m` | コマンドパレット (検索 / アイコン) |
 | `Arrow Keys` | ノード間の移動 |
 | `h` / `j` / `k` / `l` | ノード間の移動 (Vim風) |
 | `F2` / `DblClick` / `Space` | ノードの編集を開始 (画像の場合はズーム) |

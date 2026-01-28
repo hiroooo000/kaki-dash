@@ -2,6 +2,7 @@ import { Renderer } from './Renderer';
 import { MindMap } from '../../domain/entities/MindMap';
 import { Node } from '../../domain/entities/Node';
 import { LayoutMode } from '../../domain/interfaces/LayoutMode';
+import { SVG_ICONS } from '../resources/Icons';
 
 export interface SvgRendererOptions {
   onImageZoom?: (active: boolean) => void;
@@ -170,16 +171,43 @@ export class SvgRenderer implements Renderer {
       el.style.padding = '5px'; // Less padding for images
     } else {
       // Text Node
-      el.textContent = node.topic;
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = node.isRoot ? 'center' : 'flex-start';
+
+      if (node.icon) {
+        const svgData = SVG_ICONS[node.icon];
+        if (svgData) {
+          const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svgIcon.setAttribute('viewBox', svgData.viewBox);
+          svgIcon.setAttribute('width', '20');
+          svgIcon.setAttribute('height', '20');
+          svgIcon.style.marginRight = '8px'; // Increased margin for left alignment feel
+          svgIcon.style.flexShrink = '0';
+          svgIcon.innerHTML = svgData.path;
+          el.appendChild(svgIcon);
+        } else {
+          // Fallback for emojis or legacy icons
+          const iconSpan = document.createElement('span');
+          iconSpan.textContent = node.icon;
+          iconSpan.style.marginRight = '6px';
+          iconSpan.style.fontSize = '1.2em';
+          el.appendChild(iconSpan);
+        }
+      }
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = node.topic;
+      el.appendChild(textSpan);
+
       if (this.maxWidth !== -1) {
-        el.style.whiteSpace = 'pre-wrap';
-        // el.style.wordBreak = 'break-all'; // REMOVED: Causes short text to wrap globally
-        el.style.wordWrap = 'break-word'; // Legacy support
-        el.style.overflowWrap = 'anywhere'; // Modern standard
-        el.style.maxWidth = `${this.maxWidth}px`;
-        el.style.width = 'max-content'; // Ensure efficient width usage up to maxWidth
+        textSpan.style.whiteSpace = 'pre-wrap';
+        textSpan.style.wordWrap = 'break-word';
+        textSpan.style.overflowWrap = 'anywhere';
+        textSpan.style.maxWidth = `${this.maxWidth}px`;
+        // el width is auto (flex)
       } else {
-        el.style.whiteSpace = 'pre';
+        textSpan.style.whiteSpace = 'pre';
       }
     }
 
@@ -499,19 +527,46 @@ export class SvgRenderer implements Renderer {
     }
 
     const el = document.createElement('div');
-    el.textContent = node.topic;
     el.className = 'mindmap-node';
     el.style.visibility = 'hidden';
     el.style.position = 'absolute';
+
+    // Replicate render logic for measurement
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+
+    if (node.icon) {
+      const svgData = SVG_ICONS[node.icon];
+      if (svgData) {
+        // SVG Placeholder for measurement
+        const iconPlaceholder = document.createElement('div');
+        iconPlaceholder.style.width = '20px';
+        iconPlaceholder.style.height = '20px';
+        iconPlaceholder.style.marginRight = '8px';
+        iconPlaceholder.style.flexShrink = '0';
+        el.appendChild(iconPlaceholder);
+      } else {
+        // Fallback for emojis
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = node.icon;
+        iconSpan.style.marginRight = '6px';
+        iconSpan.style.fontSize = '1.2em';
+        el.appendChild(iconSpan);
+      }
+    }
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = node.topic;
+    el.appendChild(textSpan);
+
     if (this.maxWidth !== -1) {
-      el.style.whiteSpace = 'pre-wrap';
-      // el.style.wordBreak = 'break-all';
-      el.style.wordWrap = 'break-word';
-      el.style.overflowWrap = 'anywhere';
-      el.style.maxWidth = `${this.maxWidth}px`;
-      el.style.width = 'max-content';
+      textSpan.style.whiteSpace = 'pre-wrap';
+      textSpan.style.wordWrap = 'break-word';
+      textSpan.style.overflowWrap = 'anywhere';
+      textSpan.style.maxWidth = `${this.maxWidth}px`;
+      textSpan.style.width = 'max-content';
     } else {
-      el.style.whiteSpace = 'pre';
+      textSpan.style.whiteSpace = 'pre';
     }
     el.style.padding = '8px 12px';
     el.style.border = '1px solid var(--vscode-editorGroup-border, #ccc)';

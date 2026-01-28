@@ -20,6 +20,7 @@ Master the shortcuts and expand your mind map at the speed of thought.
   - Font size adjustment.
   - Bold (`Bold`), Italic (`Italic`).
   - Color changes via palette (Style Editor).
+  - **Icon Settings**: Add/Remove flat icons via Command Palette (`m` key).
 - **Interaction**:
   - Drag and drop for node movement and reordering.
   - Keyboard shortcuts for rapid operation.
@@ -188,6 +189,7 @@ All values accept standard CSS strings.
 - **`kakidash.redo()`**: Redo the last undone change.
 - **`kakidash.toggleFold(nodeId)`**: Toggle fold state of a node.
 - **`kakidash.getSelectedNodeId()`**: Get the ID of the currently selected node.
+- **`kakidash.updateNode(nodeId, { topic?, style?, icon? })`**: Updates a node property. `icon` accepts an icon ID (e.g., 'check').
 - **`kakidash.on(event, listener)`**: Register an event listener.
 - **`kakidash.off(event, listener)`**: Remove an event listener.
 
@@ -198,7 +200,7 @@ All values accept standard CSS strings.
 | `node:select` | `string \| null` | Fired when a node is selected. |
 | `node:add` | `{ id: string; topic: string }` | Fired when a new node is added. |
 | `node:remove` | `string` | Fired when a node is removed. |
-| `node:update` | `{ id: string; topic: string }` | Fired when a node is updated. |
+| `node:update` | `{ id: string; topic?: string; icon?: string }` | Fired when a node is updated. |
 | `node:move` | `{ nodeId: string; newParentId: string; position?: string }` | Fired when a node is moved. |
 | `model:load` | `MindMapData` | Fired when data is loaded. |
 | `model:change` | `void` | Fired when the data model changes. |
@@ -303,6 +305,7 @@ Here is the complete default configuration. You can partially override these key
 ### General
 | Key | Description |
 | --- | --- |
+| `m` | Command Palette (Search / Icons) |
 | `Arrow Keys` | Navigate between nodes |
 | `h` / `j` / `k` / `l` | Navigate between nodes (Vim-style) |
 | `F2` / `DblClick` / `Space` | Start editing node (Space triggers zoom if image) |
