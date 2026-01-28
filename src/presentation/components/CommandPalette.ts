@@ -1,3 +1,5 @@
+import { SVG_ICONS } from '../resources/Icons';
+
 export interface CommandPaletteOptions {
   onInput: (query: string) => void;
   onSelect: (nodeId: string) => void;
@@ -41,16 +43,16 @@ export class CommandPalette {
   */
   private readonly ICON_LIST: Array<{ id: string; topic: string; type: 'icon' }> = [
     { id: 'delete', topic: '🗑️ 削除 (Delete)', type: 'icon' },
-    { id: 'blue_circle', topic: '🔵 Good', type: 'icon' },
-    { id: 'red_circle', topic: '🔴 Bad', type: 'icon' },
-    { id: 'question', topic: '❓ Question', type: 'icon' },
-    { id: 'important', topic: '⭐️ Important', type: 'icon' },
-    { id: 'check', topic: '✅ Check', type: 'icon' },
-    { id: 'cross', topic: '❌ Cross', type: 'icon' },
-    { id: 'flag', topic: '🚩 Flag', type: 'icon' },
-    { id: 'idea', topic: '💡 Idea', type: 'icon' },
-    { id: 'warning', topic: '⚠️ Warning', type: 'icon' },
-    { id: 'schedule', topic: '📅 Schedule', type: 'icon' },
+    { id: 'blue_circle', topic: 'Good', type: 'icon' },
+    { id: 'red_circle', topic: 'Bad', type: 'icon' },
+    { id: 'question', topic: 'Question', type: 'icon' },
+    { id: 'important', topic: 'Important', type: 'icon' },
+    { id: 'check', topic: 'Check', type: 'icon' },
+    { id: 'cross', topic: 'Cross', type: 'icon' },
+    { id: 'flag', topic: 'Flag', type: 'icon' },
+    { id: 'idea', topic: 'Idea', type: 'icon' },
+    { id: 'warning', topic: 'Warning', type: 'icon' },
+    { id: 'schedule', topic: 'Schedule', type: 'icon' },
   ];
 
   constructor(container: HTMLElement, options: CommandPaletteOptions) {
@@ -231,11 +233,30 @@ export class CommandPalette {
     this.resultListEl.style.display = 'block';
     items.forEach((item, index) => {
       const li = document.createElement('li');
-      li.textContent = item.topic;
-      li.style.padding = '8px 12px';
-      li.style.cursor = 'pointer';
-      li.style.fontSize = '14px';
       li.style.borderBottom = '1px solid #f9f9f9';
+
+      if (item.type === 'icon' && item.id !== 'delete') {
+        li.style.display = 'flex';
+        li.style.alignItems = 'center';
+
+        const svgData = SVG_ICONS[item.id];
+        if (svgData) {
+          const iconContainer = document.createElement('div');
+          iconContainer.style.width = '20px';
+          iconContainer.style.height = '20px';
+          iconContainer.style.marginRight = '8px';
+          iconContainer.style.flexShrink = '0';
+          iconContainer.innerHTML = `<svg viewBox="${svgData.viewBox}" width="20" height="20">${svgData.path}</svg>`;
+          li.appendChild(iconContainer);
+        }
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = item.topic;
+        li.appendChild(textSpan);
+      } else {
+        li.textContent = item.topic;
+      }
+
       if (item.type === 'command') {
         li.style.fontWeight = 'bold';
         li.style.color = '#333';
