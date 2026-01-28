@@ -56,6 +56,7 @@ classDiagram
         -controller: MindMapController
         +addNode()
         +deleteNode()
+        +updateNode()
         +undo()
         +redo()
     }
@@ -71,6 +72,7 @@ classDiagram
         +init()
         +render()
         +selectNode()
+        +updateNode()
         +toggleCommandPalette()
     }
 
@@ -80,7 +82,9 @@ classDiagram
         -idGenerator: IdGenerator
         +addNode()
         +removeNode()
-        +undo()
+        +updateNodeTopic()
+        +updateNodeStyle()
+        +updateNodeIcon()
         +undo()
         +redo()
         +exportData()
@@ -99,6 +103,7 @@ classDiagram
         +topic: string
         +children: Node[]
         +style: NodeStyle
+        +icon: string
         +addChild()
         +removeChild()
     }
@@ -178,7 +183,7 @@ The core of business logic. Has no external dependencies.
 
 - **Entities**: 
   - `MindMap`: Root entity managing the entire mind map.
-  - `Node`: Data structure and behavior for each node (parent-child relationship management, etc.).
+  - `Node`: Data structure and behavior for each node (parent-child relationship, style, and icon management, etc.).
 - **Interfaces**:
   - `IdGenerator`: Abstraction interface for ID generation.
   - `MindMapData`: Type definitions for data export/import.
@@ -189,7 +194,7 @@ Orchestrates domain entities to implement application use cases.
 
 #### Services (`src/application/services`)
 - **MindMapService**:
-  - Implements major use cases such as adding, deleting, moving, and editing nodes.
+  - Implements major use cases such as adding, deleting, moving, editing nodes, and icon settings.
   - Coordinates with history management (Undo/Redo).
 - **HistoryManager**:
   - Manages operation history using the Memento pattern.

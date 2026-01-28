@@ -24,9 +24,9 @@ export class CommandPalette {
     topic: string;
     type: 'command' | 'node';
   }> = [
-      { id: 'search-nodes', topic: '> Search Nodes', type: 'command' },
-      { id: 'icon', topic: '> Icon', type: 'command' },
-    ];
+    { id: 'search-nodes', topic: '> Search Nodes', type: 'command' },
+    { id: 'icon', topic: '> Icon', type: 'command' },
+  ];
 
   /*
     1. 🔵 (Good)
@@ -206,7 +206,9 @@ export class CommandPalette {
     }
   }
 
-  private renderList(items: Array<{ id: string; topic: string; type?: 'command' | 'node' | 'icon' }>) {
+  private renderList(
+    items: Array<{ id: string; topic: string; type?: 'command' | 'node' | 'icon' }>,
+  ) {
     this.results = items;
     this.resultListEl.innerHTML = '';
     this.selectedIndex = -1;
@@ -256,8 +258,6 @@ export class CommandPalette {
       } else {
         li.textContent = item.topic;
       }
-
-
 
       li.addEventListener('mouseenter', () => {
         this.setSelectedIndex(index);

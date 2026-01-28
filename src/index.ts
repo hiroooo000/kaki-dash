@@ -170,7 +170,10 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.controller.deleteNode(nodeId);
   }
 
-  updateNode(nodeId: string, updates: { topic?: string; style?: Partial<NodeStyle> }): void {
+  updateNode(
+    nodeId: string,
+    updates: { topic?: string; style?: Partial<NodeStyle>; icon?: string },
+  ): void {
     this.controller.updateNode(nodeId, updates);
   }
 

@@ -206,7 +206,10 @@ export class MindMapController {
     }
   }
 
-  updateNode(nodeId: string, updates: { topic?: string; style?: Partial<NodeStyle> }): void {
+  updateNode(
+    nodeId: string,
+    updates: { topic?: string; style?: Partial<NodeStyle>; icon?: string },
+  ): void {
     let changed = false;
     if (this.interactionHandler && this.interactionHandler.isReadOnly) return;
 
@@ -215,6 +218,9 @@ export class MindMapController {
     }
     if (updates.style !== undefined) {
       if (this.service.updateNodeStyle(nodeId, updates.style)) changed = true;
+    }
+    if (updates.icon !== undefined) {
+      if (this.service.updateNodeIcon(nodeId, updates.icon)) changed = true;
     }
 
     if (changed) {

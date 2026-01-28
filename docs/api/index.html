@@ -15,6 +15,7 @@ Master the shortcuts and expand your mind map at the speed of thought.</p>
 <li>Font size adjustment.</li>
 <li>Bold (<code>Bold</code>), Italic (<code>Italic</code>).</li>
 <li>Color changes via palette (Style Editor).</li>
+<li><strong>Icon Settings</strong>: Add/Remove flat icons via Command Palette (<code>m</code> key).</li>
 </ul>
 </li>
 <li><strong>Interaction</strong>:
@@ -129,6 +130,7 @@ Master the shortcuts and expand your mind map at the speed of thought.</p>
 <li><strong><code>kakidash.redo()</code></strong>: Redo the last undone change.</li>
 <li><strong><code>kakidash.toggleFold(nodeId)</code></strong>: Toggle fold state of a node.</li>
 <li><strong><code>kakidash.getSelectedNodeId()</code></strong>: Get the ID of the currently selected node.</li>
+<li><strong><code>kakidash.updateNode(nodeId, { topic?, style?, icon? })</code></strong>: Updates a node property. <code>icon</code> accepts an icon ID (e.g., 'check').</li>
 <li><strong><code>kakidash.on(event, listener)</code></strong>: Register an event listener.</li>
 <li><strong><code>kakidash.off(event, listener)</code></strong>: Remove an event listener.</li>
 </ul>
@@ -159,7 +161,7 @@ Master the shortcuts and expand your mind map at the speed of thought.</p>
 </tr>
 <tr>
 <td><code>node:update</code></td>
-<td><code>{ id: string; topic: string }</code></td>
+<td><code>{ id: string; topic?: string; icon?: string }</code></td>
 <td>Fired when a node is updated.</td>
 </tr>
 <tr>
@@ -203,6 +205,10 @@ Master the shortcuts and expand your mind map at the speed of thought.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>m</code></td>
+<td>Command Palette (Search / Icons)</td>
+</tr>
 <tr>
 <td><code>Arrow Keys</code></td>
 <td>Navigate between nodes</td>
