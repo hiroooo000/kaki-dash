@@ -257,10 +257,7 @@ export class CommandPalette {
         li.textContent = item.topic;
       }
 
-      if (item.type === 'command') {
-        li.style.fontWeight = 'bold';
-        li.style.color = '#333';
-      }
+
 
       li.addEventListener('mouseenter', () => {
         this.setSelectedIndex(index);
