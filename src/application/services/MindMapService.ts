@@ -378,7 +378,11 @@ export class MindMapService {
     const node = this.mindMap.findNode(id);
     if (node) {
       this.saveState();
-      node.icon = icon;
+      if (icon === 'delete') {
+        node.icon = undefined;
+      } else {
+        node.icon = icon;
+      }
       return true;
     }
     return false;

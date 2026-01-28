@@ -23,32 +23,34 @@ export class CommandPalette {
     type: 'command' | 'node';
   }> = [
       { id: 'search-nodes', topic: '> Search Nodes', type: 'command' },
-      { id: 'add-icon', topic: '> Add Icon', type: 'command' },
+      { id: 'icon', topic: '> Icon', type: 'command' },
     ];
 
   /*
-    1. 🔵 (よい)
-    2. 🔴 (わるい)
-    3. ❓ (質問)
-    4. ⭐️ (重要)
-    5. ✅ (チェック)
-    6. ❌ (バツ)
-    7. 🚩 (フラグ)
-    8. 💡 (アイデア)
-    9. ⚠️ (注意)
-    10. 📅 (予定)
+    1. 🔵 (Good)
+    2. 🔴 (Bad)
+    3. ❓ (Question)
+    4. ⭐️ (Important)
+    5. ✅ (Check)
+    6. ❌ (Cross)
+    7. 🚩 (Flag)
+    8. 💡 (Idea)
+    9. ⚠️ (Warning)
+    10. 📅 (Schedule)
+    + 🗑️ (Delete)
   */
   private readonly ICON_LIST: Array<{ id: string; topic: string; type: 'icon' }> = [
-    { id: '🔵', topic: '🔵 Good (Yoi)', type: 'icon' },
-    { id: '🔴', topic: '🔴 Bad (Warui)', type: 'icon' },
-    { id: '❓', topic: '❓ Question', type: 'icon' },
-    { id: '⭐️', topic: '⭐️ Important', type: 'icon' },
-    { id: '✅', topic: '✅ Check', type: 'icon' },
-    { id: '❌', topic: '❌ Cross', type: 'icon' },
-    { id: '🚩', topic: '🚩 Flag', type: 'icon' },
-    { id: '💡', topic: '💡 Idea', type: 'icon' },
-    { id: '⚠️', topic: '⚠️ Warning', type: 'icon' },
-    { id: '📅', topic: '📅 Schedule', type: 'icon' },
+    { id: 'delete', topic: '🗑️ 削除 (Delete)', type: 'icon' },
+    { id: 'blue_circle', topic: '🔵 Good', type: 'icon' },
+    { id: 'red_circle', topic: '🔴 Bad', type: 'icon' },
+    { id: 'question', topic: '❓ Question', type: 'icon' },
+    { id: 'important', topic: '⭐️ Important', type: 'icon' },
+    { id: 'check', topic: '✅ Check', type: 'icon' },
+    { id: 'cross', topic: '❌ Cross', type: 'icon' },
+    { id: 'flag', topic: '🚩 Flag', type: 'icon' },
+    { id: 'idea', topic: '💡 Idea', type: 'icon' },
+    { id: 'warning', topic: '⚠️ Warning', type: 'icon' },
+    { id: 'schedule', topic: '📅 Schedule', type: 'icon' },
   ];
 
   constructor(container: HTMLElement, options: CommandPaletteOptions) {
@@ -259,7 +261,7 @@ export class CommandPalette {
     if (item.type === 'command') {
       if (item.id === 'search-nodes') {
         this.switchToSearchMode();
-      } else if (item.id === 'add-icon') {
+      } else if (item.id === 'icon') {
         this.switchToIconMode();
       }
     } else if (item.type === 'icon') {

@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach } from 'vitest';
 import { MindMapService } from '../src/application/services/MindMapService';
 import { MindMap } from '../src/domain/entities/MindMap';
 import { Node } from '../src/domain/entities/Node';
@@ -26,18 +27,18 @@ describe('Icon Feature', () => {
         const node = service.addNode('root', 'Child');
         expect(node).not.toBeNull();
 
-        const result = service.updateNodeIcon(node!.id, '🔵');
+        const result = service.updateNodeIcon(node!.id, 'blue_circle');
         expect(result).toBe(true);
-        expect(node!.icon).toBe('🔵');
+        expect(node!.icon).toBe('blue_circle');
     });
 
     test('should persist icon in exportData', () => {
         const node = service.addNode('root', 'Child');
-        service.updateNodeIcon(node!.id, '⭐️');
+        service.updateNodeIcon(node!.id, 'important');
 
         const data = service.exportData();
         const childData = data.nodeData.children![0];
-        expect(childData.icon).toBe('⭐️');
+        expect(childData.icon).toBe('important');
     });
 
     test('should load icon in importData', () => {
@@ -50,7 +51,7 @@ describe('Icon Feature', () => {
                     {
                         id: 'child-1',
                         topic: 'Child',
-                        icon: '✅'
+                        icon: 'check'
                     }
                 ]
             }
@@ -58,17 +59,27 @@ describe('Icon Feature', () => {
 
         service.importData(data);
         const child = mindMap.root.children[0];
-        expect(child.icon).toBe('✅');
+        expect(child.icon).toBe('check');
     });
 
     test('should copy icon when copying node', () => {
         const node = service.addNode('root', 'Child');
-        service.updateNodeIcon(node!.id, '⚠️');
+        service.updateNodeIcon(node!.id, 'warning');
 
         service.copyNode(node!.id);
         const pastedNode = service.pasteNode('root');
 
         expect(pastedNode).not.toBeNull();
-        expect(pastedNode!.icon).toBe('⚠️');
+        expect(pastedNode!.icon).toBe('warning');
+    });
+
+    test('should delete icon', () => {
+        const node = service.addNode('root', 'Child');
+        service.updateNodeIcon(node!.id, 'blue_circle');
+        expect(node!.icon).toBe('blue_circle');
+
+        const result = service.updateNodeIcon(node!.id, 'delete');
+        expect(result).toBe(true);
+        expect(node!.icon).toBeUndefined();
     });
 });
