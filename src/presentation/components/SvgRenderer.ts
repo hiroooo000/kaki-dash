@@ -170,16 +170,30 @@ export class SvgRenderer implements Renderer {
       el.style.padding = '5px'; // Less padding for images
     } else {
       // Text Node
-      el.textContent = node.topic;
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = node.isRoot ? 'center' : 'flex-start';
+
+      if (node.icon) {
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = node.icon;
+        iconSpan.style.marginRight = '6px';
+        iconSpan.style.fontSize = '1.2em';
+        el.appendChild(iconSpan);
+      }
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = node.topic;
+      el.appendChild(textSpan);
+
       if (this.maxWidth !== -1) {
-        el.style.whiteSpace = 'pre-wrap';
-        // el.style.wordBreak = 'break-all'; // REMOVED: Causes short text to wrap globally
-        el.style.wordWrap = 'break-word'; // Legacy support
-        el.style.overflowWrap = 'anywhere'; // Modern standard
-        el.style.maxWidth = `${this.maxWidth}px`;
-        el.style.width = 'max-content'; // Ensure efficient width usage up to maxWidth
+        textSpan.style.whiteSpace = 'pre-wrap';
+        textSpan.style.wordWrap = 'break-word';
+        textSpan.style.overflowWrap = 'anywhere';
+        textSpan.style.maxWidth = `${this.maxWidth}px`;
+        // el width is auto (flex)
       } else {
-        el.style.whiteSpace = 'pre';
+        textSpan.style.whiteSpace = 'pre';
       }
     }
 
@@ -499,19 +513,34 @@ export class SvgRenderer implements Renderer {
     }
 
     const el = document.createElement('div');
-    el.textContent = node.topic;
     el.className = 'mindmap-node';
     el.style.visibility = 'hidden';
     el.style.position = 'absolute';
+
+    // Replicate render logic for measurement
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+
+    if (node.icon) {
+      const iconSpan = document.createElement('span');
+      iconSpan.textContent = node.icon;
+      iconSpan.style.marginRight = '6px';
+      iconSpan.style.fontSize = '1.2em';
+      el.appendChild(iconSpan);
+    }
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = node.topic;
+    el.appendChild(textSpan);
+
     if (this.maxWidth !== -1) {
-      el.style.whiteSpace = 'pre-wrap';
-      // el.style.wordBreak = 'break-all';
-      el.style.wordWrap = 'break-word';
-      el.style.overflowWrap = 'anywhere';
-      el.style.maxWidth = `${this.maxWidth}px`;
-      el.style.width = 'max-content';
+      textSpan.style.whiteSpace = 'pre-wrap';
+      textSpan.style.wordWrap = 'break-word';
+      textSpan.style.overflowWrap = 'anywhere';
+      textSpan.style.maxWidth = `${this.maxWidth}px`;
+      textSpan.style.width = 'max-content';
     } else {
-      el.style.whiteSpace = 'pre';
+      textSpan.style.whiteSpace = 'pre';
     }
     el.style.padding = '8px 12px';
     el.style.border = '1px solid var(--vscode-editorGroup-border, #ccc)';

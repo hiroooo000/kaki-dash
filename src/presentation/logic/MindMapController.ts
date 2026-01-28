@@ -62,6 +62,7 @@ export class MindMapController {
     this.commandPalette = new CommandPalette(this.renderer.container, {
       onInput: (query) => this.handleSearchInput(query),
       onSelect: (nodeId) => this.handleSearchResultSelect(nodeId),
+      onIconSelect: (icon) => this.handleIconSelect(icon),
       onClose: () => {
         if (this.interactionHandler) this.interactionHandler.container.focus();
       },
@@ -645,6 +646,15 @@ export class MindMapController {
   private handleSearchResultSelect(nodeId: string): void {
     this.selectNode(nodeId);
     setTimeout(() => this.ensureNodeVisible(nodeId, true, true), 0);
+  }
+
+  private handleIconSelect(icon: string): void {
+    if (this.selectedNodeId) {
+      this.service.updateNodeIcon(this.selectedNodeId, icon);
+      this.render();
+      this.eventBus.emit('model:change', undefined);
+      setTimeout(() => this.ensureNodeVisible(this.selectedNodeId!, true, true), 0);
+    }
   }
 
   private applyCustomStylesToDOM(styles: MindMapStyles): void {

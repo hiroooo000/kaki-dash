@@ -1,6 +1,7 @@
 export interface CommandPaletteOptions {
   onInput: (query: string) => void;
   onSelect: (nodeId: string) => void;
+  onIconSelect: (icon: string) => void;
   onClose: () => void;
 }
 
@@ -12,15 +13,43 @@ export class CommandPalette {
   private resultListEl: HTMLElement;
   private options: CommandPaletteOptions;
 
-  private results: Array<{ id: string; topic: string; type?: 'command' | 'node' }> = [];
+  private results: Array<{ id: string; topic: string; type?: 'command' | 'node' | 'icon' }> = [];
   private selectedIndex: number = -1;
-  private mode: 'menu' | 'search' = 'menu';
+  private mode: 'menu' | 'search' | 'icon' = 'menu';
 
   private readonly MENU_COMMANDS: Array<{
     id: string;
     topic: string;
     type: 'command' | 'node';
-  }> = [{ id: 'search-nodes', topic: '> Search Nodes', type: 'command' }];
+  }> = [
+      { id: 'search-nodes', topic: '> Search Nodes', type: 'command' },
+      { id: 'add-icon', topic: '> Add Icon', type: 'command' },
+    ];
+
+  /*
+    1. 🔵 (よい)
+    2. 🔴 (わるい)
+    3. ❓ (質問)
+    4. ⭐️ (重要)
+    5. ✅ (チェック)
+    6. ❌ (バツ)
+    7. 🚩 (フラグ)
+    8. 💡 (アイデア)
+    9. ⚠️ (注意)
+    10. 📅 (予定)
+  */
+  private readonly ICON_LIST: Array<{ id: string; topic: string; type: 'icon' }> = [
+    { id: '🔵', topic: '🔵 Good (Yoi)', type: 'icon' },
+    { id: '🔴', topic: '🔴 Bad (Warui)', type: 'icon' },
+    { id: '❓', topic: '❓ Question', type: 'icon' },
+    { id: '⭐️', topic: '⭐️ Important', type: 'icon' },
+    { id: '✅', topic: '✅ Check', type: 'icon' },
+    { id: '❌', topic: '❌ Cross', type: 'icon' },
+    { id: '🚩', topic: '🚩 Flag', type: 'icon' },
+    { id: '💡', topic: '💡 Idea', type: 'icon' },
+    { id: '⚠️', topic: '⚠️ Warning', type: 'icon' },
+    { id: '📅', topic: '📅 Schedule', type: 'icon' },
+  ];
 
   constructor(container: HTMLElement, options: CommandPaletteOptions) {
     this.container = container;
@@ -55,7 +84,6 @@ export class CommandPalette {
 
   private createPalette(): HTMLElement {
     const el = document.createElement('div');
-    el.className = 'command-palette';
     el.className = 'command-palette';
     el.style.position = 'absolute';
     el.style.top = '20px'; // Consistent with StyleEditor top margin
@@ -94,6 +122,11 @@ export class CommandPalette {
           c.topic.toLowerCase().includes(val.toLowerCase()),
         );
         this.renderList(filtered);
+      } else if (this.mode === 'icon') {
+        const filtered = this.ICON_LIST.filter((c) =>
+          c.topic.toLowerCase().includes(val.toLowerCase()),
+        );
+        this.renderList(filtered);
       } else {
         this.options.onInput(val);
       }
@@ -112,8 +145,12 @@ export class CommandPalette {
       } else if (e.key === 'Escape') {
         e.preventDefault();
         this.close();
-      } else if (e.key === 'Backspace' && this.inputEl.value === '' && this.mode === 'search') {
-        // Back to menu? maybe complex
+      } else if (e.key === 'Backspace' && this.inputEl.value === '') {
+        if (this.mode === 'search' || this.mode === 'icon') {
+          this.mode = 'menu';
+          this.inputEl.placeholder = 'Type to filter commands...';
+          this.renderList(this.MENU_COMMANDS);
+        }
       }
     });
 
@@ -165,13 +202,13 @@ export class CommandPalette {
     }
   }
 
-  private renderList(items: Array<{ id: string; topic: string; type?: 'command' | 'node' }>) {
+  private renderList(items: Array<{ id: string; topic: string; type?: 'command' | 'node' | 'icon' }>) {
     this.results = items;
     this.resultListEl.innerHTML = '';
     this.selectedIndex = -1;
 
     if (items.length === 0) {
-      if (this.inputEl.value.trim() !== '' && this.mode === 'search') {
+      if (this.inputEl.value.trim() !== '' && (this.mode === 'search' || this.mode === 'icon')) {
         const li = document.createElement('li');
         li.textContent = 'No results found';
         li.style.padding = '8px';
@@ -218,11 +255,16 @@ export class CommandPalette {
     }
   }
 
-  private selectItem(item: { id: string; topic: string; type?: 'command' | 'node' }) {
+  private selectItem(item: { id: string; topic: string; type?: 'command' | 'node' | 'icon' }) {
     if (item.type === 'command') {
       if (item.id === 'search-nodes') {
         this.switchToSearchMode();
+      } else if (item.id === 'add-icon') {
+        this.switchToIconMode();
       }
+    } else if (item.type === 'icon') {
+      this.options.onIconSelect(item.id);
+      this.close();
     } else {
       this.options.onSelect(item.id);
       this.close();
@@ -233,10 +275,16 @@ export class CommandPalette {
     this.mode = 'search';
     this.inputEl.value = '';
     this.inputEl.placeholder = 'Search nodes...';
-    this.renderList([]); // Clear list, wait for input or show recent?
-    // Trigger empty search or wait? Standard: user types.
-    // Ensure list is hidden until typing
+    this.renderList([]);
     this.resultListEl.style.display = 'none';
+    this.inputEl.focus();
+  }
+
+  private switchToIconMode() {
+    this.mode = 'icon';
+    this.inputEl.value = '';
+    this.inputEl.placeholder = 'Select icon...';
+    this.renderList(this.ICON_LIST);
     this.inputEl.focus();
   }
 

@@ -364,6 +364,7 @@ export class MindMapService {
       node.image,
       node.layoutSide,
       node.isFolded,
+      node.icon,
     );
     clone.style = { ...node.style };
     // Determine how to handle children. Recursively clone them.
@@ -371,6 +372,16 @@ export class MindMapService {
     // Fix parent relations for children after cloning
     clone.children.forEach((child) => (child.parentId = clone.id));
     return clone;
+  }
+
+  updateNodeIcon(id: string, icon: string): boolean {
+    const node = this.mindMap.findNode(id);
+    if (node) {
+      this.saveState();
+      node.icon = icon;
+      return true;
+    }
+    return false;
   }
 
   private regenerateIds(node: Node): void {
@@ -392,6 +403,7 @@ export class MindMapService {
         image: node.image,
         layoutSide: node.layoutSide,
         isFolded: node.isFolded,
+        icon: node.icon,
       };
       return data;
     };
@@ -429,6 +441,7 @@ export class MindMapService {
         data.image,
         data.layoutSide,
         data.isFolded || false,
+        data.icon,
       );
 
       if (data.style) {

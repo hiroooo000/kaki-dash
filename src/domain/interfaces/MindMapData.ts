@@ -13,6 +13,7 @@ export interface MindMapNodeData {
   parentId?: string;
   image?: string;
   layoutSide?: 'left' | 'right';
+  icon?: string;
 }
 
 export type Theme = 'default' | 'simple' | 'colorful' | 'custom';
