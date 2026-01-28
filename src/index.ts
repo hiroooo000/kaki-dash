@@ -61,6 +61,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     uiLayer.style.pointerEvents = 'none'; // Passthrough for canvas interactions
     uiLayer.style.zIndex = '2000';
 
+    // Ensure container has a positioning context for absolute children (uiLayer, CommandPalette)
+    const computedStyle = window.getComputedStyle(container);
+    if (computedStyle.position === 'static') {
+      container.style.position = 'relative';
+    }
+
     // Prevent native browser scrolling/zooming interference
     container.style.overscrollBehavior = 'none';
     container.style.touchAction = 'none';

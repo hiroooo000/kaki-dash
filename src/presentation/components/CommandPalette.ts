@@ -37,11 +37,11 @@ export class CommandPalette {
 
   private createOverlay(): HTMLElement {
     const el = document.createElement('div');
-    el.style.position = 'fixed';
+    el.style.position = 'absolute';
     el.style.top = '0';
     el.style.left = '0';
-    el.style.width = '100vw';
-    el.style.height = '100vh';
+    el.style.width = '100%';
+    el.style.height = '100%';
     el.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
     el.style.zIndex = '1999';
     el.style.display = 'none';
@@ -57,8 +57,8 @@ export class CommandPalette {
     const el = document.createElement('div');
     el.className = 'command-palette';
     el.className = 'command-palette';
-    el.style.position = 'fixed';
-    el.style.top = '15%'; // Vertically positioned at 15% to be central but not covering center content too much
+    el.style.position = 'absolute';
+    el.style.top = '20px'; // Consistent with StyleEditor top margin
     el.style.left = '50%';
     el.style.transform = 'translateX(-50%)';
     el.style.width = '400px';
