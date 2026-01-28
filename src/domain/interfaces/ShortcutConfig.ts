@@ -37,7 +37,8 @@ export type ShortcutAction =
   | 'selectColor4'
   | 'selectColor5'
   | 'selectColor6'
-  | 'selectColor7';
+  | 'selectColor7'
+  | 'openCommandPalette';
 
 export type ShortcutConfig = Partial<Record<ShortcutAction, KeyBinding[]>>;
 
@@ -92,4 +93,5 @@ export const DEFAULT_SHORTCUTS: ShortcutConfig = {
   selectColor5: [{ key: '5' }],
   selectColor6: [{ key: '6' }],
   selectColor7: [{ key: '7' }],
+  openCommandPalette: [{ key: 'm' }],
 };

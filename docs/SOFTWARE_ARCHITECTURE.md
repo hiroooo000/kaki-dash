@@ -12,6 +12,7 @@ graph TD
     subgraph Presentation ["Presentation Layer"]
         Controller[MindMapController]
         View[SvgRenderer / StyleEditor]
+        Command[CommandPalette]
         Interaction[InteractionHandler]
     end
 
@@ -64,11 +65,13 @@ classDiagram
         -service: MindMapService
         -renderer: SvgRenderer
         -styleEditor: StyleEditor
+        -commandPalette: CommandPalette
         -interactionHandler: InteractionHandler
         -layoutSwitcher: LayoutSwitcher
         +init()
         +render()
         +selectNode()
+        +toggleCommandPalette()
     }
 
     class MindMapService {
@@ -78,8 +81,10 @@ classDiagram
         +addNode()
         +removeNode()
         +undo()
+        +undo()
         +redo()
         +exportData()
+        +searchNodes()
     }
 
     class MindMap {
@@ -111,6 +116,12 @@ classDiagram
         +setReadOnly()
     }
 
+    class CommandPalette {
+        +container: HTMLElement
+        +toggle()
+        +setResults()
+    }
+
     class CryptoIdGenerator {
         +generate()
     }
@@ -122,6 +133,7 @@ classDiagram
     MindMapController o-- MindMap : updates
     MindMapController o-- MindMapService : delegates logic
     MindMapController o-- SvgRenderer : triggers draw
+    MindMapController o-- CommandPalette : controls
     MindMapController o-- InteractionHandler : manages input
     
     MindMapService o-- MindMap : operates on
@@ -196,6 +208,9 @@ Handles user interface and user input.
   - Responsible for SVG rendering of the mind map.
 - **NodeEditor / StyleEditor**:
   - Separates complex UI logic for node editing and styling.
+- **CommandPalette**:
+  - Command and search palette callable via `m` key.
+  - Provides node search results and navigation.
 
 ### 3.4 Infrastructure Layer (`src/infrastructure`)
 Provides concrete implementations for interfaces defined in domain and application layers.
@@ -312,6 +327,48 @@ sequenceDiagram
         Controller->>Controller: render()
         Controller-->>User: Update View
     end
+    deactivate Controller
+```
+
+### 4.4 Search and Command Palette Flow
+
+Flow when a user performs a search.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Palette as CommandPalette
+    participant Service as MindMapService
+
+    User->>Controller: toggleCommandPalette (m key)
+    activate Controller
+    Controller->>Palette: toggle()
+    deactivate Controller
+
+    User->>Palette: Input "query"
+    activate Palette
+    Palette-->>Controller: onInput("query")
+    activate Controller
+    
+    Controller->>Service: searchNodes("query")
+    activate Service
+    Service-->>Controller: Node[] results
+    deactivate Service
+    
+    Controller->>Palette: setResults(results)
+    deactivate Controller
+    deactivate Palette
+    
+    User->>Palette: Select Result
+    activate Palette
+    Palette-->>Controller: onSelect(nodeId)
+    deactivate Palette
+    activate Controller
+    
+    Controller->>Controller: selectNode(nodeId)
+    Controller->>Controller: ensureNodeVisible(nodeId)
+    Controller-->>User: Focus Node
     deactivate Controller
 ```
 

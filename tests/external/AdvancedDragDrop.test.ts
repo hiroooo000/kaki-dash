@@ -33,6 +33,8 @@ vi.mock('../../src/presentation/components/SvgRenderer', () => ({
         getBoundingClientRect: () => ({ left: 0, top: 0 }),
         clientWidth: 1000,
         clientHeight: 800,
+        appendChild: vi.fn(),
+        contains: vi.fn(), // CommandPalette might check contains
       },
     };
   }),

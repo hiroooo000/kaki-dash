@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>kakidash DEMO</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #controls {
+      padding: 10px;
+      background: #e0e0e0;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #json-input {
+      width: 300px;
+      height: 30px;
+      resize: none;
+      /* Initially small, maybe let it expand or use a modal/dialog for better UX if needed, 
+         but for verification simple textarea is fine. Let's make it a bit larger/floating? 
+         Or just a panel on top. */
+    }
+
+    #app {
+      flex: 1;
+      width: 100%;
+      background-color: #f0f0f0;
+      position: relative;
+      /* For z-indexing if needed */
+    }
+
+    textarea {
+      font-family: monospace;
+      width: 400px;
+      height: 60px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="controls">
+    <button id="btn-export">Export to JSON</button>
+    <textarea id="json-data" placeholder="Paste JSON here or click Export"></textarea>
+    <button id="btn-import">Import from JSON</button>
+
+    <div
+      style="display: flex; gap: 5px; align-items: center; border-left: 1px solid #999; padding-left: 10px; margin-left: 10px;">
+      <label>Layout:</label>
+      <select id="layoutMode">
+        <option value="Right">Right Only</option>
+        <option value="Left">Left Only</option>
+        <option value="Both">Both Sides</option>
+      </select>
+    </div>
+
+    <div
+      style="display: flex; gap: 5px; align-items: center; border-left: 1px solid #999; padding-left: 10px; margin-left: 10px;">
+      <label>Max Width:</label>
+      <input type="number" id="maxWidthInput" value="-1" step="50" style="width: 60px;" />
+      <button id="applyMaxWidthBtn">Set</button>
+      <span style="font-size: 0.8em; color: #666;">(-1 = none)</span>
+    </div>
+    <div
+      style="display: flex; gap: 5px; align-items: center; border-left: 1px solid #999; padding-left: 10px; margin-left: 10px;">
+      <label>Shortcuts (JSON):</label>
+      <textarea id="shortcuts-input" style="width: 200px; height: 30px; vertical-align: middle;"
+        placeholder='{"addChild": [...]}'>{"addChild": [{ "key": "m" }]}</textarea>
+      <button id="btn-reload-shortcuts">Reload</button>
+    </div>
+  </div>
+  <div id="mindmap-container"></div>
+  <script type="module">
+    import { Kakidash } from '/src/index.ts';
+
+    try {
+      const app = document.getElementById('mindmap-container');
+      let kakidash;
+
+      function initialize(shortcuts = {}) {
+        if (kakidash) {
+          kakidash.destroy();
+          app.innerHTML = ''; // Ensure container is clear
+        }
+
+        kakidash = new Kakidash(app, { shortcuts });
+        window.kakidash = kakidash;
+
+        // Debug logging
+        kakidash.on('node:select', (id) => console.log('EVENT node:select', id));
+        kakidash.on('node:add', (payload) => console.log('EVENT node:add', payload));
+        kakidash.on('node:remove', (id) => console.log('EVENT node:remove', id));
+        kakidash.on('node:update', (payload) => console.log('EVENT node:update', payload));
+        kakidash.on('node:move', (payload) => console.log('EVENT node:move', payload));
+      }
+
+      // Initial load
+      initialize();
+
+      // Add some sample nodes
+      const rootId = kakidash.getRootId();
+      const child1 = kakidash.addNode(rootId, 'Child 1');
+      const child2 = kakidash.addNode(rootId, 'Child 2');
+
+      if (child1) {
+        kakidash.addNode(child1.id, 'GrandChild 1.1');
+        kakidash.addNode(child1.id, 'GrandChild 1.2');
+      }
+
+      // GUI Event Listeners
+
+
+
+      const layoutSelect = document.getElementById('layoutMode');
+      if (layoutSelect) { // Added check for element existence
+        layoutSelect.addEventListener('change', (e) => {
+          kakidash.setLayoutMode(e.target.value); // Changed mindMap to kakidash
+        });
+      }
+
+      const maxWidthInput = document.getElementById('maxWidthInput');
+      const applyMaxWidthBtn = document.getElementById('applyMaxWidthBtn');
+
+      if (maxWidthInput && applyMaxWidthBtn) {
+        applyMaxWidthBtn.addEventListener('click', () => {
+          // @ts-ignore
+          let width = parseInt(maxWidthInput.value, 10);
+          if (isNaN(width) || width < 0) {
+            width = -1;
+            // @ts-ignore
+            maxWidthInput.value = -1; // Reflect correction
+          }
+
+          kakidash.setMaxNodeWidth(width);
+        });
+      }
+
+      document.getElementById('btn-reload-shortcuts').addEventListener('click', () => {
+        const input = document.getElementById('shortcuts-input').value;
+        let shortcuts = {};
+        try {
+          if (input.trim()) {
+            shortcuts = JSON.parse(input);
+          }
+          // Preserve data
+          const currentData = kakidash.getData();
+          initialize(shortcuts);
+          kakidash.loadData(currentData);
+          console.log('Reloaded with shortcuts:', shortcuts);
+        } catch (e) {
+          alert('Invalid JSON for shortcuts');
+          console.error(e);
+        }
+      });
+
+
+      document.getElementById('btn-export').addEventListener('click', () => {
+        const data = kakidash.getData();
+        const json = JSON.stringify(data, null, 2);
+        document.getElementById('json-data').value = json;
+      });
+
+      document.getElementById('btn-import').addEventListener('click', () => {
+        const jsonStr = document.getElementById('json-data').value;
+        try {
+          const data = JSON.parse(jsonStr);
+          kakidash.loadData(data);
+        } catch (err) {
+          console.error('Import failed:', err);
+          alert('Invalid JSON');
+        }
+      });
+
+      // ReadOnly Toggle
+      // ReadOnly removed from UI temporarily as per previous edits, but keeping listener logic clean if needed
+      // or just closing the try block properly.
+    } catch (e) {
+      console.error('Initialization error:', e);
+      document.body.innerHTML += `<div style="color:red; padding: 20px;">Error: ${e.message}</div>`;
+    }
+  </script>
+</body>
+
+</html>

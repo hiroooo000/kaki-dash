@@ -105,4 +105,16 @@ describe('InteractionHandler Shortcuts', () => {
     expect(shortcuts.addChild).toEqual([{ key: 'n', ctrlKey: true }]); // overridden
     expect(shortcuts.undo).toBeDefined(); // defaults should exist
   });
+
+  it('should trigger openCommandPalette even without node selection', () => {
+    options.onToggleCommandPalette = vi.fn();
+    const handler = new InteractionHandler(container, options);
+    // Ensure NO selection
+    handler.updateSelection(null);
+
+    const event = new KeyboardEvent('keydown', { key: 'm', bubbles: true });
+    document.body.dispatchEvent(event);
+
+    expect(options.onToggleCommandPalette).toHaveBeenCalled();
+  });
 });

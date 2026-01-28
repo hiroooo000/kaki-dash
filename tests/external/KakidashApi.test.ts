@@ -8,7 +8,10 @@ import { Kakidash } from '../../src/index';
 // Mock HTMLElement and SvgRenderer as they depend on DOM
 class MockHTMLElement {
   dataset = {};
-  style = {};
+  style = {
+    setProperty: vi.fn(),
+    removeProperty: vi.fn(),
+  };
   addEventListener = vi.fn();
   setAttribute = vi.fn();
   appendChild = vi.fn();
@@ -21,7 +24,10 @@ class MockHTMLElement {
 (global as any).document = {
   createElement: (_tag: string) => {
     return {
-      style: {},
+      style: {
+        setProperty: vi.fn(),
+        removeProperty: vi.fn(),
+      },
       dataset: {},
       classList: { add: vi.fn(), remove: vi.fn() },
       appendChild: vi.fn(),

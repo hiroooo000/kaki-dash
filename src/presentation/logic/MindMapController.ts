@@ -11,6 +11,7 @@ import { KakidashEventMap } from '../../domain/interfaces/KakidashEvents';
 import { ShortcutAction, KeyBinding } from '../../domain/interfaces/ShortcutConfig';
 import { MindMapStyles } from '../../domain/interfaces/MindMapStyles';
 import { StyleAction } from './StyleAction';
+import { CommandPalette } from '../components/CommandPalette';
 
 export interface IMindMapEventBus {
   emit<K extends keyof KakidashEventMap>(event: K, payload: KakidashEventMap[K]): void;
@@ -22,6 +23,7 @@ export class MindMapController {
   private renderer: SvgRenderer;
   private eventBus: IMindMapEventBus;
   private styleEditor: StyleEditor;
+  private commandPalette: CommandPalette;
   private interactionHandler!: InteractionHandler;
   private layoutSwitcher!: LayoutSwitcher;
 
@@ -57,6 +59,13 @@ export class MindMapController {
     this.renderer = renderer;
     this.styleEditor = styleEditor;
     this.eventBus = eventBus;
+    this.commandPalette = new CommandPalette(this.renderer.container, {
+      onInput: (query) => this.handleSearchInput(query),
+      onSelect: (nodeId) => this.handleSearchResultSelect(nodeId),
+      onClose: () => {
+        if (this.interactionHandler) this.interactionHandler.container.focus();
+      },
+    });
   }
 
   public setInteractionHandler(handler: InteractionHandler) {
@@ -617,6 +626,25 @@ export class MindMapController {
         }
       }
     }
+  }
+
+  public toggleCommandPalette(): void {
+    if (this.interactionHandler && this.interactionHandler.isReadOnly) return;
+    this.commandPalette.toggle();
+  }
+
+  public searchNodes(query: string): Node[] {
+    return this.service.searchNodes(query);
+  }
+
+  private handleSearchInput(query: string): void {
+    const results = this.service.searchNodes(query);
+    this.commandPalette.setResults(results.map((n) => ({ id: n.id, topic: n.topic })));
+  }
+
+  private handleSearchResultSelect(nodeId: string): void {
+    this.selectNode(nodeId);
+    setTimeout(() => this.ensureNodeVisible(nodeId, true, true), 0);
   }
 
   private applyCustomStylesToDOM(styles: MindMapStyles): void {

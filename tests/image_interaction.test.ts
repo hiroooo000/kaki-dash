@@ -118,8 +118,8 @@ describe('Image Node Interactions', () => {
     document.dispatchEvent(escapeEvent);
 
     // Wait for async operations if any (though currently synchronous)
-    // Check if modal is gone
-    const modalAfter = document.body.querySelector('div[style*="position: fixed"]');
+    // Check if modal is gone (Target specifically the Image Modal with z-index 1000, avoiding CommandPalette's 1999)
+    const modalAfter = document.body.querySelector('div[style*="z-index: 1000"]');
     expect(modalAfter).toBeNull();
 
     // Check Focus

@@ -61,6 +61,12 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     uiLayer.style.pointerEvents = 'none'; // Passthrough for canvas interactions
     uiLayer.style.zIndex = '2000';
 
+    // Ensure container has a positioning context for absolute children (uiLayer, CommandPalette)
+    const computedStyle = window.getComputedStyle(container);
+    if (computedStyle.position === 'static') {
+      container.style.position = 'relative';
+    }
+
     // Prevent native browser scrolling/zooming interference
     container.style.overscrollBehavior = 'none';
     container.style.touchAction = 'none';
@@ -104,6 +110,7 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
       onStyleAction: (nodeId, action) => this.controller.onStyleAction(nodeId, action),
       onEditEnd: (_) => this.controller.onEditEnd(),
       onToggleFold: (nodeId) => this.controller.toggleFold(nodeId),
+      onToggleCommandPalette: () => this.controller.toggleCommandPalette(),
       shortcuts: options.shortcuts,
     });
 
@@ -177,6 +184,36 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
 
   public toggleFold(nodeId: string): void {
     this.controller.toggleFold(nodeId);
+  }
+
+  /**
+   * Toggles the visibility of the command palette.
+   */
+  public toggleCommandPalette(): void {
+    this.controller.toggleCommandPalette();
+  }
+
+  /**
+   * Opens the command palette (alias for toggleCommandPalette).
+   */
+  public openCommandPalette(): void {
+    // Alias for toggle, but specifically intending to open.
+    // Since toggle just toggles, we might want to ensure open?
+    // CommandPalette.toggle checks display.
+    // Controller exposes toggle.
+    // If I want force open, I need force open method in Controller.
+    // Re-using toggle for now as per user request context usually implies toggle.
+    this.controller.toggleCommandPalette();
+  }
+
+  /**
+   * Searches for nodes matching the query string.
+   * Performs a case-insensitive, partial match search.
+   * @param query The search string.
+   * @returns An array of matching Node objects.
+   */
+  public searchNodes(query: string): Node[] {
+    return this.controller.searchNodes(query);
   }
 
   public getSelectedNodeId(): string | null {

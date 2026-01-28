@@ -12,6 +12,7 @@ graph TD
     subgraph Presentation ["Presentation Layer"]
         Controller[MindMapController]
         View[SvgRenderer / StyleEditor]
+        Command[CommandPalette]
         Interaction[InteractionHandler]
     end
 
@@ -64,11 +65,13 @@ classDiagram
         -service: MindMapService
         -renderer: SvgRenderer
         -styleEditor: StyleEditor
+        -commandPalette: CommandPalette
         -interactionHandler: InteractionHandler
         -layoutSwitcher: LayoutSwitcher
         +init()
         +render()
         +selectNode()
+        +toggleCommandPalette()
     }
 
     class MindMapService {
@@ -78,8 +81,10 @@ classDiagram
         +addNode()
         +removeNode()
         +undo()
+        +undo()
         +redo()
         +exportData()
+        +searchNodes()
     }
 
     class MindMap {
@@ -111,6 +116,12 @@ classDiagram
         +setReadOnly()
     }
 
+    class CommandPalette {
+        +container: HTMLElement
+        +toggle()
+        +setResults()
+    }
+
     class CryptoIdGenerator {
         +generate()
     }
@@ -122,6 +133,7 @@ classDiagram
     MindMapController o-- MindMap : updates
     MindMapController o-- MindMapService : delegates logic
     MindMapController o-- SvgRenderer : triggers draw
+    MindMapController o-- CommandPalette : controls
     MindMapController o-- InteractionHandler : manages input
     
     MindMapService o-- MindMap : operates on
@@ -196,6 +208,9 @@ Handles user interface and user input.
   - Responsible for SVG rendering of the mind map.
 - **NodeEditor / StyleEditor**:
   - Separates complex UI logic for node editing and styling.
+- **CommandPalette**:
+  - Command and search palette callable via `m` key.
+  - Provides node search results and navigation.
 
 ### 3.4 Infrastructure Layer (`src/infrastructure`)
 Provides concrete implementations for interfaces defined in domain and application layers.
@@ -206,7 +221,158 @@ Provides concrete implementations for interfaces defined in domain and applicati
 - **EventEmitter**:
   - Implementation of the event bus.
 
-## 4. Entry Point and DI (`src/index.ts`)
+## 4. Major Processing Sequence
+
+### 4.1 Node Addition Flow
+
+This diagram illustrates the interaction between layers when a user adds a node.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Service as MindMapService
+    participant IdGen as IdGenerator
+    participant Entity as MindMap/Node
+    participant Renderer as SvgRenderer
+
+    User->>Controller: addChildNode(parentId)
+    activate Controller
+    
+    Controller->>Service: addNode(parentId, "New Topic")
+    activate Service
+    
+    Service->>IdGen: generate()
+    IdGen-->>Service: uuid
+    
+    Service->>Entity: new Node(uuid, ...)
+    Service->>Entity: parent.addChild(newNode)
+    
+    Service-->>Controller: newNode
+    deactivate Service
+    
+    Controller->>Renderer: render(mindMap)
+    Controller-->>User: Update View
+    deactivate Controller
+```
+
+### 4.2 Undo/Redo Flow
+
+This diagram illustrates the history management and state restoration flow using the Memento pattern.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Service as MindMapService
+    participant History as HistoryManager
+    participant Entity as MindMap
+
+    User->>Controller: undo()
+    activate Controller
+    
+    Controller->>Service: undo()
+    activate Service
+    
+    Service->>History: undo(currentState)
+    History-->>Service: previousState
+    
+    alt previousState exists
+        Service->>Service: importData(previousState)
+        Service-->>Controller: true
+    else
+        Service-->>Controller: false
+    end
+    deactivate Service
+    
+    opt if true
+        Controller->>Controller: render()
+        Controller-->>User: Update View
+    end
+    deactivate Controller
+```
+
+### 4.3 Node Move Flow (Drag & Drop)
+
+This diagram shows the validation and execution flow when moving a node.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Service as MindMapService
+    participant Entity as MindMap
+
+    User->>Controller: moveNode(nodeId, targetId, side)
+    activate Controller
+    
+    Controller->>Service: moveNode(nodeId, targetId, side)
+    activate Service
+    
+    Service->>Entity: findNode(nodeId), findNode(targetId)
+    
+    alt Validation Failed (Cycle / Root Move)
+        Entity-->>Service: false (from moveNode checks)
+        Service-->>Controller: false
+    else Validation Passed
+        Service->>Service: saveState()
+        Service->>Entity: moveNode(nodeId, targetId)
+        Entity->>Entity: remove from old parent
+        Entity->>Entity: add to new parent
+        Service-->>Controller: true
+    end
+    deactivate Service
+    
+    opt if true
+        Controller->>Controller: render()
+        Controller-->>User: Update View
+    end
+    deactivate Controller
+```
+
+### 4.4 Search and Command Palette Flow
+
+Flow when a user performs a search.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Controller as MindMapController
+    participant Palette as CommandPalette
+    participant Service as MindMapService
+
+    User->>Controller: toggleCommandPalette (m key)
+    activate Controller
+    Controller->>Palette: toggle()
+    deactivate Controller
+
+    User->>Palette: Input "query"
+    activate Palette
+    Palette-->>Controller: onInput("query")
+    activate Controller
+    
+    Controller->>Service: searchNodes("query")
+    activate Service
+    Service-->>Controller: Node[] results
+    deactivate Service
+    
+    Controller->>Palette: setResults(results)
+    deactivate Controller
+    deactivate Palette
+    
+    User->>Palette: Select Result
+    activate Palette
+    Palette-->>Controller: onSelect(nodeId)
+    deactivate Palette
+    activate Controller
+    
+    Controller->>Controller: selectNode(nodeId)
+    Controller->>Controller: ensureNodeVisible(nodeId)
+    Controller-->>User: Focus Node
+    deactivate Controller
+```
+
+## 5. Entry Point and DI (`src/index.ts`)
 Instantiates components and injects dependencies upon application startup.
 
 ```typescript
@@ -217,7 +383,7 @@ const service = new MindMapService(mindMap, idGenerator); // Application <- Doma
 const controller = new MindMapController(mindMap, service, renderer, ...); // Presentation <- Application
 ```
 
-## 5. Key Design Principles
+## 6. Key Design Principles
 
 - **Dependency Inversion Principle (DIP)**:
   - High-level modules (Service) do not depend on low-level modules (Infrastructure) but on abstractions (Interfaces) (e.g., `IdGenerator`).

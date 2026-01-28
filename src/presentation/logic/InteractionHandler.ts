@@ -36,6 +36,7 @@ export interface InteractionOptions {
   onStyleAction?: (nodeId: string, action: StyleAction) => void;
   onEditEnd?: (nodeId: string) => void;
   onToggleFold?: (nodeId: string) => void;
+  onToggleCommandPalette?: () => void;
   shortcuts?: ShortcutConfig;
   allowReadOnly?: boolean;
 }
@@ -242,6 +243,14 @@ export class InteractionHandler {
       if (this.shortcutManager.matches(ke, 'resetZoom')) {
         ke.preventDefault();
         this.options.onZoomReset?.();
+        return;
+      }
+
+      // Actions allowed without selection
+      const actionForNoSelection = this.shortcutManager.getAction(ke);
+      if (actionForNoSelection === 'openCommandPalette') {
+        ke.preventDefault();
+        this.options.onToggleCommandPalette?.();
         return;
       }
 
@@ -505,6 +514,10 @@ export class InteractionHandler {
       case 'toggleFold':
         ke.preventDefault();
         this.options.onToggleFold?.(this.selectedNodeId);
+        break;
+      case 'openCommandPalette':
+        ke.preventDefault();
+        this.options.onToggleCommandPalette?.();
         break;
       default:
         // Handle dynamic color actions
