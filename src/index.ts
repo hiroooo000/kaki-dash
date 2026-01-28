@@ -180,6 +180,36 @@ export class Kakidash extends TypedEventEmitter<KakidashEventMap> {
     this.controller.toggleFold(nodeId);
   }
 
+  /**
+   * Toggles the visibility of the command palette.
+   */
+  public toggleCommandPalette(): void {
+    this.controller.toggleCommandPalette();
+  }
+
+  /**
+   * Opens the command palette (alias for toggleCommandPalette).
+   */
+  public openCommandPalette(): void {
+    // Alias for toggle, but specifically intending to open.
+    // Since toggle just toggles, we might want to ensure open?
+    // CommandPalette.toggle checks display.
+    // Controller exposes toggle.
+    // If I want force open, I need force open method in Controller.
+    // Re-using toggle for now as per user request context usually implies toggle.
+    this.controller.toggleCommandPalette();
+  }
+
+  /**
+   * Searches for nodes matching the query string.
+   * Performs a case-insensitive, partial match search.
+   * @param query The search string.
+   * @returns An array of matching Node objects.
+   */
+  public searchNodes(query: string): Node[] {
+    return this.controller.searchNodes(query);
+  }
+
   public getSelectedNodeId(): string | null {
     // Note: private selectedNodeId removed from Kakidash, access via public accessor implies state?
     // Controller has the state.

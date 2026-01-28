@@ -633,6 +633,10 @@ export class MindMapController {
     this.commandPalette.toggle();
   }
 
+  public searchNodes(query: string): Node[] {
+    return this.service.searchNodes(query);
+  }
+
   private handleSearchInput(query: string): void {
     const results = this.service.searchNodes(query);
     this.commandPalette.setResults(results.map((n) => ({ id: n.id, topic: n.topic })));
