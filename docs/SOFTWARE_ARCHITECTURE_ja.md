@@ -164,7 +164,8 @@ src/
 │   └── services/     # アプリケーション固有のビジネスルール
 ├── presentation/     # プレゼンテーション層 (UI, Controller)
 │   ├── components/   # UIコンポーネント (Renderer, Editor)
-│   └── logic/        # ユーザー操作ハンドリング
+│   ├── logic/        # ユーザー操作ハンドリング
+│   └── resources/    # 静的リソース (Iconsなど)
 ├── infrastructure/   # インフラストラクチャ層 (External Interfaces)
 │   └── impl/         # 外部ライブラリやブラウザAPIの実装
 └── index.ts          # エントリーポイント (Dependency Injection)

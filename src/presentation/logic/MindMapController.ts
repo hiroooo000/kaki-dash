@@ -900,6 +900,11 @@ export class MindMapController {
       {
         title: 'General',
         actions: [
+          {
+            action: 'openCommandPalette',
+            desc: 'Open Command Palette',
+            descJa: 'コマンドパレットを開く',
+          },
           { action: 'navUp', desc: 'Move Selection Up', descJa: 'ノード間の移動 (上)' },
           { action: 'navDown', desc: 'Move Selection Down', descJa: 'ノード間の移動 (下)' },
           { action: 'navLeft', desc: 'Move Selection Left', descJa: 'ノード間の移動 (左)' },

@@ -164,7 +164,8 @@ src/
 │   └── services/     # Application specific business rules
 ├── presentation/     # Presentation Layer (UI, Controller, Handlers)
 │   ├── components/   # UI components (Renderer, Editor)
-│   └── logic/        # User interaction handling
+│   ├── logic/        # User interaction handling
+│   └── resources/    # Static resources (Icons etc.)
 ├── infrastructure/   # Infrastructure Layer (Implementations)
 │   └── impl/         # Implementation of external interfaces
 └── index.ts          # Entry point (Dependency Injection)

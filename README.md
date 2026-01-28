@@ -20,6 +20,7 @@ Master the shortcuts and expand your mind map at the speed of thought.
   - Font size adjustment.
   - Bold (`Bold`), Italic (`Italic`).
   - Color changes via palette (Style Editor).
+  - **Icon Settings**: Add/Remove flat icons via Command Palette (`m` key).
 - **Interaction**:
   - Drag and drop for node movement and reordering.
   - Keyboard shortcuts for rapid operation.
@@ -303,6 +304,7 @@ Here is the complete default configuration. You can partially override these key
 ### General
 | Key | Description |
 | --- | --- |
+| `m` | Command Palette (Search / Icons) |
 | `Arrow Keys` | Navigate between nodes |
 | `h` / `j` / `k` / `l` | Navigate between nodes (Vim-style) |
 | `F2` / `DblClick` / `Space` | Start editing node (Space triggers zoom if image) |
